@@ -19,6 +19,7 @@ import Admin from "./pages/Admin";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 import TeamPublicPage from "./pages/TeamPublicPage";
+import Termos from "./pages/Termos";
 import PresencaPublica from "./pages/PresencaPublica";
 import PlayerDashboard from "./pages/PlayerDashboard";
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/termos" element={<Termos />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
             <Route path="/player/dashboard" element={<PlayerDashboard />} />
             <Route path="/time/:slug" element={<TeamSlugLayout />}>
