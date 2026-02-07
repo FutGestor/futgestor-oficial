@@ -190,6 +190,7 @@ export default function MeuPerfil() {
             foto_url: fotoUrl,
             user_id: user.id,
             ativo: true,
+            team_id: profile?.team_id,
           })
           .select()
           .single();
