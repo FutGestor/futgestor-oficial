@@ -96,15 +96,25 @@ export default function AdminUsuarios() {
   const handleApprove = async (profileId: string) => {
     setIsUpdating(profileId);
     try {
+      // Get admin's team_id to assign to the approved user
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: adminProfile } = await supabase
+        .from("profiles")
+        .select("team_id")
+        .eq("id", user!.id)
+        .single();
+
+      if (!adminProfile?.team_id) throw new Error("Admin sem time vinculado");
+
       const { error } = await supabase
         .from("profiles")
-        .update({ aprovado: true })
+        .update({ aprovado: true, team_id: adminProfile.team_id })
         .eq("id", profileId);
 
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
-      toast({ title: "Usuário aprovado com sucesso!" });
+      toast({ title: "Usuário aprovado e vinculado ao time!" });
     } catch (error) {
       toast({
         variant: "destructive",
