@@ -375,7 +375,7 @@ export default function TeamPublicPage() {
       {/* Agendamento - visível para todos */}
       <section className="py-8 bg-gradient-to-b from-background to-muted/30">
         <div className="container px-4 md:px-6">
-          <ScheduleGameCard />
+          <ScheduleGameCard teamId={team.id} />
         </div>
       </section>
 

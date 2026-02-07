@@ -11,7 +11,11 @@ import {
 } from "@/components/ui/dialog";
 import { SolicitacaoJogoForm } from "@/components/SolicitacaoJogoForm";
 
-export function ScheduleGameCard() {
+interface ScheduleGameCardProps {
+  teamId?: string;
+}
+
+export function ScheduleGameCard({ teamId }: ScheduleGameCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
@@ -46,7 +50,7 @@ export function ScheduleGameCard() {
               em contato para confirmar.
             </DialogDescription>
           </DialogHeader>
-          <SolicitacaoJogoForm onSuccess={() => {}} />
+          <SolicitacaoJogoForm teamId={teamId} onSuccess={() => {}} />
         </DialogContent>
       </Dialog>
     </>
