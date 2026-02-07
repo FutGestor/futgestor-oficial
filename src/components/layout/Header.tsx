@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Instagram, MessageCircle, User, LogOut } from "lucide-react";
+import { Menu, X, Instagram, MessageCircle, User, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import escudoDark from "@/assets/escudo-real-tralhas.png";
-import escudoLight from "@/assets/escudo-light.png";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 
 // Itens públicos - visíveis para todos
 const publicNavItems = [
@@ -26,30 +25,9 @@ const privateNavItems = [
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
   const location = useLocation();
   const { user, isAdmin, isApproved, signOut } = useAuth();
-
-  // Detectar tema e observar mudanças
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    setTheme(stored === "dark" ? "dark" : "light");
-    
-    const observer = new MutationObserver(() => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setTheme(isDark ? "dark" : "light");
-    });
-    
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"]
-    });
-    
-    return () => observer.disconnect();
-  }, []);
-
-  // Escolher escudo baseado no tema
-  const escudoAtual = theme === "light" ? escudoLight : escudoDark;
+  const { team } = useTeamConfig();
 
   // Combinar itens de navegação baseado no estado de login
   const navItems = user 
@@ -66,13 +44,17 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <img
-            src={escudoAtual}
-            alt="Real Tralhas"
-            className="h-12 w-12 object-contain"
-          />
+          {team.escudo_url ? (
+            <img
+              src={team.escudo_url}
+              alt={team.nome}
+              className="h-12 w-12 object-contain"
+            />
+          ) : (
+            <Shield className="h-12 w-12 text-primary-foreground" />
+          )}
           <span className="hidden text-lg font-bold text-primary-foreground md:inline-block">
-            Real Tralhas
+            {team.nome}
           </span>
         </Link>
 
@@ -97,22 +79,26 @@ export function Header() {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <a
-            href="https://instagram.com/real_tralhas2025"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden rounded-md p-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground md:inline-flex"
-          >
-            <Instagram className="h-5 w-5" />
-          </a>
-          <a
-            href="https://wa.me/qr/BN7NUIGCATZFE1"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden rounded-md p-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground md:inline-flex"
-          >
-            <MessageCircle className="h-5 w-5" />
-          </a>
+          {team.redes_sociais.instagram && (
+            <a
+              href={team.redes_sociais.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden rounded-md p-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground md:inline-flex"
+            >
+              <Instagram className="h-5 w-5" />
+            </a>
+          )}
+          {team.redes_sociais.whatsapp && (
+            <a
+              href={team.redes_sociais.whatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden rounded-md p-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground md:inline-flex"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </a>
+          )}
           
           {user ? (
             <>
@@ -197,24 +183,28 @@ export function Header() {
               </Link>
             ))}
             <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/40 pt-2">
-              <a
-                href="https://instagram.com/real_tralhas2025"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 hover:bg-primary-foreground/10"
-              >
-                <Instagram className="h-4 w-4" />
-                Instagram
-              </a>
-              <a
-                href="https://wa.me/qr/BN7NUIGCATZFE1"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 hover:bg-primary-foreground/10"
-              >
-                <MessageCircle className="h-4 w-4" />
-                WhatsApp
-              </a>
+              {team.redes_sociais.instagram && (
+                <a
+                  href={team.redes_sociais.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 hover:bg-primary-foreground/10"
+                >
+                  <Instagram className="h-4 w-4" />
+                  Instagram
+                </a>
+              )}
+              {team.redes_sociais.whatsapp && (
+                <a
+                  href={team.redes_sociais.whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 hover:bg-primary-foreground/10"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp
+                </a>
+              )}
               {user ? (
                 <div className="ml-auto flex flex-wrap gap-2">
                   {isApproved && (

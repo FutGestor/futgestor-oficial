@@ -194,7 +194,7 @@ export default function RankingPage() {
       <div className="container py-8 px-4 md:px-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-primary">Ranking</h1>
-          <p className="text-muted-foreground">Artilharia e estatísticas do Real Tralhas</p>
+          <p className="text-muted-foreground">Artilharia e estatísticas do time</p>
         </div>
 
         {isLoading || isLoadingDestaques ? (

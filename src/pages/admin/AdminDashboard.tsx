@@ -3,6 +3,7 @@ import { Calendar, Users, DollarSign, Trophy, Bell, ClipboardList, TrendingUp, T
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useJogos, useJogadores, useFinancialSummary, useResultados, useAvisos } from "@/hooks/useData";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 
 export default function AdminDashboard() {
   const { data: jogos, isLoading: loadingJogos } = useJogos();
@@ -10,6 +11,7 @@ export default function AdminDashboard() {
   const { data: summary, isLoading: loadingSummary } = useFinancialSummary();
   const { data: resultados, isLoading: loadingResultados } = useResultados();
   const { data: avisos, isLoading: loadingAvisos } = useAvisos();
+  const { team } = useTeamConfig();
 
   const proximosJogos = jogos?.filter(j => new Date(j.data_hora) >= new Date()).length || 0;
   const jogosFinalizados = resultados?.length || 0;
@@ -18,7 +20,7 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Dashboard</h2>
-        <p className="text-muted-foreground">Visão geral do Real Tralhas</p>
+        <p className="text-muted-foreground">Visão geral do {team.nome}</p>
       </div>
 
       {/* Quick Stats */}

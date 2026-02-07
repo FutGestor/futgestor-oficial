@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useResultados } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
 import { VotacaoDestaque } from "@/components/VotacaoDestaque";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 
 function getResultType(golsFavor: number, golsContra: number) {
   if (golsFavor > golsContra) return "vitoria";
@@ -23,6 +24,7 @@ function ResultIcon({ tipo }: { tipo: "vitoria" | "derrota" | "empate" }) {
 
 export default function ResultadosPage() {
   const { data: resultados, isLoading } = useResultados();
+  const { team } = useTeamConfig();
 
   // Estatísticas
   const stats = resultados?.reduce(
@@ -44,7 +46,7 @@ export default function ResultadosPage() {
       <div className="container py-8 px-4 md:px-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-primary">Resultados</h1>
-          <p className="text-muted-foreground">Histórico de partidas do Real Tralhas</p>
+          <p className="text-muted-foreground">Histórico de partidas do {team.nome}</p>
         </div>
 
         {/* Estatísticas */}
@@ -139,7 +141,7 @@ export default function ResultadosPage() {
                       <div className="flex-1">
                         {/* Mobile: layout empilhado */}
                         <div className="flex flex-col gap-1 sm:hidden">
-                          <span className="font-semibold">Real Tralhas</span>
+                          <span className="font-semibold">{team.nome}</span>
                           <span
                             className={cn(
                               "w-fit rounded px-2 py-1 text-lg font-bold whitespace-nowrap",
@@ -155,7 +157,7 @@ export default function ResultadosPage() {
 
                         {/* Desktop: layout horizontal */}
                         <div className="hidden sm:flex sm:flex-wrap sm:items-center sm:gap-2">
-                          <span className="font-semibold">Real Tralhas</span>
+                          <span className="font-semibold">{team.nome}</span>
                           <span
                             className={cn(
                               "rounded px-2 py-1 text-lg font-bold whitespace-nowrap",

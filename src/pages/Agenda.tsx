@@ -48,7 +48,7 @@ function GameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
               )}
             </div>
             <h3 className="mt-1 text-lg font-semibold">
-              {timeCasa?.nome || 'Real Tralhas'} vs {time?.nome || jogo.adversario}
+              {timeCasa?.nome || 'Meu Time'} vs {time?.nome || jogo.adversario}
             </h3>
             <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
@@ -113,7 +113,7 @@ export default function AgendaPage() {
       <div className="container py-8 px-4 md:px-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-primary">Agenda</h1>
-          <p className="text-muted-foreground">Calendário de jogos do Real Tralhas</p>
+          <p className="text-muted-foreground">Calendário de jogos do time</p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
