@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Instagram, MessageCircle, User, LogOut, Shield } from "lucide-react";
+import { Menu, X, Instagram, MessageCircle, User, LogOut } from "lucide-react";
+import logoFutgestor from "@/assets/logo-futgestor.png";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
@@ -61,7 +62,7 @@ export function Header() {
           {teamEscudo ? (
             <img src={teamEscudo} alt={teamName} className="h-12 w-12 object-contain" />
           ) : (
-            <Shield className="h-12 w-12 text-primary-foreground" />
+            <img src={logoFutgestor} alt="FutGestor" className="h-12 w-12 object-contain" />
           )}
           <span className="hidden text-lg font-bold text-primary-foreground md:inline-block">
             {teamName}
