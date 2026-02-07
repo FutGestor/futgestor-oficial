@@ -16,10 +16,12 @@ interface AuthContextType {
   isAdmin: boolean;
   isApproved: boolean;
   isLoading: boolean;
+  passwordRecovery: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  clearPasswordRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,6 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
+
+  const clearPasswordRecovery = () => setPasswordRecovery(false);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -40,8 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (event === 'PASSWORD_RECOVERY') {
-          // Redirect to auth page with recovery param
-          window.location.href = '/auth?type=recovery';
+          setPasswordRecovery(true);
           return;
         }
         
@@ -163,10 +167,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin,
         isApproved,
         isLoading,
+        passwordRecovery,
         signIn,
         signUp,
         signOut,
         refreshProfile,
+        clearPasswordRecovery,
       }}
     >
       {children}

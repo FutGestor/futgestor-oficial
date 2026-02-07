@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 import escudo from "@/assets/escudo-real-tralhas.png";
@@ -40,13 +41,14 @@ export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { passwordRecovery, clearPasswordRecovery } = useAuth();
 
-  // Detect recovery redirect
+  // Detect recovery from auth context or URL param
   useEffect(() => {
-    if (searchParams.get("type") === "recovery") {
+    if (passwordRecovery || searchParams.get("type") === "recovery") {
       setView("reset");
     }
-  }, [searchParams]);
+  }, [passwordRecovery, searchParams]);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -227,7 +229,7 @@ export default function Auth() {
           {view === "forgot" ? (
             <ForgotPasswordForm onBack={() => setView("auth")} />
           ) : view === "reset" ? (
-            <ResetPasswordForm onSuccess={() => { setView("auth"); navigate("/auth"); }} />
+            <ResetPasswordForm onSuccess={() => { clearPasswordRecovery(); setView("auth"); navigate("/auth"); }} />
           ) : (
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")}>
             <TabsList className="grid w-full grid-cols-2">
