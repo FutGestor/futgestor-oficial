@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Plus, Edit, Trash2, Calendar, MapPin, Clock, Users, Check, X, Shield, List, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
+import PresencaLinkDialog from "@/components/PresencaLinkDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -589,6 +590,7 @@ function JogoCard({
             <Users className={compact ? "h-4 w-4" : "mr-1 h-4 w-4"} />
             {!compact && "Presenças"}
           </Button>
+          <PresencaLinkDialog jogoId={jogo.id} adversario={jogo.adversario} />
           <Button variant="outline" size="icon" onClick={() => onEdit(jogo)}>
             <Edit className="h-4 w-4" />
           </Button>

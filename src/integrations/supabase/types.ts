@@ -371,6 +371,84 @@ export type Database = {
           },
         ]
       }
+      presenca_links: {
+        Row: {
+          codigo: string
+          created_at: string
+          id: string
+          jogo_id: string
+          team_id: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          id?: string
+          jogo_id: string
+          team_id: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          id?: string
+          jogo_id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presenca_links_jogo_id_fkey"
+            columns: ["jogo_id"]
+            isOneToOne: true
+            referencedRelation: "jogos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "presenca_links_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      presencas: {
+        Row: {
+          id: string
+          jogador_id: string
+          presenca_link_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          jogador_id: string
+          presenca_link_id: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          jogador_id?: string
+          presenca_link_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presencas_jogador_id_fkey"
+            columns: ["jogador_id"]
+            isOneToOne: false
+            referencedRelation: "jogadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "presencas_presenca_link_id_fkey"
+            columns: ["presenca_link_id"]
+            isOneToOne: false
+            referencedRelation: "presenca_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           aprovado: boolean
