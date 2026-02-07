@@ -238,6 +238,8 @@ export default function AdminEscalacoes() {
     if (!confirm("Tem certeza que deseja excluir esta escalação?")) return;
 
     try {
+      // Delete related players first (FK constraint)
+      await supabase.from("escalacao_jogadores").delete().eq("escalacao_id", id);
       const { error } = await supabase.from("escalacoes").delete().eq("id", id);
       if (error) throw error;
       toast({ title: "Escalação excluída com sucesso!" });

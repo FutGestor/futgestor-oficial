@@ -12,7 +12,7 @@ import { useState } from "react";
 import { SocietyField } from "@/components/SocietyField";
 
 function EscalacaoCard({ escalacao, isSelected, onClick }: { 
-  escalacao: { id: string; jogo: { adversario: string; data_hora: string }; formacao: string }; 
+  escalacao: { id: string; jogo: { adversario: string; data_hora: string } | null; formacao: string }; 
   isSelected: boolean; 
   onClick: () => void;
 }) {
@@ -27,10 +27,14 @@ function EscalacaoCard({ escalacao, isSelected, onClick }: {
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-medium">vs {escalacao.jogo.adversario}</p>
-            <p className="text-sm text-muted-foreground">
-              {format(new Date(escalacao.jogo.data_hora), "dd/MM/yyyy", { locale: ptBR })}
+            <p className="font-medium">
+              {escalacao.jogo ? `vs ${escalacao.jogo.adversario}` : "Jogo não encontrado"}
             </p>
+            {escalacao.jogo && (
+              <p className="text-sm text-muted-foreground">
+                {format(new Date(escalacao.jogo.data_hora), "dd/MM/yyyy", { locale: ptBR })}
+              </p>
+            )}
           </div>
           <Badge variant="secondary">{escalacao.formacao}</Badge>
         </div>
@@ -197,7 +201,7 @@ function EscalacaoContent() {
                     key={esc.id}
                     escalacao={{ 
                       id: esc.id, 
-                      jogo: esc.jogo!, 
+                      jogo: esc.jogo || null, 
                       formacao: esc.formacao 
                     }}
                     isSelected={esc.id === currentId}
