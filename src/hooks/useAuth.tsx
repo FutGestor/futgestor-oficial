@@ -15,6 +15,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   isApproved: boolean;
   isLoading: boolean;
   passwordRecovery: boolean;
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
@@ -58,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsSuperAdmin(false);
           setIsApproved(false);
           setProfile(null);
         }
@@ -114,20 +117,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
+        .eq("user_id", userId);
 
       if (error) {
         console.error("Error checking admin role:", error);
         setIsAdmin(false);
+        setIsSuperAdmin(false);
         return;
       }
 
-      setIsAdmin(!!data);
+      const roles = data?.map(r => r.role) || [];
+      setIsAdmin(roles.includes("admin") || roles.includes("super_admin"));
+      setIsSuperAdmin(roles.includes("super_admin"));
     } catch (err) {
       console.error("Error checking admin role:", err);
       setIsAdmin(false);
+      setIsSuperAdmin(false);
     }
   };
 
@@ -155,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
+    setIsSuperAdmin(false);
     setIsApproved(false);
     setProfile(null);
   };
@@ -166,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         profile,
         isAdmin,
+        isSuperAdmin,
         isApproved,
         isLoading,
         passwordRecovery,
