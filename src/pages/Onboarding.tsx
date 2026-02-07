@@ -59,8 +59,8 @@ export default function Onboarding() {
 
   const handleSubmit = async (data: OnboardingFormData) => {
     if (!user) {
-      toast({ variant: "destructive", title: "Sessão expirada", description: "Faça login novamente." });
-      navigate("/auth");
+      toast({ variant: "destructive", title: "Sessão expirada", description: "Faça login ou cadastre-se para continuar." });
+      navigate("/auth?tab=signup&redirect=onboarding");
       return;
     }
     setIsLoading(true);
