@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -27,7 +27,14 @@ export default function Onboarding() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
+
+  // Guard: se já tem time, redireciona
+  useEffect(() => {
+    if (profile?.team_id) {
+      navigate("/");
+    }
+  }, [profile, navigate]);
 
   const form = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
@@ -78,10 +85,13 @@ export default function Onboarding() {
 
       if (profileError) throw profileError;
 
-      // 3. Add user as admin of this team
+      // 3. Add user as admin of this team (upsert to avoid duplicate key error)
       const { error: roleError } = await supabase
         .from("user_roles")
-        .insert({ user_id: user.id, role: "admin", team_id: team.id });
+        .upsert(
+          { user_id: user.id, role: "admin" as const, team_id: team.id },
+          { onConflict: "user_id,role" }
+        );
 
       if (roleError) throw roleError;
 
