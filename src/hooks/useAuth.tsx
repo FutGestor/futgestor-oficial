@@ -39,6 +39,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
+        if (event === 'PASSWORD_RECOVERY') {
+          // Redirect to auth page with recovery param
+          window.location.href = '/auth?type=recovery';
+          return;
+        }
+        
         // Defer admin and profile check
         if (session?.user) {
           setTimeout(() => {
