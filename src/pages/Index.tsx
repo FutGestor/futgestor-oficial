@@ -1,5 +1,5 @@
 import { Link, Navigate } from "react-router-dom";
-import logoFutgestor from "@/assets/logo-futgestor.jpg";
+import logoFutgestor from "@/assets/logo-futgestor.png";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";

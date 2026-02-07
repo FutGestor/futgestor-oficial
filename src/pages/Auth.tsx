@@ -240,7 +240,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex items-center justify-center">
-            <img src="/logo-futgestor.jpg" alt="FutGestor" className="h-16 w-auto rounded-lg" />
+            <img src="/logo-futgestor.png" alt="FutGestor" className="h-16 w-auto" />
           </div>
           <CardTitle className="text-2xl">FutGestor</CardTitle>
           <CardDescription>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Shield, CircleDot } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -127,7 +127,7 @@ export default function Onboarding() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex items-center justify-center">
-            <CircleDot className="h-16 w-16 text-primary" />
+            <img src="/logo-futgestor.png" alt="FutGestor" className="h-16 w-auto" />
           </div>
           <CardTitle className="text-2xl">Crie seu time</CardTitle>
           <CardDescription>
