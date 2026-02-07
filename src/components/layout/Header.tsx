@@ -19,17 +19,23 @@ export function Header() {
   const teamEscudo = teamSlug?.team.escudo_url || null;
   const redesSociais = teamSlug?.team.redes_sociais || {};
 
-  // Build nav items based on team context
-  const publicNavItems = teamSlug
+  // Nav items visíveis para todos (incluindo visitantes)
+  const visitorNavItems = teamSlug
     ? [
         { href: basePath, label: "Início" },
         { href: `${basePath}/agenda`, label: "Agenda" },
-        { href: `${basePath}/escalacao`, label: "Escalação" },
-        { href: `${basePath}/jogadores`, label: "Jogadores" },
-        { href: `${basePath}/ranking`, label: "Ranking" },
         { href: `${basePath}/resultados`, label: "Resultados" },
       ]
     : [{ href: "/", label: "Início" }];
+
+  // Nav items apenas para membros logados
+  const memberNavItems = teamSlug
+    ? [
+        { href: `${basePath}/escalacao`, label: "Escalação" },
+        { href: `${basePath}/jogadores`, label: "Jogadores" },
+        { href: `${basePath}/ranking`, label: "Ranking" },
+      ]
+    : [];
 
   const privateNavItems = teamSlug
     ? [
@@ -39,8 +45,8 @@ export function Header() {
     : [];
 
   const navItems = user
-    ? [...publicNavItems, ...privateNavItems]
-    : publicNavItems;
+    ? [...visitorNavItems, ...memberNavItems, ...privateNavItems]
+    : visitorNavItems;
 
   const handleSignOut = async () => {
     await signOut();

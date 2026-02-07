@@ -3,18 +3,25 @@ import { Calendar, Trophy, Medal, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAvisos } from "@/hooks/useData";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { useAuth } from "@/hooks/useAuth";
 
 export function MobileBottomNav() {
   const location = useLocation();
   const { data: avisos } = useAvisos();
   const { basePath } = useTeamSlug();
+  const { user } = useAuth();
 
-  const navItems = [
+  const publicItems = [
     { href: `${basePath}/agenda`, label: "Agenda", icon: Calendar },
-    { href: `${basePath}/ranking`, label: "Ranking", icon: Medal },
     { href: `${basePath}/resultados`, label: "Resultados", icon: Trophy },
+  ];
+
+  const memberItems = [
+    { href: `${basePath}/ranking`, label: "Ranking", icon: Medal },
     { href: `${basePath}/avisos`, label: "Avisos", icon: Bell },
   ];
+
+  const navItems = user ? [...publicItems, ...memberItems] : publicItems;
 
   // Contar avisos dos últimos 7 dias
   const avisosRecentes = avisos?.filter((a) => {

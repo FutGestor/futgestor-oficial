@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isFuture } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, MapPin, Clock } from "lucide-react";
@@ -12,9 +13,9 @@ import { useTimeCasa } from "@/hooks/useTimes";
 import { ConfirmacaoPresenca } from "@/components/ConfirmacaoPresenca";
 import { statusLabels, type Jogo, type Time } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { RequireTeam } from "@/components/RequireTeam";
 
-function GameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
+
+function GameCard({ jogo, timeCasa }: { jogo: Jogo & { showPresenca?: boolean }; timeCasa?: Time | null }) {
   const gameDate = new Date(jogo.data_hora);
   const isUpcoming = isFuture(gameDate);
   const time = jogo.time_adversario;
@@ -68,8 +69,8 @@ function GameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
             {jogo.observacoes && (
               <p className="mt-2 text-sm text-muted-foreground">{jogo.observacoes}</p>
             )}
-            {/* Botão de confirmação de presença para jogos futuros */}
-            {isUpcoming && jogo.status !== 'cancelado' && jogo.status !== 'finalizado' && (
+            {/* Botão de confirmação de presença para jogos futuros - apenas membros */}
+            {isUpcoming && jogo.status !== 'cancelado' && jogo.status !== 'finalizado' && jogo.showPresenca && (
               <div className="mt-3">
                 <ConfirmacaoPresenca jogoId={jogo.id} compact />
               </div>
@@ -93,6 +94,7 @@ function AgendaContent() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const { data: jogos, isLoading } = useJogos();
   const { data: timeCasa } = useTimeCasa();
+  const { user } = useAuth();
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -228,7 +230,7 @@ function AgendaContent() {
             ) : jogosDoMes.length > 0 ? (
               <div className="space-y-4">
                 {jogosDoMes.map((jogo) => (
-                  <GameCard key={jogo.id} jogo={jogo} timeCasa={timeCasa} />
+                  <GameCard key={jogo.id} jogo={{ ...jogo, showPresenca: !!user }} timeCasa={timeCasa} />
                 ))}
               </div>
             ) : (
@@ -246,9 +248,5 @@ function AgendaContent() {
 }
 
 export default function AgendaPage() {
-  return (
-    <RequireTeam>
-      <AgendaContent />
-    </RequireTeam>
-  );
+  return <AgendaContent />;
 }
