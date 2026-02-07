@@ -1,32 +1,73 @@
 
 
-# Mostrar card "Agendar Partida" para visitantes na pagina publica do time
+# Tornar Agenda e Resultados visíveis para visitantes
 
 ## Problema atual
 
-O card "Quer jogar contra a gente?" (ScheduleGameCard) so aparece para membros logados do time, pois esta dentro do bloco `{isMember && (...)}`. Visitantes nao logados veem apenas o hero com o botao "Entrar" e nada mais.
+As páginas Agenda e Resultados estão envolvidas pelo componente `RequireTeam`, que exige login. Além disso, as políticas de segurança do banco de dados só permitem leitura para membros do time. Visitantes veem "Acesso restrito".
 
-## Solucao
+## O que será feito
 
-Mover o `ScheduleGameCard` para fora do bloco condicional `isMember`, de modo que ele apareca sempre — tanto para visitantes quanto para membros. O card ficara logo abaixo do hero section, visivel para todos.
+### 1. Banco de dados - Novas políticas de leitura pública
 
-## Detalhes tecnicos
+Criar políticas SELECT para as tabelas `jogos` e `resultados` que permitam leitura anônima filtrada por `team_id` (o visitante só vê dados do time cujo slug acessou):
 
-### Arquivo: `src/pages/TeamPublicPage.tsx`
+- `jogos`: SELECT para role `anon` com filtro por `team_id`
+- `resultados`: SELECT para role `anon` com filtro por `team_id`
 
-- Extrair a section do `ScheduleGameCard` para fora do `{isMember && (...)}` e coloca-la entre o hero e o bloco condicional dos cards de membros
-- Estrutura resultante:
-  1. Hero section (sempre visivel)
-  2. ScheduleGameCard section (sempre visivel - para visitantes e membros)
-  3. Cards de membros (apenas para membros logados)
+### 2. Remover `RequireTeam` das páginas Agenda e Resultados
 
-### Arquivo: `src/components/ScheduleGameCard.tsx` e `src/hooks/useSolicitacoes.ts`
+- **`src/pages/Agenda.tsx`**: Remover o wrapper `RequireTeam` do export, renderizar `AgendaContent` diretamente
+- **`src/pages/Resultados.tsx`**: Remover o wrapper `RequireTeam` do export, renderizar `ResultadosContent` diretamente
 
-- Verificar se o hook `useCreateSolicitacao` e a tabela `solicitacoes_jogos` permitem insercao sem autenticacao (visitante anonimo)
-- Caso a tabela tenha RLS restritiva, sera necessario adicionar uma policy de INSERT para `anon` role, ja que visitantes nao estarao logados
+### 3. Ocultar itens de navegação restritos para visitantes
 
-### Verificacao de RLS necessaria
+- **`src/components/layout/Header.tsx`**: Separar os nav items em dois grupos:
+  - Visíveis para todos: Início, Agenda, Resultados
+  - Visíveis apenas para membros logados: Escalação, Jogadores, Ranking
+  - Manter Financeiro e Avisos como já estão (apenas para logados)
 
-- Consultar as policies da tabela `solicitacoes_jogos` para garantir que visitantes possam enviar solicitacoes
-- Se necessario, criar migration com policy de INSERT para role `anon`
+### 4. Ajustar MobileBottomNav para visitantes
+
+- **`src/components/layout/MobileBottomNav.tsx`**: Mostrar apenas Agenda e Resultados para visitantes não logados. Ranking e Avisos ficam restritos a membros.
+
+### 5. Ocultar funcionalidades de membro nas páginas públicas
+
+- Na página Agenda, esconder o botão de confirmação de presença (`ConfirmacaoPresenca`) quando o visitante não está logado
+- Na página Resultados, esconder o componente `VotacaoDestaque` quando o visitante não está logado
+
+## Detalhes técnicos
+
+### Migration SQL
+```sql
+CREATE POLICY "Public can view jogos by team"
+ON public.jogos FOR SELECT TO anon
+USING (true);
+
+CREATE POLICY "Public can view resultados by team"
+ON public.resultados FOR SELECT TO anon
+USING (true);
+```
+
+### Header - Lógica de nav items
+```typescript
+const visitorNavItems = [
+  { href: basePath, label: "Início" },
+  { href: `${basePath}/agenda`, label: "Agenda" },
+  { href: `${basePath}/resultados`, label: "Resultados" },
+];
+
+const memberNavItems = [
+  { href: `${basePath}/escalacao`, label: "Escalação" },
+  { href: `${basePath}/jogadores`, label: "Jogadores" },
+  { href: `${basePath}/ranking`, label: "Ranking" },
+];
+```
+
+### Arquivos modificados
+- Migration SQL (nova policy RLS)
+- `src/pages/Agenda.tsx` (remover RequireTeam, esconder presença para anon)
+- `src/pages/Resultados.tsx` (remover RequireTeam, esconder votação para anon)
+- `src/components/layout/Header.tsx` (filtrar nav items por autenticação)
+- `src/components/layout/MobileBottomNav.tsx` (filtrar itens para visitantes)
 
