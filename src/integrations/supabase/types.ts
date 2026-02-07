@@ -501,6 +501,7 @@ export type Database = {
           gols_favor: number
           id: string
           jogo_id: string
+          mvp_jogador_id: string | null
           observacoes: string | null
           team_id: string | null
           updated_at: string
@@ -511,6 +512,7 @@ export type Database = {
           gols_favor?: number
           id?: string
           jogo_id: string
+          mvp_jogador_id?: string | null
           observacoes?: string | null
           team_id?: string | null
           updated_at?: string
@@ -521,6 +523,7 @@ export type Database = {
           gols_favor?: number
           id?: string
           jogo_id?: string
+          mvp_jogador_id?: string | null
           observacoes?: string | null
           team_id?: string | null
           updated_at?: string
@@ -531,6 +534,13 @@ export type Database = {
             columns: ["jogo_id"]
             isOneToOne: true
             referencedRelation: "jogos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resultados_mvp_jogador_id_fkey"
+            columns: ["mvp_jogador_id"]
+            isOneToOne: false
+            referencedRelation: "jogadores"
             referencedColumns: ["id"]
           },
           {
