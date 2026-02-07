@@ -112,18 +112,19 @@ export default function Auth() {
         return;
       }
 
-      // Check if user is admin
-      const { data: adminRole } = await supabase
+      // Check user role
+      const { data: userRoles } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", authData.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
+        .eq("user_id", authData.user.id);
+
+      const roles = userRoles?.map(r => r.role) || [];
+      const isAdmin = roles.includes("admin") || roles.includes("super_admin");
 
       // Check if user has a team and is approved
       const { data: profile } = await supabase
         .from("profiles")
-        .select("aprovado, team_id")
+        .select("aprovado, team_id, jogador_id")
         .eq("id", authData.user.id)
         .maybeSingle();
 
@@ -149,8 +150,8 @@ export default function Auth() {
         localStorage.removeItem("rememberMe");
       }
 
-      // No team yet → redirect to onboarding to create one
-      if (!profile?.team_id) {
+      // No team yet → redirect to onboarding to create one (only for admins/new users)
+      if (!profile?.team_id && !profile?.jogador_id) {
         toast({
           title: "Bem-vindo!",
           description: "Crie seu time para começar.",
@@ -161,12 +162,19 @@ export default function Auth() {
 
       const teamBase = teamSlug ? `/time/${teamSlug}` : "/";
 
-      if (adminRole) {
+      if (isAdmin) {
         toast({
           title: "Login realizado!",
           description: "Bem-vindo ao painel administrativo.",
         });
         navigate(`${teamBase}/admin`);
+      } else if (profile?.jogador_id) {
+        // Player - redirect to player dashboard
+        toast({
+          title: "Login realizado!",
+          description: "Bem-vindo ao portal do jogador.",
+        });
+        navigate("/player/dashboard");
       } else if (profile?.aprovado) {
         toast({
           title: "Login realizado!",

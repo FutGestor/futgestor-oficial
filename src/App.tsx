@@ -20,6 +20,7 @@ import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 import TeamPublicPage from "./pages/TeamPublicPage";
 import PresencaPublica from "./pages/PresencaPublica";
+import PlayerDashboard from "./pages/PlayerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
+            <Route path="/player/dashboard" element={<PlayerDashboard />} />
             <Route path="/time/:slug" element={<TeamSlugLayout />}>
               <Route index element={<TeamPublicPage />} />
               <Route path="agenda" element={<Agenda />} />

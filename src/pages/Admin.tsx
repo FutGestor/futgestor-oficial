@@ -229,6 +229,11 @@ export default function Admin() {
   }
 
   if (!isAdmin) {
+    // If user is a player (has jogador_id), redirect to player dashboard
+    if (user) {
+      navigate("/player/dashboard", { replace: true });
+      return null;
+    }
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="text-center">
@@ -238,7 +243,7 @@ export default function Admin() {
             Você não tem permissão para acessar o painel administrativo.
           </p>
           <p className="mb-6 text-sm text-muted-foreground">
-            Conectado como: {user.email}
+            Conectado como: {user?.email}
           </p>
           <div className="flex justify-center gap-4">
             <Button variant="outline" onClick={() => navigate(basePath)}>

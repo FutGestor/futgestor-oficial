@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit, Trash2, User, Upload, X } from "lucide-react";
+import { Plus, Edit, Trash2, User, Upload, X, KeyRound, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useJogadores } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { positionLabels, type Jogador, type PlayerPosition } from "@/lib/types";
+import { usePlanAccess } from "@/hooks/useSubscription";
 
 type JogadorFormData = {
   nome: string;
@@ -48,8 +49,14 @@ export default function AdminJogadores() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // Gerar Acesso state
+  const [accessDialog, setAccessDialog] = useState<{ open: boolean; jogador: Jogador | null }>({ open: false, jogador: null });
+  const [accessEmail, setAccessEmail] = useState("");
+  const [isCreatingAccess, setIsCreatingAccess] = useState(false);
+  
   const { data: jogadores, isLoading } = useJogadores(false);
   const { profile } = useAuth();
+  const { hasLoginJogadores } = usePlanAccess();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -228,6 +235,29 @@ export default function AdminJogadores() {
         title: "Erro",
         description: error instanceof Error ? error.message : "Ocorreu um erro",
       });
+    }
+  };
+
+  const handleCreateAccess = async () => {
+    if (!accessDialog.jogador || !accessEmail) return;
+    setIsCreatingAccess(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-player-access", {
+        body: { jogador_id: accessDialog.jogador.id, email: accessEmail },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({
+        title: "Acesso criado!",
+        description: `E-mail: ${accessEmail} / Senha: 123456`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["jogadores"] });
+      setAccessDialog({ open: false, jogador: null });
+      setAccessEmail("");
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Erro", description: err.message });
+    } finally {
+      setIsCreatingAccess(false);
     }
   };
 
@@ -432,9 +462,26 @@ export default function AdminJogadores() {
                     </Button>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center gap-2">
+                <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Badge variant="secondary">{positionLabels[jogador.posicao]}</Badge>
                   {!jogador.ativo && <Badge variant="outline">Inativo</Badge>}
+                  {jogador.user_id ? (
+                    <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                      <KeyRound className="mr-1 h-3 w-3" /> Com acesso
+                    </Badge>
+                  ) : hasLoginJogadores ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-6 text-xs"
+                      onClick={() => {
+                        setAccessEmail(jogador.email || "");
+                        setAccessDialog({ open: true, jogador });
+                      }}
+                    >
+                      <KeyRound className="mr-1 h-3 w-3" /> Gerar Acesso
+                    </Button>
+                  ) : null}
                 </div>
               </CardContent>
             </Card>
@@ -447,6 +494,42 @@ export default function AdminJogadores() {
           </CardContent>
         </Card>
       )}
+
+      {/* Dialog Gerar Acesso */}
+      <Dialog open={accessDialog.open} onOpenChange={(open) => !open && setAccessDialog({ open: false, jogador: null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gerar Acesso para {accessDialog.jogador?.nome}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="access-email">E-mail do jogador</Label>
+              <Input
+                id="access-email"
+                type="email"
+                value={accessEmail}
+                onChange={(e) => setAccessEmail(e.target.value)}
+                placeholder="jogador@email.com"
+              />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Será criada uma conta com senha padrão: <strong>123456</strong>
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setAccessDialog({ open: false, jogador: null })}>
+                Cancelar
+              </Button>
+              <Button onClick={handleCreateAccess} disabled={isCreatingAccess || !accessEmail}>
+                {isCreatingAccess ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando...</>
+                ) : (
+                  <><KeyRound className="mr-2 h-4 w-4" /> Gerar Acesso</>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
