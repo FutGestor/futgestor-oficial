@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useJogadores } from "@/hooks/useData";
 import { useEstatisticasPartida, useSaveEstatisticasPartida } from "@/hooks/useEstatisticas";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 type JogadorStats = {
   jogador_id: string;
@@ -31,6 +32,7 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
   const { data: estatisticasExistentes, isLoading: estatisticasLoading } = useEstatisticasPartida(resultadoId);
   const saveEstatisticas = useSaveEstatisticasPartida();
   const { toast } = useToast();
+  const { profile } = useAuth();
 
   const jogadoresAtivos = jogadores?.filter(j => j.ativo !== false) || [];
 
@@ -82,6 +84,7 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
       await saveEstatisticas.mutateAsync({
         resultadoId,
         estatisticas: estatisticasParaSalvar,
+        team_id: profile?.team_id,
       });
 
       toast({ title: "Estatísticas salvas com sucesso!" });

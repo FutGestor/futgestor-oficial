@@ -179,8 +179,10 @@ export function useSaveEstatisticasPartida() {
     mutationFn: async ({
       resultadoId,
       estatisticas,
+      team_id,
     }: {
       resultadoId: string;
+      team_id?: string;
       estatisticas: Array<{
         jogador_id: string;
         gols: number;
@@ -207,6 +209,7 @@ export function useSaveEstatisticasPartida() {
             cartao_amarelo: e.cartao_amarelo,
             cartao_vermelho: e.cartao_vermelho,
             participou: e.participou,
+            team_id,
           }))
         );
         if (error) throw error;
