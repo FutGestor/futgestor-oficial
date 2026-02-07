@@ -169,12 +169,12 @@ export default function Auth() {
         });
         navigate(`${teamBase}/admin`);
       } else if (profile?.jogador_id) {
-        // Player - redirect to player dashboard
+        // Player - redirect to team page (can navigate freely)
         toast({
           title: "Login realizado!",
-          description: "Bem-vindo ao portal do jogador.",
+          description: "Bem-vindo!",
         });
-        navigate("/player/dashboard");
+        navigate(teamBase);
       } else if (profile?.aprovado) {
         toast({
           title: "Login realizado!",

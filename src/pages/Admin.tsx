@@ -229,35 +229,18 @@ export default function Admin() {
   }
 
   if (!isAdmin) {
-    // If user is a player (has jogador_id), redirect to player dashboard
+    // Non-admin user trying to access admin → redirect with warning
     if (user) {
+      toast({
+        variant: "destructive",
+        title: "Acesso Negado",
+        description: "Você não tem permissão para acessar o painel administrativo.",
+      });
       navigate("/player/dashboard", { replace: true });
       return null;
     }
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
-        <div className="text-center">
-          <FutGestorLogo className="mx-auto mb-4 h-20 w-20" />
-          <h1 className="mb-2 text-2xl font-bold text-destructive">Acesso Negado</h1>
-          <p className="mb-4 text-muted-foreground">
-            Você não tem permissão para acessar o painel administrativo.
-          </p>
-          <p className="mb-6 text-sm text-muted-foreground">
-            Conectado como: {user?.email}
-          </p>
-          <div className="flex justify-center gap-4">
-            <Button variant="outline" onClick={() => navigate(basePath)}>
-              <Home className="mr-2 h-4 w-4" />
-              Voltar ao Site
-            </Button>
-            <Button variant="destructive" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    navigate("/auth", { replace: true });
+    return null;
   }
 
   return (
