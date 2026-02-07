@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAvisos } from "@/hooks/useData";
 import { categoryLabels, type NoticeCategory } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { RequireTeam } from "@/components/RequireTeam";
 
 function getCategoryIcon(categoria: NoticeCategory) {
   switch (categoria) {
@@ -35,7 +36,7 @@ function getCategoryColor(categoria: NoticeCategory) {
   }
 }
 
-export default function AvisosPage() {
+function AvisosContent() {
   const { data: avisos, isLoading } = useAvisos();
 
   return (
@@ -98,5 +99,13 @@ export default function AvisosPage() {
         </Card>
       </div>
     </Layout>
+  );
+}
+
+export default function AvisosPage() {
+  return (
+    <RequireTeam>
+      <AvisosContent />
+    </RequireTeam>
   );
 }

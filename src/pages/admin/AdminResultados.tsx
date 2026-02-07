@@ -18,6 +18,7 @@ import { useResultados, useJogos } from "@/hooks/useData";
 import { type Resultado } from "@/lib/types";
 import EstatisticasPartidaForm from "@/components/EstatisticasPartidaForm";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
+import { useAuth } from "@/hooks/useAuth";
 
 type ResultadoFormData = {
   jogo_id: string;
@@ -46,6 +47,7 @@ export default function AdminResultados() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { team } = useTeamConfig();
+  const { profile } = useAuth();
 
   // Jogos sem resultado ainda
   const jogosSemResultado = jogos?.filter(
@@ -79,6 +81,7 @@ export default function AdminResultados() {
         gols_favor: parseInt(formData.gols_favor),
         gols_contra: parseInt(formData.gols_contra),
         observacoes: formData.observacoes || null,
+        team_id: profile?.team_id,
       };
 
       if (editingResultado) {

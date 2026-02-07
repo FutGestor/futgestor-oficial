@@ -366,8 +366,9 @@ function LineupPreviewCard() {
 }
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { team } = useTeamConfig();
+  const hasTeam = !!user && !!profile?.team_id;
 
   return (
     <Layout>
@@ -382,43 +383,56 @@ const Index = () => {
           <div className="flex flex-col items-center text-center">
             <CircleDot className="mb-6 h-20 w-20 text-primary-foreground/90" />
             <h1 className="mb-4 text-4xl font-bold text-primary-foreground md:text-5xl">
-              {team.nome}
+              {hasTeam ? team.nome : "FutGestor"}
             </h1>
             <p className="mb-8 max-w-2xl text-lg text-primary-foreground/80">
-              Gerencie seu time de futebol. Agenda, escalações, resultados, finanças e muito mais em um só lugar.
+              {hasTeam
+                ? "Gerencie seu time de futebol. Agenda, escalações, resultados, finanças e muito mais em um só lugar."
+                : "A plataforma completa para gestão do seu time de futebol. Faça login para acessar."}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/agenda">
-                <Button size="lg" variant="secondary" className="gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Ver Agenda
-                </Button>
-              </Link>
+              {hasTeam ? (
+                <Link to="/agenda">
+                  <Button size="lg" variant="secondary" className="gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Ver Agenda
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/auth">
+                  <Button size="lg" variant="secondary" className="gap-2">
+                    Entrar
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Seção de Destaque - Agendamento */}
-      <section className="py-8 bg-gradient-to-b from-background to-muted/30">
-        <div className="container px-4 md:px-6">
-          <ScheduleGameCard />
-        </div>
-      </section>
+      {hasTeam && (
+        <>
+          {/* Seção de Destaque - Agendamento */}
+          <section className="py-8 bg-gradient-to-b from-background to-muted/30">
+            <div className="container px-4 md:px-6">
+              <ScheduleGameCard />
+            </div>
+          </section>
 
-      {/* Cards Section */}
-      <section className="py-12">
-        <div className="container px-4 md:px-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <NextGameCard />
-            <LastResultCard />
-            {/* Mostrar Financeiro e Avisos apenas para usuários logados */}
-            {user && <FinancialCard />}
-            {user && <NoticesCard />}
-            <LineupPreviewCard />
-          </div>
-        </div>
-      </section>
+          {/* Cards Section */}
+          <section className="py-12">
+            <div className="container px-4 md:px-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <NextGameCard />
+                <LastResultCard />
+                <FinancialCard />
+                <NoticesCard />
+                <LineupPreviewCard />
+              </div>
+            </div>
+          </section>
+        </>
+      )}
     </Layout>
   );
 };

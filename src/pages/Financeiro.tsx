@@ -8,10 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTransacoes, useFinancialSummary } from "@/hooks/useData";
+import { RequireTeam } from "@/components/RequireTeam";
 
 const COLORS = ["#1B3A5C", "#D4A84B", "#8B2323", "#4A7C59", "#6B5B95"];
 
-export default function FinanceiroPage() {
+function FinanceiroContent() {
   const { data: transacoes, isLoading } = useTransacoes();
   const { data: summary } = useFinancialSummary();
 
@@ -305,5 +306,13 @@ export default function FinanceiroPage() {
         </Card>
       </div>
     </Layout>
+  );
+}
+
+export default function FinanceiroPage() {
+  return (
+    <RequireTeam>
+      <FinanceiroContent />
+    </RequireTeam>
   );
 }

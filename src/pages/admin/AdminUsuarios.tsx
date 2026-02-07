@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ProfileWithEmail {
   id: string;
@@ -46,6 +47,7 @@ interface ProfileWithEmail {
 export default function AdminUsuarios() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { profile: authProfile } = useAuth();
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<ProfileWithEmail | null>(null);
@@ -163,10 +165,9 @@ export default function AdminUsuarios() {
         if (error) throw error;
         toast({ title: "Permissão de admin removida!" });
       } else {
-        // Adicionar role de admin
         const { error } = await supabase
           .from("user_roles")
-          .insert({ user_id: profileId, role: "admin" });
+          .insert({ user_id: profileId, role: "admin", team_id: authProfile?.team_id });
 
         if (error) throw error;
         toast({ title: "Usuário promovido a admin!" });

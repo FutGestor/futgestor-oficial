@@ -33,6 +33,7 @@ export interface Time {
   cidade: string | null;
   is_casa: boolean;
   ativo: boolean;
+  team_id: string | null;
   created_at: string;
   updated_at: string;
 }
