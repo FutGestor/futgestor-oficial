@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Calendar, MapPin, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { LogOut, Calendar, MapPin, CheckCircle2, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -179,6 +179,14 @@ export default function PlayerDashboard() {
       <header className="sticky top-0 z-10 border-b bg-card p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(teamData?.slug ? `/time/${teamData.slug}` : "/")}
+              title="Voltar ao Time"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
             {jogadorData?.foto_url ? (
               <img src={jogadorData.foto_url} alt="" className="h-12 w-12 rounded-full object-cover border border-border" />
             ) : (
