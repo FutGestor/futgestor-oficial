@@ -3,7 +3,7 @@ import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom"
 import { User, Session } from "@supabase/supabase-js";
 import { 
   LayoutDashboard, Calendar, Users, DollarSign, Trophy, Bell, ClipboardList,
-  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon
+  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon, Lock, Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +14,8 @@ import { useSolicitacoesPendentesCount } from "@/hooks/useSolicitacoes";
 import { cn } from "@/lib/utils";
 import { FutGestorLogo } from "@/components/FutGestorLogo";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { usePlanAccess } from "@/hooks/useSubscription";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 // Admin pages
 import AdminDashboard from "./admin/AdminDashboard";
@@ -27,37 +29,56 @@ import AdminUsuarios from "./admin/AdminUsuarios";
 import AdminSolicitacoes from "./admin/AdminSolicitacoes";
 import AdminTimes from "./admin/AdminTimes";
 import AdminConfiguracoes from "./admin/AdminConfiguracoes";
+import AdminPlanos from "./admin/AdminPlanos";
 
 interface SidebarItem {
   href: string;
   label: string;
   icon: LucideIcon;
   hasBadge?: boolean;
+  locked?: boolean;
+  requiredPlan?: string;
+  featureName?: string;
 }
 
-function getSidebarItems(basePath: string): SidebarItem[] {
-  return [
-    { href: `${basePath}/admin`, label: "Dashboard", icon: LayoutDashboard },
-    { href: `${basePath}/admin/jogos`, label: "Jogos", icon: Calendar },
-    { href: `${basePath}/admin/solicitacoes`, label: "Solicitações", icon: CalendarPlus, hasBadge: true },
-    { href: `${basePath}/admin/times`, label: "Times", icon: Shield },
-    { href: `${basePath}/admin/jogadores`, label: "Jogadores", icon: Users },
-    { href: `${basePath}/admin/usuarios`, label: "Usuários", icon: UserCog },
-    { href: `${basePath}/admin/transacoes`, label: "Transações", icon: DollarSign },
-    { href: `${basePath}/admin/resultados`, label: "Resultados", icon: Trophy },
-    { href: `${basePath}/admin/escalacoes`, label: "Escalações", icon: ClipboardList },
-    { href: `${basePath}/admin/avisos`, label: "Avisos", icon: Bell },
-    { href: `${basePath}/admin/configuracoes`, label: "Configurações", icon: Settings },
-  ];
-}
-
-function NavMenu({ setSidebarOpen, currentPath, sidebarItems }: { setSidebarOpen: (open: boolean) => void; currentPath: string; sidebarItems: SidebarItem[] }) {
+function NavMenu({ 
+  setSidebarOpen, 
+  currentPath, 
+  sidebarItems, 
+  onLockedClick 
+}: { 
+  setSidebarOpen: (open: boolean) => void; 
+  currentPath: string; 
+  sidebarItems: SidebarItem[];
+  onLockedClick: (requiredPlan: string, featureName: string) => void;
+}) {
   const { data: pendingCount } = useSolicitacoesPendentesCount();
 
   return (
     <nav className="flex-1 space-y-1 p-4">
       {sidebarItems.map((item) => {
         const isActive = currentPath === item.href;
+        
+        if (item.locked) {
+          return (
+            <button
+              key={item.href}
+              onClick={() => {
+                setSidebarOpen(false);
+                onLockedClick(item.requiredPlan || "Pro", item.featureName || item.label);
+              }}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "text-sidebar-foreground/50 hover:bg-sidebar-accent/30"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              {item.label}
+              <Lock className="ml-auto h-4 w-4 text-yellow-500" />
+            </button>
+          );
+        }
+        
         return (
           <Link
             key={item.href}
@@ -90,12 +111,36 @@ export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [upgradeModal, setUpgradeModal] = useState<{ open: boolean; plan: string; feature: string }>({
+    open: false, plan: "", feature: ""
+  });
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const { basePath } = useTeamSlug();
+  const { hasFinanceiro, hasAvisos, isActive, isLoading: planLoading, plan } = usePlanAccess();
 
-  const sidebarItems = getSidebarItems(basePath);
+  // Build sidebar items with lock state
+  const sidebarItems: SidebarItem[] = [
+    { href: `${basePath}/admin`, label: "Dashboard", icon: LayoutDashboard },
+    { href: `${basePath}/admin/planos`, label: "Planos", icon: Crown },
+    { href: `${basePath}/admin/jogos`, label: "Jogos", icon: Calendar },
+    { href: `${basePath}/admin/solicitacoes`, label: "Solicitações", icon: CalendarPlus, hasBadge: true },
+    { href: `${basePath}/admin/times`, label: "Times", icon: Shield },
+    { href: `${basePath}/admin/jogadores`, label: "Jogadores", icon: Users },
+    { href: `${basePath}/admin/usuarios`, label: "Usuários", icon: UserCog },
+    { 
+      href: `${basePath}/admin/transacoes`, label: "Transações", icon: DollarSign,
+      locked: !hasFinanceiro, requiredPlan: "Pro", featureName: "Gestão Financeira"
+    },
+    { href: `${basePath}/admin/resultados`, label: "Resultados", icon: Trophy },
+    { href: `${basePath}/admin/escalacoes`, label: "Escalações", icon: ClipboardList },
+    { 
+      href: `${basePath}/admin/avisos`, label: "Avisos", icon: Bell,
+      locked: !hasAvisos, requiredPlan: "Pro", featureName: "Gestão de Avisos"
+    },
+    { href: `${basePath}/admin/configuracoes`, label: "Configurações", icon: Settings },
+  ];
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -127,6 +172,13 @@ export default function Admin() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Paywall redirect: if no active plan and not on /planos, redirect
+  useEffect(() => {
+    if (!planLoading && !isActive && user && isAdmin && !location.pathname.endsWith("/planos")) {
+      navigate(`${basePath}/admin/planos`, { replace: true });
+    }
+  }, [planLoading, isActive, user, isAdmin, location.pathname, basePath, navigate]);
 
   const checkAdminRole = async (userId: string) => {
     try {
@@ -205,6 +257,13 @@ export default function Admin() {
 
   return (
     <div className="flex min-h-screen bg-background">
+      <UpgradeModal
+        open={upgradeModal.open}
+        onOpenChange={(open) => setUpgradeModal((prev) => ({ ...prev, open }))}
+        requiredPlan={upgradeModal.plan}
+        featureName={upgradeModal.feature}
+      />
+
       {/* Sidebar */}
       <aside
         className={cn(
@@ -243,7 +302,12 @@ export default function Admin() {
             </div>
           </div>
 
-          <NavMenu setSidebarOpen={setSidebarOpen} currentPath={location.pathname} sidebarItems={sidebarItems} />
+          <NavMenu 
+            setSidebarOpen={setSidebarOpen} 
+            currentPath={location.pathname} 
+            sidebarItems={sidebarItems}
+            onLockedClick={(plan, feature) => setUpgradeModal({ open: true, plan, feature })}
+          />
 
           <div className="border-t border-sidebar-border p-4">
             <p className="truncate text-xs text-sidebar-foreground/70">
@@ -280,6 +344,7 @@ export default function Admin() {
         <main className="p-4 lg:p-6">
           <Routes>
             <Route path="/" element={<AdminDashboard />} />
+            <Route path="/planos" element={<AdminPlanos />} />
             <Route path="/jogos" element={<AdminJogos />} />
             <Route path="/solicitacoes" element={<AdminSolicitacoes />} />
             <Route path="/times" element={<AdminTimes />} />

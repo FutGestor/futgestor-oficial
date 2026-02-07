@@ -69,7 +69,9 @@ Deno.serve(async (req) => {
 
     // Plan pricing
     const plans: Record<string, { title: string; price: number }> = {
-      pro: { title: "FutGestor Pro - Mensal", price: 29.90 },
+      basico: { title: "FutGestor Básico - Mensal", price: 9.90 },
+      pro: { title: "FutGestor Pro - Mensal", price: 19.90 },
+      liga: { title: "FutGestor Liga - Mensal", price: 39.90 },
     };
 
     const selectedPlan = plans[plano];

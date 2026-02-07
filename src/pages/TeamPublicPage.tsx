@@ -3,6 +3,7 @@ import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { Calendar, Users, MapPin, Instagram, MessageCircle, Youtube, Facebook } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlanAccess } from "@/hooks/useSubscription";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -289,6 +290,7 @@ export default function TeamPublicPage() {
   const { team, basePath } = useTeamSlug();
   const { user, profile } = useAuth();
   const isMember = !!profile?.team_id && profile.team_id === team.id;
+  const { hasFinanceiro, hasAvisos } = usePlanAccess(team.id);
 
   return (
     <Layout>
@@ -376,8 +378,8 @@ export default function TeamPublicPage() {
             <div className="grid gap-6 md:grid-cols-2">
               <NextGameCard />
               <LastResultCard />
-              <FinancialCard />
-              <NoticesCard />
+              {hasFinanceiro && <FinancialCard />}
+              {hasAvisos && <NoticesCard />}
               <LineupPreviewCard />
             </div>
           </div>
