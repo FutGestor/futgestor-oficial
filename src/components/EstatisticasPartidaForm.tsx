@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
-import { User } from "lucide-react";
+import { User, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useJogadores } from "@/hooks/useData";
 import { useEstatisticasPartida, useSaveEstatisticasPartida } from "@/hooks/useEstatisticas";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 type JogadorStats = {
   jogador_id: string;
@@ -27,6 +29,7 @@ interface EstatisticasPartidaFormProps {
 
 export default function EstatisticasPartidaForm({ resultadoId, onSave }: EstatisticasPartidaFormProps) {
   const [stats, setStats] = useState<Record<string, JogadorStats>>({});
+  const [mvpJogadorId, setMvpJogadorId] = useState<string>("");
   
   const { data: jogadores, isLoading: jogadoresLoading } = useJogadores();
   const { data: estatisticasExistentes, isLoading: estatisticasLoading } = useEstatisticasPartida(resultadoId);
@@ -35,6 +38,19 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
   const { profile } = useAuth();
 
   const jogadoresAtivos = jogadores?.filter(j => j.ativo !== false) || [];
+
+  // Carregar MVP existente
+  useEffect(() => {
+    if (!resultadoId) return;
+    supabase
+      .from("resultados")
+      .select("mvp_jogador_id")
+      .eq("id", resultadoId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.mvp_jogador_id) setMvpJogadorId(data.mvp_jogador_id);
+      });
+  }, [resultadoId]);
 
   // Inicializar stats quando jogadores ou estatísticas carregarem
   useEffect(() => {
@@ -87,6 +103,12 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
         team_id: profile?.team_id,
       });
 
+      // Salvar MVP
+      await supabase
+        .from("resultados")
+        .update({ mvp_jogador_id: (mvpJogadorId && mvpJogadorId !== "none") ? mvpJogadorId : null } as any)
+        .eq("id", resultadoId);
+
       toast({ title: "Estatísticas salvas com sucesso!" });
       onSave?.();
     } catch (error) {
@@ -105,6 +127,8 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
     return <div className="py-8 text-center text-muted-foreground">Carregando jogadores...</div>;
   }
 
+  const participantes_list = jogadoresAtivos.filter(j => stats[j.id]?.participou);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -112,7 +136,30 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
         <span>{totalGols} gol(s) marcado(s)</span>
       </div>
 
-      <ScrollArea className="h-[400px] pr-4">
+      {/* Seleção de MVP */}
+      <Card className="border-yellow-500/50">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Star className="h-4 w-4 text-yellow-500" />
+            <Label className="font-medium">MVP da Partida</Label>
+          </div>
+          <Select value={mvpJogadorId} onValueChange={setMvpJogadorId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o destaque da partida" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Nenhum</SelectItem>
+              {participantes_list.map(j => (
+                <SelectItem key={j.id} value={j.id}>
+                  {j.apelido || j.nome} {j.numero ? `#${j.numero}` : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      <ScrollArea className="h-[350px] pr-4">
         <div className="space-y-3">
           {jogadoresAtivos.map(jogador => {
             const jogadorStats = stats[jogador.id];

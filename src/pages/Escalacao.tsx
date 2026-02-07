@@ -10,7 +10,6 @@ import { positionLabels, modalityLabels, type GameModality } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { SocietyField } from "@/components/SocietyField";
-import { RequireTeam } from "@/components/RequireTeam";
 
 function EscalacaoCard({ escalacao, isSelected, onClick }: { 
   escalacao: { id: string; jogo: { adversario: string; data_hora: string }; formacao: string }; 
@@ -221,9 +220,5 @@ function EscalacaoContent() {
 }
 
 export default function EscalacaoPage() {
-  return (
-    <RequireTeam>
-      <EscalacaoContent />
-    </RequireTeam>
-  );
+  return <EscalacaoContent />;
 }

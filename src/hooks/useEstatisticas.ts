@@ -122,22 +122,23 @@ export function useRanking() {
   });
 }
 
-// Ranking de destaques (votos MVP)
+// Ranking de destaques (MVP escolhido pelo admin)
 export function useRankingDestaques() {
   return useQuery({
     queryKey: ["ranking-destaques"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("votos_destaque")
+        .from("resultados")
         .select(`
-          jogador_id,
-          jogador:jogadores(id, nome, apelido, foto_url)
-        `);
+          mvp_jogador_id,
+          jogador:jogadores!resultados_mvp_jogador_id_fkey(id, nome, apelido, foto_url)
+        `)
+        .not("mvp_jogador_id", "is", null);
 
       if (error) throw error;
 
-      // Agregar votos por jogador
-      const votosMap: Record<string, {
+      // Agregar MVPs por jogador
+      const mvpMap: Record<string, {
         jogador: {
           id: string;
           nome: string;
@@ -147,26 +148,26 @@ export function useRankingDestaques() {
         votos: number;
       }> = {};
 
-      for (const voto of data) {
-        if (!voto.jogador) continue;
+      for (const row of data) {
+        if (!row.jogador || !row.mvp_jogador_id) continue;
         
-        const jogador = voto.jogador as {
+        const jogador = row.jogador as unknown as {
           id: string;
           nome: string;
           apelido: string | null;
           foto_url: string | null;
         };
         
-        if (!votosMap[voto.jogador_id]) {
-          votosMap[voto.jogador_id] = {
+        if (!mvpMap[row.mvp_jogador_id]) {
+          mvpMap[row.mvp_jogador_id] = {
             jogador,
             votos: 0,
           };
         }
-        votosMap[voto.jogador_id].votos++;
+        mvpMap[row.mvp_jogador_id].votos++;
       }
 
-      return Object.values(votosMap).sort((a, b) => b.votos - a.votos);
+      return Object.values(mvpMap).sort((a, b) => b.votos - a.votos);
     },
   });
 }
