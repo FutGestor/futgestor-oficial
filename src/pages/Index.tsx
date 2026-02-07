@@ -44,7 +44,7 @@ const Index = () => {
                       Entrar
                     </Button>
                   </Link>
-                  <Link to="/onboarding">
+                   <Link to="/auth?tab=signup&redirect=onboarding">
                     <Button size="lg" variant="secondary" className="gap-2">
                       Criar meu time
                     </Button>

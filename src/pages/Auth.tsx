@@ -33,7 +33,10 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
+  const [activeTab, setActiveTab] = useState<"login" | "signup">(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("tab") === "signup" ? "signup" : "login";
+  });
   const [view, setView] = useState<"auth" | "forgot" | "reset">("auth");
   const [rememberMe, setRememberMe] = useState(() => {
     return localStorage.getItem("rememberMe") === "true";
@@ -146,13 +149,13 @@ export default function Auth() {
         localStorage.removeItem("rememberMe");
       }
 
-      // No team yet → awaiting admin approval
+      // No team yet → redirect to onboarding to create one
       if (!profile?.team_id) {
         toast({
-          title: "Aguardando aprovação",
-          description: "Sua conta ainda não foi vinculada a um time. Aguarde a aprovação de um administrador.",
+          title: "Bem-vindo!",
+          description: "Crie seu time para começar.",
         });
-        await supabase.auth.signOut();
+        navigate("/onboarding");
         return;
       }
 
@@ -219,9 +222,23 @@ export default function Auth() {
         return;
       }
 
+      // Check if auto-confirm is on (user gets session immediately)
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) {
+        // Auto-confirmed: redirect to onboarding
+        const redirectTo = searchParams.get("redirect");
+        if (redirectTo === "onboarding") {
+          navigate("/onboarding");
+        } else {
+          navigate("/onboarding");
+        }
+        toast({ title: "Cadastro realizado!", description: "Crie seu time para começar." });
+        return;
+      }
+
       toast({
         title: "Cadastro realizado!",
-        description: "Verifique seu email para confirmar a conta. Após confirmar, aguarde a aprovação de um administrador.",
+        description: "Verifique seu email para confirmar a conta.",
       });
       
       signupForm.reset();
@@ -403,11 +420,7 @@ export default function Auth() {
                 </form>
               </Form>
               <p className="mt-4 text-center text-sm text-muted-foreground">
-                Após o cadastro, você receberá um email de confirmação.
-                <br />
-                <span className="text-xs">
-                  Um administrador precisará aprovar seu acesso para ver todas as funcionalidades.
-                </span>
+                Após o cadastro, você poderá criar seu time imediatamente.
               </p>
             </TabsContent>
           </Tabs>
