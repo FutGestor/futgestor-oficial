@@ -1,92 +1,64 @@
 
-# Plano: Aplicar Estilo do Calendario na Area Admin
 
-## Objetivo
+# Primeiro Acesso como Admin
 
-Aplicar as mesmas melhorias visuais do calendario da pagina Agenda no calendario do Admin (AdminJogos.tsx):
-1. Inverter cores (dias normais em bege, dias de jogos em branco)
-2. Escudos circulares e maiores
+## Problema Identificado
+Sua conta (`futgestor@gmail.com`) foi criada e o email ja esta confirmado, porem:
+- O perfil na tabela `profiles` nao foi criado (o trigger automatico pode nao existir ou falhou)
+- Nenhum papel de admin foi atribuido na tabela `user_roles`
 
----
+Por isso, ao tentar fazer login, o sistema mostra "Aguardando aprovacao" e faz logout.
 
-## Arquivo a Modificar
+## O que sera feito
 
-| Arquivo | Mudanca |
-|---------|---------|
-| `src/pages/admin/AdminJogos.tsx` | Atualizar estilos do calendario |
+### 1. Criar seu perfil na tabela `profiles`
+Inserir um registro com `aprovado = true` para que o sistema permita o login.
 
----
+### 2. Atribuir o papel de admin
+Inserir um registro na tabela `user_roles` com o papel `admin` para seu usuario.
 
-## Alteracoes Necessarias
+### 3. Verificar o trigger de criacao de perfil
+Garantir que exista um trigger `handle_new_user` para que futuros usuarios tenham seus perfis criados automaticamente ao se cadastrar.
 
-### 1. Inverter Cores das Celulas (linhas 428-434)
+## Detalhes Tecnicos
 
-**Codigo Atual:**
-```tsx
-className={cn(
-  "aspect-square relative flex items-center justify-center rounded-lg text-sm transition-colors cursor-pointer",
-  isToday && !isSelected && "bg-primary text-primary-foreground",
-  isSelected && "ring-2 ring-primary ring-offset-2",
-  hasGames && !isToday && !isSelected && "bg-secondary text-secondary-foreground",
-  !hasGames && !isToday && "hover:bg-muted"
-)}
+### Migracoes SQL necessarias
+
+**Inserir perfil e role de admin:**
+```sql
+INSERT INTO public.profiles (id, nome, aprovado)
+VALUES ('6dcc735a-95a8-498a-bc21-2a94cdb0a893', 'FutGestor Admin', true)
+ON CONFLICT (id) DO UPDATE SET aprovado = true;
+
+INSERT INTO public.user_roles (user_id, role)
+VALUES ('6dcc735a-95a8-498a-bc21-2a94cdb0a893', 'admin')
+ON CONFLICT (user_id, role) DO NOTHING;
 ```
 
-**Codigo Novo:**
-```tsx
-className={cn(
-  "aspect-square relative flex items-center justify-center rounded-lg text-sm transition-colors cursor-pointer",
-  isToday && !isSelected && "bg-primary text-primary-foreground",
-  isSelected && "ring-2 ring-primary ring-offset-2",
-  hasGames && !isToday && !isSelected && "bg-card text-card-foreground border",
-  !hasGames && !isToday && "bg-secondary/30 hover:bg-secondary/50"
-)}
+**Verificar/criar trigger para novos usuarios:**
+Verificar se a funcao `handle_new_user` existe e cria automaticamente um perfil quando um novo usuario se cadastra. Se nao existir, criar:
+```sql
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.profiles (id, nome, aprovado)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'nome', NEW.email),
+    false
+  );
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 ```
 
-### 2. Escudo Circular Maior (linhas 447-455)
+### Resultado esperado
+Apos a implementacao, voce podera fazer login com `futgestor@gmail.com` e sera redirecionado diretamente para o painel administrativo (`/admin`).
 
-**Codigo Atual:**
-```tsx
-{hasGames && time?.escudo_url && (
-  <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
-    <img 
-      src={time.escudo_url} 
-      alt={time.nome || firstGame.adversario}
-      className="h-full w-full object-cover"
-    />
-  </div>
-)}
-```
-
-**Codigo Novo:**
-```tsx
-{hasGames && time?.escudo_url && (
-  <div className="absolute inset-0 flex items-center justify-center p-0.5">
-    <img 
-      src={time.escudo_url} 
-      alt={time.nome || firstGame.adversario}
-      className="h-full w-full rounded-full object-contain"
-    />
-  </div>
-)}
-```
-
----
-
-## Resumo das Diferencas
-
-| Elemento | Antes | Depois |
-|----------|-------|--------|
-| **Dias normais** | Sem cor (`hover:bg-muted`) | Bege claro (`bg-secondary/30`) |
-| **Dias de jogos** | Dourado (`bg-secondary`) | Branco (`bg-card` + borda) |
-| **Container escudo** | `overflow-hidden rounded-lg` | `p-0.5` |
-| **Imagem escudo** | `object-cover` | `rounded-full object-contain` |
-
----
-
-## Resultado
-
-O calendario do admin ficara visualmente identico ao calendario da pagina Agenda:
-- Escudos circulares e "limpos" (sem bordas externas pretas)
-- Dias normais em bege claro
-- Dias de jogos destacados com fundo branco
