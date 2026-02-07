@@ -1,37 +1,24 @@
 
 
-# Recuperacao de Senha
+# Correcao do Erro "Auth session missing!" na Recuperacao de Senha
 
 ## Problema
-A senha cadastrada nao esta funcionando e nao existe opcao de recuperar senha na tela de login.
+Quando voce clica no link de recuperacao no email, o Supabase processa o token e dispara o evento `PASSWORD_RECOVERY` com uma sessao valida. Porem, o codigo atual usa `window.location.href = '/auth?type=recovery'` que faz um reload completo da pagina, destruindo a sessao que acabou de ser criada. Por isso, quando voce tenta redefinir a senha, o erro "Auth session missing!" aparece.
 
-## O que sera feito
-
-### 1. Resetar sua senha atual
-Como nao tenho acesso a senha original (ela e criptografada), vou usar o Supabase Admin API para redefinir sua senha para uma temporaria. Voce podera troca-la depois.
-
-### 2. Adicionar "Esqueci minha senha" na tela de login
-Adicionar um link "Esqueci minha senha" abaixo do formulario de login que envia um email de recuperacao para o usuario.
+## Solucao
+Trocar o `window.location.href` por uma navegacao via React Router (sem reload) para preservar a sessao em memoria.
 
 ## Detalhes Tecnicos
 
-### Reset de senha via migracao
-Usar a funcao administrativa do Supabase para atualizar a senha do usuario `futgestor@gmail.com`.
+### Arquivo: `src/hooks/useAuth.tsx`
+- Remover o `window.location.href = '/auth?type=recovery'` (linha 44)
+- Adicionar um estado `passwordRecovery` no contexto de autenticacao para sinalizar que o evento de recuperacao ocorreu
+- Expor esse estado no contexto para que a pagina de Auth possa reagir a ele
 
-### Alteracoes no arquivo `src/pages/Auth.tsx`
-- Adicionar um estado `forgotPassword` para alternar entre login e recuperacao
-- Criar um formulario simples que pede o email e chama `supabase.auth.resetPasswordForEmail()`
-- Adicionar link "Esqueci minha senha" no formulario de login
-- Criar uma pagina ou logica para receber o token de reset e permitir definir nova senha
+### Arquivo: `src/pages/Auth.tsx`
+- Usar o estado `passwordRecovery` do contexto de auth para exibir o formulario de redefinicao de senha, em vez de depender apenas do parametro `type=recovery` na URL
+- Quando o evento de recuperacao ocorrer, alternar automaticamente para a view "reset" sem recarregar a pagina
 
-### Fluxo de recuperacao
-1. Usuario clica em "Esqueci minha senha"
-2. Digita o email
-3. Sistema envia email com link de recuperacao via `supabase.auth.resetPasswordForEmail()`
-4. Usuario clica no link, e redirecionado de volta ao app
-5. App detecta o evento `PASSWORD_RECOVERY` no `onAuthStateChange` e exibe formulario para nova senha
-
-### Arquivos afetados
-- `src/pages/Auth.tsx` - Adicionar formulario de recuperacao e link
-- `src/hooks/useAuth.tsx` - Adicionar tratamento do evento `PASSWORD_RECOVERY` no listener de auth state
+### Resultado esperado
+Ao clicar no link de recuperacao do email, o app vai manter a sessao ativa e exibir o formulario de nova senha sem erro.
 
