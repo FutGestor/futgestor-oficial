@@ -10,24 +10,16 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { statusLabels } from "@/lib/types";
 import { ScheduleGameCard } from "@/components/ScheduleGameCard";
-import { useConfirmacoesJogo, useConfirmarPresenca } from "@/hooks/useConfirmacoes";
 import { useProximoJogo, useAvisos, useFinancialSummary, useProximaEscalacao, useEscalacaoJogadores, useUltimoResultado } from "@/hooks/useData";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
-import { Trophy, TrendingUp, Bell, ChevronRight, Check, X } from "lucide-react";
+import { Trophy, TrendingUp, Bell, ChevronRight } from "lucide-react";
 import { categoryLabels } from "@/lib/types";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function NextGameCard() {
   const { data: jogo, isLoading } = useProximoJogo();
-  const { user, profile } = useAuth();
-  const { data: confirmacoes } = useConfirmacoesJogo(jogo?.id);
-  const confirmarPresenca = useConfirmarPresenca();
   const { team } = useTeamConfig();
-
-  const isApproved = profile?.aprovado === true;
-  const jogadorId = profile?.jogador_id;
-  const minhaConfirmacao = confirmacoes?.find(c => c.jogador_id === jogadorId);
 
   if (isLoading) {
     return (
@@ -54,11 +46,6 @@ function NextGameCard() {
     );
   }
 
-  const handleConfirmar = (status: "confirmado" | "indisponivel") => {
-    if (!jogadorId) return;
-    confirmarPresenca.mutate({ jogoId: jogo.id, jogadorId, status });
-  };
-
   return (
     <Card className="border-2 border-secondary bg-card">
       <CardHeader>
@@ -84,31 +71,6 @@ function NextGameCard() {
             </span>
           </div>
         </div>
-        {user && isApproved && jogadorId && (
-          <div className="mt-4 border-t pt-4">
-            <p className="mb-2 text-sm font-medium">Confirme sua presença:</p>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant={minhaConfirmacao?.status === 'confirmado' ? 'default' : 'outline'}
-                onClick={() => handleConfirmar('confirmado')}
-                disabled={confirmarPresenca.isPending}
-              >
-                <Check className="mr-1 h-4 w-4" />
-                Vou jogar
-              </Button>
-              <Button
-                size="sm"
-                variant={minhaConfirmacao?.status === 'indisponivel' ? 'destructive' : 'outline'}
-                onClick={() => handleConfirmar('indisponivel')}
-                disabled={confirmarPresenca.isPending}
-              >
-                <X className="mr-1 h-4 w-4" />
-                Não posso
-              </Button>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
