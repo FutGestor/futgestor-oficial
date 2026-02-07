@@ -1,5 +1,6 @@
-import { Instagram, MessageCircle, Shield } from "lucide-react";
+import { Instagram, MessageCircle } from "lucide-react";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
+import logoFutgestor from "@/assets/logo-futgestor.png";
 
 export function Footer() {
   const { team } = useTeamConfig();
@@ -16,7 +17,7 @@ export function Footer() {
                 className="h-10 w-10 object-contain"
               />
             ) : (
-              <Shield className="h-10 w-10 text-primary-foreground" />
+              <img src={logoFutgestor} alt="FutGestor" className="h-10 w-10 object-contain" />
             )}
             <div>
               <p className="font-bold text-primary-foreground">{team.nome}</p>
