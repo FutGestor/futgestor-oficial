@@ -19,17 +19,15 @@ export function useJogadores(ativos = true) {
 }
 
 // Jogos
-export function useJogos() {
+export function useJogos(teamId?: string) {
   return useQuery({
-    queryKey: ["jogos"],
+    queryKey: ["jogos", teamId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("jogos")
-        .select(`
-          *,
-          time_adversario:times(*)
-        `)
-        .order("data_hora", { ascending: false });
+      let query = supabase.from("jogos").select(`*, time_adversario:times(*)`);
+      if (teamId) {
+        query = query.eq("team_id", teamId);
+      }
+      const { data, error } = await query.order("data_hora", { ascending: false });
       if (error) throw error;
       return data as Jogo[];
     },
@@ -59,17 +57,15 @@ export function useProximoJogo() {
 }
 
 // Resultados
-export function useResultados() {
+export function useResultados(teamId?: string) {
   return useQuery({
-    queryKey: ["resultados"],
+    queryKey: ["resultados", teamId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("resultados")
-        .select(`
-          *,
-          jogo:jogos(*)
-        `)
-        .order("created_at", { ascending: false });
+      let query = supabase.from("resultados").select(`*, jogo:jogos(*)`);
+      if (teamId) {
+        query = query.eq("team_id", teamId);
+      }
+      const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return data as (Resultado & { jogo: Jogo })[];
     },
