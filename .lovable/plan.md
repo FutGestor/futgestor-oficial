@@ -1,79 +1,117 @@
 
-# Redesign Premium da Landing Page FutGestor
 
-## O que o FutGestor faz (para contexto do redesign)
+# Redesign Premium Dark da Landing Page FutGestor
 
-O FutGestor e uma plataforma SaaS de gestao para times de futebol amador. Ele oferece:
-- **Gestao Financeira**: Controle de caixa, mensalidades, quem pagou e quem deve
-- **Escalacao Tatica**: Campo virtual interativo para montar formacoes (5x5, 7x7, 11x11) e compartilhar no WhatsApp
-- **Agenda de Jogos**: Calendario com datas, horarios e locais dos jogos
-- **Ranking e Estatisticas**: Artilharia, assistencias, presenca dos jogadores
-- **Portal do Jogador**: Cada atleta tem login proprio para ver dividas, confirmar presenca e acompanhar stats
-- **Avisos Automaticos**: Comunicacao direta com o elenco
-- **Pagina Publica do Time**: Vitrine com escudo, resultados e informacoes do time
+## Resumo
 
-O publico-alvo e o **capitao/organizador** do time que hoje gerencia tudo pelo WhatsApp e caderno.
+Aplicar a estetica escura e premium do template HTML enviado (fundo `#0A1628`, tipografia Bebas Neue, cards semi-transparentes, efeitos de glow) em toda a Landing Page, **mantendo inalterados**:
+- O conteudo e estrutura atual da **PricingSection** (precos, features, textos)
+- Os textos e copys existentes em cada secao
+- Os links dos botoes (scroll para `#precos`, `/auth`, `/auth?tab=signup&redirect=onboarding`)
+
+Somente a estetica visual sera alterada para o estilo dark/premium.
 
 ---
 
-## Mudancas Planejadas
+## Mudancas por Secao
 
-### 1. Hero Section - Impacto Premium
-- Botao principal "Ver Planos" faz **scroll suave** para a secao `#precos` (em vez de ir para cadastro)
-- Botao secundario "Entrar" (link discreto para `/auth`)
-- Gradiente com blur na imagem de fundo para efeito mais sofisticado
-- Animacao de fade-in no titulo e botoes
+### 1. Fontes (index.html + tailwind.config.ts)
+- Adicionar link para Google Fonts: **Bebas Neue** e **DM Sans**
+- Configurar `fontFamily.display: ['Bebas Neue']` no Tailwind
+- Atualizar `fontFamily.sans` para incluir DM Sans como primeira opcao
 
-### 2. Secao de Funcionalidades - Layout Zigue-Zague
-Substituir os 3 cards simples por blocos alternados (texto + imagem lado a lado):
-- **Bloco 1** (Texto esquerda / Screenshot direita): "O Fim do Calote" - screenshot financeiro
-- **Bloco 2** (Screenshot esquerda / Texto direita): "Escalacao Profissional" - screenshot escalacao
-- **Bloco 3** (Texto esquerda / Screenshot direita): "Cada Atleta com seu Acesso" - screenshot ranking/avisos
+### 2. LandingPage.tsx
+- Envolver tudo em um container escuro `bg-[#0A1628] text-white`
+- Adicionar novas secoes na composicao: LandingHeader, PainSection, FeaturesGrid, HowItWorks, TestimonialsSection, CtaFinal
+- Remover imports de ZigZagFeatures e GallerySection
 
-Cada bloco tera titulo grande, texto persuasivo detalhado e imagem com sombra e bordas arredondadas.
+### 3. LandingHeader (Novo)
+- Header fixo no topo com backdrop-blur e fundo semi-transparente escuro
+- Logo FutGestor + texto "FutGestor" (Bebas Neue)
+- Links de navegacao: Funcionalidades, Como funciona, Precos, FAQ
+- Botao CTA dourado "Comecar gratis" (scroll para `#precos`)
+- Menu hamburger no mobile
 
-### 3. Galeria Interativa "Por Dentro do App"
-- Grid de miniaturas das 6 screenshots existentes
-- **Ao clicar**: abre um Dialog/Modal (lightbox) com a imagem em tamanho grande
-- Efeito hover com zoom sutil nas miniaturas
-- Fundo escuro (navy) para contraste
+### 4. HeroSection (Redesign estetico)
+- Fundo escuro com gradiente radial animado (glow azul/dourado sutil)
+- Badge dourado: "Novo — Gestao esportiva simplificada"
+- Titulo em Bebas Neue grande: "CHEGA DE BAGUNA NO WHATSAPP"
+- Subtitulo: manter texto atual
+- Botao "Criar meu time gratis" (scroll para `#precos`) + "Ver funcionalidades" (scroll)
+- Stats row: "100% Gratuito pra comecar" | "2min Pra configurar" | "24/7 Acesso pelo celular"
 
-### 4. Secao de Planos (id="precos")
-- ID mudado de `planos` para `precos` (ancora do botao do hero)
-- Card Pro com borda dourada brilhante e escala maior
-- Itens inclusos com Check verde; itens nao inclusos com X cinza nos planos inferiores
-- Destaque "Login para Jogadores: INCLUSO" no plano Liga
+### 5. PainSection (Nova)
+- Grid 2 colunas: lista de dores (borda vermelha esquerda) + card solucao (borda dourada)
+- Dores: grupo bagunçado, planilha, caixinha sem controle, escalacao na hora
+- Solucao: "E se tudo isso tivesse em um so lugar?" com botao scroll para precos
 
-### 5. FAQ Premium
-- Cards com bordas arredondadas (rounded-xl) e sombras suaves
-- Fundo card branco sobre fundo muted para profundidade
-- Animacao suave ja existente no accordion
+### 6. FeaturesGrid (Nova — substitui ZigZagFeatures)
+- Grid de 6 cards com fundo semi-transparente (`rgba(15, 36, 64, 0.6)`)
+- Borda sutil, barra dourada no topo ao hover, translateY no hover
+- Emojis como icones: Agenda, Escalacao, Elenco, Financeiro, Resultados, Avisos
+- Tag "FUNCIONALIDADES" + titulo "TUDO QUE SEU TIME PRECISA"
 
-### 6. Animacoes de Entrada
-- Usar a classe `animate-fade-in` existente no Tailwind config com **Intersection Observer** nativo
-- Cada secao aparece com fade-in ao entrar na viewport
-- Sem dependencia externa (sem framer-motion)
+### 7. HowItWorks (Nova)
+- 4 passos em grid: Crie conta, Cadastre time, Adicione jogadores, Gerencie tudo
+- Numeros grandes em Bebas Neue com opacidade reduzida
+- Setas entre passos (ocultas no mobile)
+
+### 8. PricingSection — SEM ALTERACOES
+- Manter o componente exatamente como esta (conteudo, precos, features, botoes)
+- Apenas garantir que o id="precos" esta presente (ja esta)
+
+### 9. TestimonialsSection (Nova)
+- Grid de 3 cards com estrelas douradas e depoimentos ficticios
+- Fundo escuro semi-transparente, bordas sutis
+
+### 10. FaqSection (Redesign estetico)
+- Manter todas as perguntas e respostas atuais
+- Aplicar estilo escuro: fundo semi-transparente, textos claros
+- Tag "DUVIDAS FREQUENTES" + titulo em Bebas Neue
+
+### 11. CtaFinal (Nova)
+- Secao de fechamento com glow radial dourado
+- Titulo: "SEU TIME MERECE ORGANIZACAO DE VERDADE"
+- Botao CTA para cadastro
+
+### 12. LandingFooter (Redesign estetico)
+- Manter links atuais (Login, Cadastro, Termos de Uso)
+- Estilo escuro com borda sutil no topo
+- Logo + copyright
+
+### 13. index.css
+- Adicionar classe utilitaria `.landing-noise` para textura sutil de fundo (opcional)
 
 ---
 
 ## Detalhes Tecnicos
 
-### Arquivo editado:
-- `src/pages/LandingPage.tsx` - Reescrita completa do componente
+### Arquivos a criar:
+- `src/components/landing/LandingHeader.tsx`
+- `src/components/landing/PainSection.tsx`
+- `src/components/landing/FeaturesGrid.tsx`
+- `src/components/landing/HowItWorks.tsx`
+- `src/components/landing/TestimonialsSection.tsx`
+- `src/components/landing/CtaFinal.tsx`
 
-### Componentes utilizados:
-- `Dialog` do Shadcn (para lightbox das screenshots)
-- `Accordion` do Shadcn (FAQ)
-- `Card`, `Badge`, `Button` do Shadcn
-- Lucide icons: `DollarSign`, `Users`, `Smartphone`, `Check`, `X`, `Trophy`, `Shield`, `Star`, `ChevronRight`, `Eye`
+### Arquivos a editar:
+- `src/pages/LandingPage.tsx` — nova composicao
+- `src/components/landing/HeroSection.tsx` — redesign estetico completo
+- `src/components/landing/FaqSection.tsx` — estilo escuro, manter conteudo
+- `src/components/landing/LandingFooter.tsx` — estilo escuro, manter links
+- `tailwind.config.ts` — fontFamily display, keyframe heroGlow
+- `index.html` — link Google Fonts Bebas Neue + DM Sans
 
-### Hook customizado inline:
-- `useInView` simples com `IntersectionObserver` para animacoes de scroll (implementado dentro do proprio componente, sem criar arquivo extra)
+### Arquivos que NAO serao alterados:
+- `src/components/landing/PricingSection.tsx` — mantida como esta
 
-### Scroll suave:
-```
-document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })
-```
+### Arquivos que podem ser removidos do uso:
+- `src/components/landing/ZigZagFeatures.tsx` — nao sera mais importado
+- `src/components/landing/GallerySection.tsx` — nao sera mais importado
 
-### Nenhuma dependencia nova necessaria
-- Tudo sera feito com Tailwind, Shadcn e APIs nativas do browser
+### Navegacao dos botoes (mantida):
+- Hero CTA principal: scroll suave para `#precos`
+- Header "Comecar gratis": scroll suave para `#precos`
+- Cards de preco "Assinar Agora": Link para `/auth?tab=signup&redirect=onboarding`
+- "Entrar" / "Login": Link para `/auth`
+
