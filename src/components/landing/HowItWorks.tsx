@@ -1,8 +1,8 @@
 import { useInView } from "@/hooks/useInView";
 
 const steps = [
-  { num: "01", title: "Crie sua conta", desc: "Cadastro rápido com email. Sem cartão de crédito." },
-  { num: "02", title: "Cadastre seu time", desc: "Nome, escudo e pronto. Seu time tem um portal próprio." },
+  { num: "01", title: "Crie sua conta", desc: "Cadastro rápido com email. Rápido e simples." },
+  { num: "02", title: "Cadastre seu time", desc: "Nome do time e pronto. Seu time ganha um portal exclusivo. Personalize com escudo e cores depois." },
   { num: "03", title: "Adicione jogadores", desc: "Cadastre o elenco. Eles acessam pelo celular com o link do time." },
   { num: "04", title: "Gerencie tudo", desc: "Jogos, escalação, finanças, resultados. Tudo no mesmo lugar." },
 ];
