@@ -134,14 +134,17 @@ export default function Auth() {
         localStorage.removeItem("rememberMe");
       }
 
-      // No team yet → onboarding
+      // No team yet → awaiting admin approval
       if (!profile?.team_id) {
         toast({
-          title: "Bem-vindo!",
-          description: "Vamos configurar seu time.",
+          title: "Aguardando aprovação",
+          description: "Sua conta ainda não foi vinculada a um time. Aguarde a aprovação de um administrador.",
         });
-        navigate("/onboarding");
-      } else if (adminRole) {
+        await supabase.auth.signOut();
+        return;
+      }
+
+      if (adminRole) {
         toast({
           title: "Login realizado!",
           description: "Bem-vindo ao painel administrativo.",
