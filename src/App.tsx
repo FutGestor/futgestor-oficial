@@ -15,6 +15,7 @@ import Resultados from "./pages/Resultados";
 import Avisos from "./pages/Avisos";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/resultados" element={<Resultados />} />
             <Route path="/avisos" element={<Avisos />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/admin/*" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

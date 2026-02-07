@@ -1,7 +1,11 @@
-import { useTimeCasa } from "@/hooks/useTimes";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface TeamConfig {
+  id: string | null;
   nome: string;
+  slug: string | null;
   escudo_url: string | null;
   redes_sociais: {
     instagram?: string;
@@ -11,19 +15,38 @@ export interface TeamConfig {
 }
 
 const DEFAULT_TEAM: TeamConfig = {
+  id: null,
   nome: "Meu Time",
+  slug: null,
   escudo_url: null,
   redes_sociais: {},
 };
 
 export function useTeamConfig() {
-  const { data: timeCasa, isLoading } = useTimeCasa();
+  const { profile } = useAuth();
+  const teamId = profile?.team_id;
 
-  const team: TeamConfig = timeCasa
+  const { data: teamData, isLoading } = useQuery({
+    queryKey: ["team-config", teamId],
+    enabled: !!teamId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("teams")
+        .select("*")
+        .eq("id", teamId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const team: TeamConfig = teamData
     ? {
-        nome: timeCasa.nome,
-        escudo_url: timeCasa.escudo_url,
-        redes_sociais: (timeCasa as any).redes_sociais || {},
+        id: teamData.id,
+        nome: teamData.nome,
+        slug: teamData.slug,
+        escudo_url: teamData.escudo_url,
+        redes_sociais: (teamData.redes_sociais as any) || {},
       }
     : DEFAULT_TEAM;
 

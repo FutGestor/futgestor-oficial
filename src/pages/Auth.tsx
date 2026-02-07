@@ -116,10 +116,10 @@ export default function Auth() {
         .eq("role", "admin")
         .maybeSingle();
 
-      // Check if user is approved
+      // Check if user has a team and is approved
       const { data: profile } = await supabase
         .from("profiles")
-        .select("aprovado")
+        .select("aprovado, team_id")
         .eq("id", authData.user.id)
         .maybeSingle();
 
@@ -134,7 +134,14 @@ export default function Auth() {
         localStorage.removeItem("rememberMe");
       }
 
-      if (adminRole) {
+      // No team yet → onboarding
+      if (!profile?.team_id) {
+        toast({
+          title: "Bem-vindo!",
+          description: "Vamos configurar seu time.",
+        });
+        navigate("/onboarding");
+      } else if (adminRole) {
         toast({
           title: "Login realizado!",
           description: "Bem-vindo ao painel administrativo.",
