@@ -1,36 +1,79 @@
 
+# Corrigir Isolamento de Usuarios por Time + Super Admin
 
-# Ajustes na Hero Section da Pagina Publica
+## Problema
+Atualmente, qualquer admin de qualquer time consegue ver TODOS os usuarios do sistema. Isso acontece por dois motivos:
+1. A policy RLS "Admins can manage all profiles" usa `has_role(auth.uid(), 'admin')` que da acesso a QUALQUER admin
+2. A query no `AdminUsuarios.tsx` nao filtra por `team_id`
 
-## Problemas identificados
+## Solucao
 
-1. **Logo FutGestor aparecendo na hero** -- precisa ser removida quando nao ha escudo do time
-2. **Capa/banner desfocada** -- o gradiente overlay esta muito opaco, escurecendo e desfocando a imagem
-3. **Botoes de redes sociais** -- precisam aparecer na hero section (ao lado do "Ver Agenda") como na segunda imagem, e so quando configurados
-4. **Marca d'agua "FutGestor" grande** -- parece estar aparecendo por tras (provavelmente o logo grande no fundo)
+### 1. Criar role "super_admin" no banco de dados
+- Adicionar `'super_admin'` ao enum `app_role`
+- Atribuir role `super_admin` a conta `futgestor@gmail.com` (ID: `6dcc735a-95a8-498a-bc21-2a94cdb0a893`)
+- Criar funcao `is_super_admin()` para verificar essa role
 
-## Mudancas
+### 2. Corrigir RLS da tabela `profiles`
+- Alterar policy "Admins can manage all profiles" para:
+  - Super admin: acesso total a todos os profiles
+  - Admin de time: acesso apenas aos profiles do mesmo `team_id`
 
-### 1. `src/pages/TeamPublicPage.tsx`
+Nova policy:
+```text
+USING (
+  is_super_admin(auth.uid()) 
+  OR is_team_admin(auth.uid(), team_id)
+)
+```
 
-- **Remover o logo/escudo** da hero section (remover o bloco condicional que exibe `team.escudo_url` ou `FutGestorLogo`)
-- **Reduzir opacidade do gradiente overlay** para que a imagem de fundo fique nitida e clara (mudar de `from-primary/90 via-primary/80` para algo como `from-black/50 via-black/40 to-black/30`)
-- **Adicionar botoes de redes sociais na hero**, ao lado do botao "Ver Agenda":
-  - Botao Instagram (branco com icone) -- so aparece se `team.redes_sociais.instagram` existir
-  - Botao WhatsApp (verde com icone) -- so aparece se `team.redes_sociais.whatsapp` existir
-  - Botao YouTube -- so aparece se `team.redes_sociais.youtube` existir
-  - Botao Facebook -- so aparece se `team.redes_sociais.facebook` existir
-- Estilo dos botoes conforme a segunda imagem: Instagram com fundo branco/outline, WhatsApp com fundo verde
+### 3. Corrigir a query no `AdminUsuarios.tsx`
+- Para admins normais: filtrar profiles por `team_id` do admin logado
+- Para super admin (futgestor@gmail.com): mostrar todos os profiles
+- Adicionar flag no `useAuth` ou verificar diretamente se o usuario tem role `super_admin`
 
-### 2. Detalhes tecnicos
+### 4. Atualizar `useAuth` para detectar super admin
+- Adicionar campo `isSuperAdmin` ao contexto de autenticacao
+- Verificar na tabela `user_roles` se tem role `super_admin`
 
-No componente `TeamPublicPage`, dentro da hero section:
+### 5. Ajustar a interface do `AdminUsuarios`
+- Super admin vera todos os usuarios de todos os times, com indicacao do time de cada um
+- Admin normal vera apenas usuarios do seu proprio time
 
-- Remover linhas 250-254 (bloco do escudo/FutGestorLogo)
-- Alterar o gradiente overlay de `from-primary/90 via-primary/80 to-accent/40` para `from-black/50 via-black/40 to-black/20` para manter nitidez
-- Remover o segundo overlay com radial-gradient
-- Adicionar na area de botoes (flex wrap) os botoes condicionais de redes sociais com links externos (`target="_blank"`)
+## Detalhes Tecnicos
 
-Arquivos editados:
-- `src/pages/TeamPublicPage.tsx`
+### Migracao SQL
+```text
+-- Adicionar super_admin ao enum
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'super_admin';
 
+-- Criar funcao helper
+CREATE OR REPLACE FUNCTION public.is_super_admin(_user_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = _user_id AND role = 'super_admin'
+  )
+$$;
+
+-- Atribuir role ao futgestor
+INSERT INTO public.user_roles (user_id, role)
+VALUES ('6dcc735a-95a8-498a-bc21-2a94cdb0a893', 'super_admin')
+ON CONFLICT DO NOTHING;
+
+-- Corrigir RLS policy de profiles
+DROP POLICY IF EXISTS "Admins can manage all profiles" ON public.profiles;
+CREATE POLICY "Admins can manage all profiles"
+ON public.profiles FOR ALL
+USING (
+  is_super_admin(auth.uid())
+  OR is_team_admin(auth.uid(), team_id)
+);
+```
+
+### Arquivos a modificar
+- `src/hooks/useAuth.tsx` - Adicionar `isSuperAdmin` ao contexto
+- `src/pages/admin/AdminUsuarios.tsx` - Filtrar por `team_id` para admins normais; mostrar todos para super admin
+- Migracao SQL para enum, funcao e policies
