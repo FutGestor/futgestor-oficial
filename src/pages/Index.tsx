@@ -1,9 +1,9 @@
 import { Link, Navigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { FutGestorLogo } from "@/components/FutGestorLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
+import heroBg from "@/assets/hero-futgestor.png";
 
 const Index = () => {
   const { user, profile, isLoading } = useAuth();
@@ -17,15 +17,17 @@ const Index = () => {
   return (
     <Layout>
       <section className="relative overflow-hidden min-h-[600px] md:min-h-[700px]">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-accent/40" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,hsl(var(--accent)/0.15),transparent_60%)]" />
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroBg})` }}
+        />
+        <div className="absolute inset-0 bg-black/40" />
         <div className="container relative z-10 flex min-h-[600px] md:min-h-[700px] items-center justify-center px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
-            <FutGestorLogo className="h-20 w-20" />
-            <h1 className="mb-4 text-4xl font-bold text-primary-foreground md:text-5xl">
+            <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">
               FutGestor
             </h1>
-            <p className="mb-8 max-w-2xl text-lg text-primary-foreground/80">
+            <p className="mb-8 max-w-2xl text-lg text-white/80">
               A plataforma completa para gestão do seu time de futebol. Agenda, escalações, resultados, finanças e muito mais em um só lugar.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
