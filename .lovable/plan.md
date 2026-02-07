@@ -1,37 +1,30 @@
 
+# Melhorias no Player Dashboard e Seguranca de Senha
 
-## Problema Identificado
+## 1. Botao "Voltar ao Time" no Player Dashboard
 
-A pagina do time (`/time/adminfc`) mostra 404 quando o usuario esta deslogado porque a tabela `teams` nao tem uma politica de leitura publica. A unica politica SELECT exige que o usuario esteja autenticado. Quando deslogado, a consulta ao banco retorna vazio e o componente exibe a pagina 404.
+Adicionar um botao no header do `/player/dashboard` que leva o jogador de volta a pagina publica do time dele. Usaremos o `slug` do time (ja carregado via `team.data`) para montar a rota `/time/[slug]`.
 
-## Solucao
+- Adicionar icone de seta (ArrowLeft) ao lado esquerdo do header ou um botao "Meu Time" visivel
+- O botao navegara para `/time/${teamData.slug}`
 
-### 1. Criar politica de leitura publica para a tabela `teams`
+## 2. Senha Aleatoria Segura (8 caracteres)
 
-Adicionar uma politica RLS que permita leitura anonima de dados basicos dos times. Como a tabela `teams` pode conter dados sensiveis (como `cpf_responsavel`), a abordagem mais segura seria criar uma view publica, porem para resolver o problema imediato de forma simples, vamos adicionar uma politica SELECT para o role `anon` -- e futuramente considerar uma view para ocultar campos sensiveis.
+Substituir a senha fixa `123456` por uma senha gerada aleatoriamente com 8 caracteres contendo letras maiusculas, minusculas, numeros e caracteres especiais.
 
-**Migracao SQL:**
-```sql
-CREATE POLICY "Public can view teams by slug"
-ON public.teams FOR SELECT TO anon
-USING (true);
-```
-
-Isso permite que visitantes (deslogados) consultem os times pelo slug e vejam a pagina publica normalmente.
-
-### 2. Melhorar tratamento de erro no `TeamSlugLayout`
-
-Atualizar o componente `useTeamSlug.tsx` para diferenciar entre erro de carregamento (ex: RLS bloqueando) e time realmente inexistente, adicionando tratamento do estado `error` da query para exibir mensagem mais clara caso haja falha.
+- A funcao de geracao ficara dentro da edge function `create-player-access`
+- A senha gerada sera retornada na resposta para que o admin possa enviar ao jogador via WhatsApp
 
 ---
 
-### Secao Tecnica
+## Detalhes Tecnicos
 
-**Arquivo modificado:** `src/hooks/useTeamSlug.tsx`
-- Adicionar tratamento de `isError` na query para nao confundir erro de permissao com 404.
+### PlayerDashboard.tsx
+- Importar `ArrowLeft` do lucide-react
+- No header, adicionar um botao antes da foto do jogador que navega para `/time/${teamData?.slug}` (ou `/` se slug nao disponivel)
 
-**Migracao de banco:**
-- Uma unica politica RLS `anon SELECT` na tabela `teams`.
-
-**Risco:** A tabela `teams` pode ter campos como `cpf_responsavel` e `plano`. Esses campos ficam expostos na consulta `SELECT *`. Como melhoria futura, considerar criar uma view `teams_public` que exclua dados sensiveis (similar ao que foi feito com `jogadores_public`). Para esta correcao, o foco e resolver o crash imediato.
-
+### create-player-access/index.ts
+- Criar funcao `generatePassword()` que gera 8 caracteres aleatorios com mix de: `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*`
+- Garantir ao menos 1 maiuscula, 1 minuscula, 1 numero e 1 especial
+- Substituir `const defaultPassword = "123456"` pela chamada dessa funcao
+- A resposta ja retorna a senha no campo `message`, entao o admin continuara vendo a senha gerada para repassar ao jogador
