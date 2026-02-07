@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useJogadores } from "@/hooks/useData";
 import { useConfirmacoesJogo, useConfirmacoesContagem } from "@/hooks/useConfirmacoes";
 import type { PresenceStatus } from "@/lib/types";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AdminPresencaManagerProps {
   jogoId: string;
@@ -27,6 +28,7 @@ export default function AdminPresencaManager({ jogoId }: AdminPresencaManagerPro
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { profile } = useAuth();
 
   const isLoading = isLoadingJogadores || isLoadingConfirmacoes;
 
@@ -73,6 +75,7 @@ export default function AdminPresencaManager({ jogoId }: AdminPresencaManagerPro
               jogo_id: jogoId,
               jogador_id: jogadorId,
               status,
+              team_id: profile?.team_id,
             });
           
           if (error) throw error;
