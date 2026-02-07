@@ -3,19 +3,22 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Shield } from "lucide-react";
+import { Loader2, Shield, MapPin, CheckCircle2, XCircle } from "lucide-react";
 import { FutGestorLogo } from "@/components/FutGestorLogo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
+import { useSlugCheck } from "@/hooks/useSlugCheck";
 
 const onboardingSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
+  cidade: z.string().min(2, "Cidade deve ter pelo menos 2 caracteres").max(100, "Cidade muito longa"),
   slug: z
     .string()
     .min(3, "Slug deve ter pelo menos 3 caracteres")
@@ -28,13 +31,22 @@ const onboardingSchema = z.object({
 
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
+function generateSlug(nome: string, cidade: string): string {
+  const combined = cidade ? `${nome}-${cidade}` : nome;
+  return combined
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 export default function Onboarding() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, profile, refreshProfile } = useAuth();
 
-  // Guard: se já tem time, redireciona
   const { team: existingTeam, isLoading: teamLoading } = useTeamConfig();
 
   useEffect(() => {
@@ -45,8 +57,11 @@ export default function Onboarding() {
 
   const form = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
-    defaultValues: { nome: "", slug: "", cpf: "" },
+    defaultValues: { nome: "", cidade: "", slug: "", cpf: "" },
   });
+
+  const currentSlug = form.watch("slug");
+  const { isChecking, isAvailable, suggestions } = useSlugCheck(currentSlug);
 
   const formatCpf = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -56,19 +71,17 @@ export default function Onboarding() {
       .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
   };
 
-  const handleNomeChange = (value: string, onChange: (v: string) => void) => {
-    onChange(value);
-    // Auto-generate slug from name
-    const slug = value
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
-    form.setValue("slug", slug);
+  const regenerateSlug = (nome?: string, cidade?: string) => {
+    const n = nome ?? form.getValues("nome");
+    const c = cidade ?? form.getValues("cidade");
+    form.setValue("slug", generateSlug(n, c));
   };
 
   const handleSubmit = async (data: OnboardingFormData) => {
+    if (isAvailable === false) {
+      toast({ variant: "destructive", title: "Slug indisponível", description: "Escolha outro slug ou use uma das sugestões." });
+      return;
+    }
     if (!user) {
       toast({ variant: "destructive", title: "Sessão expirada", description: "Faça login ou cadastre-se para continuar." });
       navigate("/auth?tab=signup&redirect=onboarding");
@@ -77,14 +90,9 @@ export default function Onboarding() {
     setIsLoading(true);
 
     try {
-      // 1. Create team
       const { data: team, error: teamError } = await supabase
         .from("teams")
-        .insert({
-          nome: data.nome,
-          slug: data.slug,
-          cpf_responsavel: data.cpf,
-        })
+        .insert({ nome: data.nome, slug: data.slug, cpf_responsavel: data.cpf })
         .select()
         .single();
 
@@ -97,34 +105,29 @@ export default function Onboarding() {
         throw teamError;
       }
 
-      // 2. Link profile to team + approve
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ team_id: team.id, aprovado: true })
         .eq("id", user.id);
-
       if (profileError) throw profileError;
 
-      // 3. Add user as admin of this team (upsert to avoid duplicate key error)
       const { error: roleError } = await supabase
         .from("user_roles")
         .upsert(
           { user_id: user.id, role: "admin" as const, team_id: team.id },
           { onConflict: "user_id,role" }
         );
-
       if (roleError) throw roleError;
 
-      // 4. Create default "home team" in times table
       const { error: timeError } = await supabase
         .from("times")
         .insert({
           nome: data.nome,
+          cidade: data.cidade,
           is_casa: true,
           ativo: true,
           team_id: team.id,
         });
-
       if (timeError) throw timeError;
 
       await refreshProfile();
@@ -154,6 +157,7 @@ export default function Onboarding() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              {/* Nome */}
               <FormField
                 control={form.control}
                 name="nome"
@@ -167,7 +171,10 @@ export default function Onboarding() {
                           placeholder="Ex: FC Unidos"
                           className="pl-10"
                           {...field}
-                          onChange={(e) => handleNomeChange(e.target.value, field.onChange)}
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                            regenerateSlug(e.target.value, undefined);
+                          }}
                         />
                       </div>
                     </FormControl>
@@ -175,6 +182,34 @@ export default function Onboarding() {
                   </FormItem>
                 )}
               />
+
+              {/* Cidade */}
+              <FormField
+                control={form.control}
+                name="cidade"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cidade</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Ex: Recife"
+                          className="pl-10"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                            regenerateSlug(undefined, e.target.value);
+                          }}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Slug */}
               <FormField
                 control={form.control}
                 name="slug"
@@ -182,15 +217,47 @@ export default function Onboarding() {
                   <FormItem>
                     <FormLabel>URL do time</FormLabel>
                     <FormControl>
-                      <Input placeholder="fc-unidos" {...field} />
+                      <div className="relative">
+                        <Input placeholder="fc-unidos-recife" {...field} />
+                        {currentSlug.length >= 3 && (
+                          <div className="absolute right-3 top-2.5">
+                            {isChecking ? (
+                              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                            ) : isAvailable === true ? (
+                              <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            ) : isAvailable === false ? (
+                              <XCircle className="h-5 w-5 text-destructive" />
+                            ) : null}
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
                     <p className="text-xs text-muted-foreground">
                       futgestor.app/time/{field.value || "slug"}
                     </p>
+                    {isAvailable === false && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-destructive font-medium">Slug já em uso. Sugestões:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {suggestions.map((s) => (
+                            <Badge
+                              key={s}
+                              variant="secondary"
+                              className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                              onClick={() => form.setValue("slug", s)}
+                            >
+                              {s}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* CPF */}
               <FormField
                 control={form.control}
                 name="cpf"
@@ -209,7 +276,8 @@ export default function Onboarding() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
+
+              <Button type="submit" className="w-full" disabled={isLoading || isAvailable === false}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Criar Time
               </Button>
