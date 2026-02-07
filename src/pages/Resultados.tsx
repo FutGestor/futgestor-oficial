@@ -9,7 +9,7 @@ import { useResultados } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
 import { VotacaoDestaque } from "@/components/VotacaoDestaque";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
-import { RequireTeam } from "@/components/RequireTeam";
+import { useAuth } from "@/hooks/useAuth";
 
 function getResultType(golsFavor: number, golsContra: number) {
   if (golsFavor > golsContra) return "vitoria";
@@ -26,6 +26,7 @@ function ResultIcon({ tipo }: { tipo: "vitoria" | "derrota" | "empate" }) {
 function ResultadosContent() {
   const { data: resultados, isLoading } = useResultados();
   const { team } = useTeamConfig();
+  const { user } = useAuth();
 
   // Estatísticas
   const stats = resultados?.reduce(
@@ -192,8 +193,8 @@ function ResultadosContent() {
                           </p>
                         )}
 
-                        {/* Votação para destaque da partida */}
-                        <VotacaoDestaque resultadoId={resultado.id} />
+                        {/* Votação para destaque da partida - apenas membros */}
+                        {user && <VotacaoDestaque resultadoId={resultado.id} />}
                       </div>
 
                       {/* Desktop: badge à direita */}
@@ -227,9 +228,5 @@ function ResultadosContent() {
 }
 
 export default function ResultadosPage() {
-  return (
-    <RequireTeam>
-      <ResultadosContent />
-    </RequireTeam>
-  );
+  return <ResultadosContent />;
 }
