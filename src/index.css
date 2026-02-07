@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Real Tralhas Design System - Cores baseadas no escudo do time */
+/* FutGestor Design System */
 
 @layer base {
   :root {
-    /* Cores principais do escudo Real Tralhas */
+    /* Cores principais */
     --background: 40 23% 94%; /* Creme claro #F5F0E6 */
     --foreground: 210 45% 23%; /* Azul marinho escuro */
 
@@ -42,7 +42,7 @@
 
     --radius: 0.5rem;
 
-    /* Cores personalizadas do Real Tralhas */
+    /* Cores personalizadas */
     --navy: 210 52% 23%;
     --gold: 40 55% 56%;
     --red: 0 56% 34%;
