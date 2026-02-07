@@ -1,91 +1,79 @@
 
+# Redesign Premium da Landing Page FutGestor
 
-# Landing Page Oficial do FutGestor + Pagina de Termos
+## O que o FutGestor faz (para contexto do redesign)
 
-## Visao Geral
+O FutGestor e uma plataforma SaaS de gestao para times de futebol amador. Ele oferece:
+- **Gestao Financeira**: Controle de caixa, mensalidades, quem pagou e quem deve
+- **Escalacao Tatica**: Campo virtual interativo para montar formacoes (5x5, 7x7, 11x11) e compartilhar no WhatsApp
+- **Agenda de Jogos**: Calendario com datas, horarios e locais dos jogos
+- **Ranking e Estatisticas**: Artilharia, assistencias, presenca dos jogadores
+- **Portal do Jogador**: Cada atleta tem login proprio para ver dividas, confirmar presenca e acompanhar stats
+- **Avisos Automaticos**: Comunicacao direta com o elenco
+- **Pagina Publica do Time**: Vitrine com escudo, resultados e informacoes do time
 
-Criar uma Landing Page profissional focada em conversao (SaaS) na rota `/` e uma pagina de Termos de Uso em `/termos`. A landing page substitui o Index atual, que apenas tinha um hero simples. Usuarios logados com time continuarao sendo redirecionados para a pagina do time.
-
----
-
-## Estrutura da Landing Page (Index.tsx)
-
-A pagina tera as seguintes secoes, todas em um unico componente (ou com sub-componentes internos):
-
-### 1. Hero Section
-- Fundo escuro (#1B3A5C) com a imagem hero existente (`hero-futgestor.png`) e overlay escuro
-- Logo FutGestor (componente existente `FutGestorLogo`)
-- Headline: "A Gestao Profissional que seu Time de Futebol Merece"
-- Subheadline: "Abandone o caderno e a confusao no WhatsApp..."
-- Botao CTA dourado grande: "Comecar Agora" (leva para `/auth?tab=signup&redirect=onboarding`)
-- Botao secundario: "Ja tenho conta" (leva para `/auth`)
-
-### 2. Problema vs Solucao (3 Cards)
-- Fundo claro (#F8F9FA)
-- Card 1: "Chega de Calote" - icone DollarSign - Painel Financeiro automatico
-- Card 2: "Escalacao Sem Briga" - icone Users - Campo tatico virtual
-- Card 3: "Area do Jogador" - icone Smartphone - Acesso proprio do atleta
-
-### 3. Demonstracao (Screenshots)
-- Grid responsivo mostrando 4-6 screenshots das telas do sistema como referencia visual
-- As imagens dos screenshots serao copiadas para `src/assets/screenshots/` e importadas
-- Titulo: "Veja o FutGestor em Acao"
-
-### 4. Tabela de Planos (Pricing)
-- 3 cards lado a lado (responsivo: empilhados no mobile)
-- **Basico** R$ 9,90/mes - borda padrao
-- **Pro** R$ 19,90/mes - TAG "MAIS POPULAR", borda dourada, destaque visual
-- **Liga** R$ 39,90/mes - borda padrao
-- Features listadas com checkmarks
-- Todos os botoes "Assinar Agora" levam para `/auth`
-
-### 5. FAQ (Accordion)
-- 3 perguntas usando o componente Accordion do Shadcn
-- Pagamento, Login de Jogadores, Society/Campo
-
-### 6. Footer da Landing
-- Footer proprio (nao o Footer do time) com:
-  - Copyright 2026 FutGestor
-  - Links: Login, Cadastro, Termos de Uso
+O publico-alvo e o **capitao/organizador** do time que hoje gerencia tudo pelo WhatsApp e caderno.
 
 ---
 
-## Pagina de Termos (/termos)
+## Mudancas Planejadas
 
-- Nova rota `/termos` no App.tsx
-- Pagina simples com texto juridico padrao para SaaS
-- Layout limpo com header FutGestor e voltar para home
+### 1. Hero Section - Impacto Premium
+- Botao principal "Ver Planos" faz **scroll suave** para a secao `#precos` (em vez de ir para cadastro)
+- Botao secundario "Entrar" (link discreto para `/auth`)
+- Gradiente com blur na imagem de fundo para efeito mais sofisticado
+- Animacao de fade-in no titulo e botoes
+
+### 2. Secao de Funcionalidades - Layout Zigue-Zague
+Substituir os 3 cards simples por blocos alternados (texto + imagem lado a lado):
+- **Bloco 1** (Texto esquerda / Screenshot direita): "O Fim do Calote" - screenshot financeiro
+- **Bloco 2** (Screenshot esquerda / Texto direita): "Escalacao Profissional" - screenshot escalacao
+- **Bloco 3** (Texto esquerda / Screenshot direita): "Cada Atleta com seu Acesso" - screenshot ranking/avisos
+
+Cada bloco tera titulo grande, texto persuasivo detalhado e imagem com sombra e bordas arredondadas.
+
+### 3. Galeria Interativa "Por Dentro do App"
+- Grid de miniaturas das 6 screenshots existentes
+- **Ao clicar**: abre um Dialog/Modal (lightbox) com a imagem em tamanho grande
+- Efeito hover com zoom sutil nas miniaturas
+- Fundo escuro (navy) para contraste
+
+### 4. Secao de Planos (id="precos")
+- ID mudado de `planos` para `precos` (ancora do botao do hero)
+- Card Pro com borda dourada brilhante e escala maior
+- Itens inclusos com Check verde; itens nao inclusos com X cinza nos planos inferiores
+- Destaque "Login para Jogadores: INCLUSO" no plano Liga
+
+### 5. FAQ Premium
+- Cards com bordas arredondadas (rounded-xl) e sombras suaves
+- Fundo card branco sobre fundo muted para profundidade
+- Animacao suave ja existente no accordion
+
+### 6. Animacoes de Entrada
+- Usar a classe `animate-fade-in` existente no Tailwind config com **Intersection Observer** nativo
+- Cada secao aparece com fade-in ao entrar na viewport
+- Sem dependencia externa (sem framer-motion)
 
 ---
 
 ## Detalhes Tecnicos
 
-### Arquivos a criar:
-- `src/pages/LandingPage.tsx` - Landing page completa (substituira o conteudo do Index para visitantes)
-- `src/pages/Termos.tsx` - Pagina de Termos de Uso
-- Copiar ~6 screenshots selecionados para `src/assets/screenshots/`
-
-### Arquivos a editar:
-- `src/pages/Index.tsx` - Renderizar `LandingPage` para visitantes, manter redirect para usuarios logados
-- `src/App.tsx` - Adicionar rota `/termos`
+### Arquivo editado:
+- `src/pages/LandingPage.tsx` - Reescrita completa do componente
 
 ### Componentes utilizados:
-- Shadcn: Card, Button, Accordion, Badge
-- Lucide icons: DollarSign, Users, Smartphone, Check, ChevronRight, Trophy, Shield, Star
-- FutGestorLogo existente
-- Imagem hero existente (`hero-futgestor.png`)
+- `Dialog` do Shadcn (para lightbox das screenshots)
+- `Accordion` do Shadcn (FAQ)
+- `Card`, `Badge`, `Button` do Shadcn
+- Lucide icons: `DollarSign`, `Users`, `Smartphone`, `Check`, `X`, `Trophy`, `Shield`, `Star`, `ChevronRight`, `Eye`
 
-### Screenshots selecionados (das imagens enviadas):
-1. Agenda/Calendario (Screenshot_11)
-2. Resultados publico (Screenshot_16)
-3. Ranking/Artilharia (Screenshot_18)
-4. Financeiro (Screenshot_19)
-5. Escalacao/Estatisticas (Screenshot_15)
-6. Avisos (Screenshot_20)
+### Hook customizado inline:
+- `useInView` simples com `IntersectionObserver` para animacoes de scroll (implementado dentro do proprio componente, sem criar arquivo extra)
 
-### Estilo:
-- Cores do design system existente (navy, gold, cream) ja configuradas no Tailwind
-- Botoes CTA usam classe customizada com bg dourado (#D4AF37) ou `bg-secondary`
-- Secoes alternam entre fundo claro e escuro para ritmo visual
-- Totalmente responsivo (mobile-first)
-- Sem alterar o Footer ou Header do time (a landing page tera seu proprio footer inline)
+### Scroll suave:
+```
+document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })
+```
+
+### Nenhuma dependencia nova necessaria
+- Tudo sera feito com Tailwind, Shadcn e APIs nativas do browser
