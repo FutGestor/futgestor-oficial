@@ -90,6 +90,10 @@ export default {
           "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--gold) / 0.4)" },
           "50%": { boxShadow: "0 0 0 10px hsl(var(--gold) / 0)" },
         },
+        "hero-glow": {
+          "0%": { transform: "translate(0, 0) scale(1)" },
+          "100%": { transform: "translate(-3%, 2%) scale(1.05)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -97,9 +101,11 @@ export default {
         "fade-in": "fade-in 0.5s ease-out",
         "slide-in": "slide-in 0.3s ease-out",
         "pulse-gold": "pulse-gold 2s infinite",
+        "hero-glow": "hero-glow 8s ease-in-out infinite alternate",
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Bebas Neue', 'sans-serif'],
+        sans: ['DM Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
     },
   },
