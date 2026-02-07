@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.create-solicitacao]
 verify_jwt = false
+
+[functions.create-player-access]
+verify_jwt = false

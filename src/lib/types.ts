@@ -18,6 +18,8 @@ export interface Jogador {
   telefone: string | null;
   email: string | null;
   ativo: boolean;
+  user_id: string | null;
+  team_id: string | null;
   created_at: string;
   updated_at: string;
 }

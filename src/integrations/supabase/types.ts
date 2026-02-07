@@ -392,6 +392,67 @@ export type Database = {
           },
         ]
       }
+      player_financeiro: {
+        Row: {
+          created_at: string
+          data: string
+          descricao: string
+          id: string
+          jogador_id: string
+          pago: boolean
+          team_id: string | null
+          tipo: Database["public"]["Enums"]["transaction_type"]
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          descricao: string
+          id?: string
+          jogador_id: string
+          pago?: boolean
+          team_id?: string | null
+          tipo: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          descricao?: string
+          id?: string
+          jogador_id?: string
+          pago?: boolean
+          team_id?: string | null
+          tipo?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_financeiro_jogador_id_fkey"
+            columns: ["jogador_id"]
+            isOneToOne: false
+            referencedRelation: "jogadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_financeiro_jogador_id_fkey"
+            columns: ["jogador_id"]
+            isOneToOne: false
+            referencedRelation: "jogadores_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_financeiro_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       presenca_links: {
         Row: {
           codigo: string
