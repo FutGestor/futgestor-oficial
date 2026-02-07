@@ -39,7 +39,7 @@ export function RequireProPlan({ children, featureName = "Este recurso" }: Requi
               <p className="mt-2 text-muted-foreground">
                 {featureName} está disponível apenas no plano Pro.
               </p>
-              <Link to={`${basePath}/meu-perfil`}>
+              <Link to={`${basePath}/admin/planos`}>
                 <Button className="mt-4" variant="default">
                   <Crown className="mr-2 h-4 w-4" />
                   Fazer Upgrade
