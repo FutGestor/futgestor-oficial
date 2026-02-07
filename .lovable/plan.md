@@ -1,32 +1,32 @@
 
 
-# Substituir logo SVG e icones Shield pela imagem PNG do FutGestor
+# Mostrar card "Agendar Partida" para visitantes na pagina publica do time
 
-## O que sera feito
+## Problema atual
 
-A imagem enviada (bola + engrenagem) sera salva como PNG com fundo transparente e usada como logo oficial do FutGestor em todos os locais do site onde atualmente aparece o icone generico Shield ou o componente SVG inline `FutGestorLogo`.
+O card "Quer jogar contra a gente?" (ScheduleGameCard) so aparece para membros logados do time, pois esta dentro do bloco `{isMember && (...)}`. Visitantes nao logados veem apenas o hero com o botao "Entrar" e nada mais.
 
-## Locais que serao atualizados
+## Solucao
 
-1. **Header (navbar)** - `src/components/layout/Header.tsx`: Substituir o `Shield` pelo logo PNG quando nao houver escudo de time configurado
-2. **Footer** - `src/components/layout/Footer.tsx`: Substituir o `Shield` pelo logo PNG quando nao houver escudo de time
-3. **Landing Page (hero)** - `src/pages/Index.tsx`: Substituir `FutGestorLogo` SVG pela imagem PNG
-4. **Tela de Login** - `src/pages/Auth.tsx`: Substituir `FutGestorLogo` pela imagem PNG
-5. **Onboarding** - `src/pages/Onboarding.tsx`: Substituir `FutGestorLogo` pela imagem PNG
-6. **Admin Sidebar** - `src/pages/Admin.tsx`: Substituir `FutGestorLogo` em 3 locais (sidebar, loading, acesso negado)
-7. **Pagina publica do time** - `src/pages/TeamPublicPage.tsx`: Substituir onde `FutGestorLogo` for usado
-8. **Favicon** - `public/favicon.png` e `index.html`: Atualizar favicon com a nova imagem
+Mover o `ScheduleGameCard` para fora do bloco condicional `isMember`, de modo que ele apareca sempre — tanto para visitantes quanto para membros. O card ficara logo abaixo do hero section, visivel para todos.
 
 ## Detalhes tecnicos
 
-### Arquivos de imagem
-- Salvar `user-uploads://c8f7fe52-cf26-4812-81fe-a8ffa33901c1.png` como `src/assets/logo-futgestor.png` e `public/logo-futgestor.png`
-- Atualizar `public/favicon.png` com a mesma imagem
+### Arquivo: `src/pages/TeamPublicPage.tsx`
 
-### Abordagem
-- Importar a imagem via ES module nos componentes React: `import logoFutgestor from "@/assets/logo-futgestor.png"`
-- Usar `<img src={logoFutgestor} alt="FutGestor" className="h-12 w-12 object-contain" />` no lugar dos icones
-- Ajustar tamanhos conforme o contexto (h-12 no header, h-20 no hero, h-10 no footer, h-16 no auth/onboarding, h-10 no admin sidebar)
-- O componente `FutGestorLogo.tsx` sera mantido mas atualizado para renderizar a imagem PNG em vez do SVG inline
-- Os `Shield` usados como icone de times/admin (ex: AdminTimes, AdminJogos, AdminUsuarios) NAO serao alterados — esses sao icones contextuais de escudo de time, nao o logo FutGestor
+- Extrair a section do `ScheduleGameCard` para fora do `{isMember && (...)}` e coloca-la entre o hero e o bloco condicional dos cards de membros
+- Estrutura resultante:
+  1. Hero section (sempre visivel)
+  2. ScheduleGameCard section (sempre visivel - para visitantes e membros)
+  3. Cards de membros (apenas para membros logados)
+
+### Arquivo: `src/components/ScheduleGameCard.tsx` e `src/hooks/useSolicitacoes.ts`
+
+- Verificar se o hook `useCreateSolicitacao` e a tabela `solicitacoes_jogos` permitem insercao sem autenticacao (visitante anonimo)
+- Caso a tabela tenha RLS restritiva, sera necessario adicionar uma policy de INSERT para `anon` role, ja que visitantes nao estarao logados
+
+### Verificacao de RLS necessaria
+
+- Consultar as policies da tabela `solicitacoes_jogos` para garantir que visitantes possam enviar solicitacoes
+- Se necessario, criar migration com policy de INSERT para role `anon`
 
