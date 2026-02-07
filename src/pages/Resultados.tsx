@@ -24,8 +24,8 @@ function ResultIcon({ tipo }: { tipo: "vitoria" | "derrota" | "empate" }) {
 }
 
 function ResultadosContent() {
-  const { data: resultados, isLoading } = useResultados();
   const { team } = useTeamConfig();
+  const { data: resultados, isLoading } = useResultados(team.id || undefined);
   const { user } = useAuth();
 
   // Estatísticas

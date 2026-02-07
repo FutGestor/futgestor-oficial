@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useJogos } from "@/hooks/useData";
 import { useTimeCasa } from "@/hooks/useTimes";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { ConfirmacaoPresenca } from "@/components/ConfirmacaoPresenca";
 import { statusLabels, type Jogo, type Time } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -92,7 +93,8 @@ function GameCard({ jogo, timeCasa }: { jogo: Jogo & { showPresenca?: boolean };
 
 function AgendaContent() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const { data: jogos, isLoading } = useJogos();
+  const { team } = useTeamConfig();
+  const { data: jogos, isLoading } = useJogos(team.id || undefined);
   const { data: timeCasa } = useTimeCasa();
   const { user } = useAuth();
 
