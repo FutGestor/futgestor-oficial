@@ -1,117 +1,59 @@
 
 
-# Redesign Premium Dark da Landing Page FutGestor
+# Revisao de CTAs e Textos da Landing Page
 
-## Resumo
+## Problema Identificado
 
-Aplicar a estetica escura e premium do template HTML enviado (fundo `#0A1628`, tipografia Bebas Neue, cards semi-transparentes, efeitos de glow) em toda a Landing Page, **mantendo inalterados**:
-- O conteudo e estrutura atual da **PricingSection** (precos, features, textos)
-- Os textos e copys existentes em cada secao
-- Os links dos botoes (scroll para `#precos`, `/auth`, `/auth?tab=signup&redirect=onboarding`)
+O site menciona "gratis" em varios lugares, mas na pratica o usuario precisa de um plano pago (a partir de R$ 9,90/mes) para usar qualquer funcionalidade do painel. Isso gera frustacao e confusao. Alem disso, faltam explicacoes mais detalhadas sobre a plataforma nos CTAs.
 
-Somente a estetica visual sera alterada para o estilo dark/premium.
+## Locais com "gratis" que serao corrigidos
 
----
+| Arquivo | Texto atual | Novo texto |
+|---|---|---|
+| **LandingHeader** (botao CTA) | "Comecar gratis" | "Conhecer planos" |
+| **HeroSection** (botao principal) | "Criar meu time gratis" | "Comecar agora" |
+| **HeroSection** (stat "100%") | "100% / Gratuito pra comecar" | "A partir de / R$ 9,90/mes" |
+| **HowItWorks** (passo 01) | "Sem cartao de credito." | "Rapido e simples." |
+| **CtaFinal** (botao) | "Criar meu time agora — e gratis" | "Criar meu time agora" |
 
-## Mudancas por Secao
+## Melhorias no conteudo dos CTAs
 
-### 1. Fontes (index.html + tailwind.config.ts)
-- Adicionar link para Google Fonts: **Bebas Neue** e **DM Sans**
-- Configurar `fontFamily.display: ['Bebas Neue']` no Tailwind
-- Atualizar `fontFamily.sans` para incluir DM Sans como primeira opcao
+### HeroSection — Subtitulo mais explicativo
+**Atual:** "Abandone o caderno e a confusao no WhatsApp. Financeiro, Escalacao, Estatisticas e Area do Jogador — tudo em um so lugar."
 
-### 2. LandingPage.tsx
-- Envolver tudo em um container escuro `bg-[#0A1628] text-white`
-- Adicionar novas secoes na composicao: LandingHeader, PainSection, FeaturesGrid, HowItWorks, TestimonialsSection, CtaFinal
-- Remover imports de ZigZagFeatures e GallerySection
+**Novo:** "A plataforma completa para gerenciar seu time de futebol amador. Controle financeiro, escalacao tatica no campo virtual, ranking de jogadores, agenda de jogos e portal exclusivo para cada atleta — tudo acessivel pelo celular."
 
-### 3. LandingHeader (Novo)
-- Header fixo no topo com backdrop-blur e fundo semi-transparente escuro
-- Logo FutGestor + texto "FutGestor" (Bebas Neue)
-- Links de navegacao: Funcionalidades, Como funciona, Precos, FAQ
-- Botao CTA dourado "Comecar gratis" (scroll para `#precos`)
-- Menu hamburger no mobile
+### HeroSection — Adicionar subtexto abaixo dos botoes
+Novo elemento entre os botoes e os stats:
+- Texto pequeno: "Planos a partir de R$ 9,90/mes — Sem fidelidade, cancele quando quiser"
 
-### 4. HeroSection (Redesign estetico)
-- Fundo escuro com gradiente radial animado (glow azul/dourado sutil)
-- Badge dourado: "Novo — Gestao esportiva simplificada"
-- Titulo em Bebas Neue grande: "CHEGA DE BAGUNA NO WHATSAPP"
-- Subtitulo: manter texto atual
-- Botao "Criar meu time gratis" (scroll para `#precos`) + "Ver funcionalidades" (scroll)
-- Stats row: "100% Gratuito pra comecar" | "2min Pra configurar" | "24/7 Acesso pelo celular"
+### CtaFinal — Mais contexto sobre a plataforma
+Transformar de secao simples para secao mais rica com:
+- Titulo mantido: "SEU TIME MERECE ORGANIZACAO DE VERDADE"
+- Subtitulo expandido com 3 mini-destaques em grid (icones + texto curto):
+  - "Agenda, escalacao e resultados organizados"
+  - "Financeiro transparente para todo o elenco"
+  - "Acesso pelo celular, sem instalar nada"
+- Texto: "Planos a partir de R$ 9,90/mes"
+- Botao: "Criar meu time agora"
 
-### 5. PainSection (Nova)
-- Grid 2 colunas: lista de dores (borda vermelha esquerda) + card solucao (borda dourada)
-- Dores: grupo bagunçado, planilha, caixinha sem controle, escalacao na hora
-- Solucao: "E se tudo isso tivesse em um so lugar?" com botao scroll para precos
+### HowItWorks — Ajustar passo 2 (escudo)
+**Atual passo 02:** "Nome, escudo e pronto. Seu time tem um portal proprio."
+**Novo passo 02:** "Nome do time e pronto. Seu time ganha um portal exclusivo. Personalize com escudo e cores depois."
 
-### 6. FeaturesGrid (Nova — substitui ZigZagFeatures)
-- Grid de 6 cards com fundo semi-transparente (`rgba(15, 36, 64, 0.6)`)
-- Borda sutil, barra dourada no topo ao hover, translateY no hover
-- Emojis como icones: Agenda, Escalacao, Elenco, Financeiro, Resultados, Avisos
-- Tag "FUNCIONALIDADES" + titulo "TUDO QUE SEU TIME PRECISA"
-
-### 7. HowItWorks (Nova)
-- 4 passos em grid: Crie conta, Cadastre time, Adicione jogadores, Gerencie tudo
-- Numeros grandes em Bebas Neue com opacidade reduzida
-- Setas entre passos (ocultas no mobile)
-
-### 8. PricingSection — SEM ALTERACOES
-- Manter o componente exatamente como esta (conteudo, precos, features, botoes)
-- Apenas garantir que o id="precos" esta presente (ja esta)
-
-### 9. TestimonialsSection (Nova)
-- Grid de 3 cards com estrelas douradas e depoimentos ficticios
-- Fundo escuro semi-transparente, bordas sutis
-
-### 10. FaqSection (Redesign estetico)
-- Manter todas as perguntas e respostas atuais
-- Aplicar estilo escuro: fundo semi-transparente, textos claros
-- Tag "DUVIDAS FREQUENTES" + titulo em Bebas Neue
-
-### 11. CtaFinal (Nova)
-- Secao de fechamento com glow radial dourado
-- Titulo: "SEU TIME MERECE ORGANIZACAO DE VERDADE"
-- Botao CTA para cadastro
-
-### 12. LandingFooter (Redesign estetico)
-- Manter links atuais (Login, Cadastro, Termos de Uso)
-- Estilo escuro com borda sutil no topo
-- Logo + copyright
-
-### 13. index.css
-- Adicionar classe utilitaria `.landing-noise` para textura sutil de fundo (opcional)
-
----
+Isso alinha com a realidade de que o upload de escudo pode nao funcionar no cadastro inicial.
 
 ## Detalhes Tecnicos
 
-### Arquivos a criar:
-- `src/components/landing/LandingHeader.tsx`
-- `src/components/landing/PainSection.tsx`
-- `src/components/landing/FeaturesGrid.tsx`
-- `src/components/landing/HowItWorks.tsx`
-- `src/components/landing/TestimonialsSection.tsx`
-- `src/components/landing/CtaFinal.tsx`
-
 ### Arquivos a editar:
-- `src/pages/LandingPage.tsx` — nova composicao
-- `src/components/landing/HeroSection.tsx` — redesign estetico completo
-- `src/components/landing/FaqSection.tsx` — estilo escuro, manter conteudo
-- `src/components/landing/LandingFooter.tsx` — estilo escuro, manter links
-- `tailwind.config.ts` — fontFamily display, keyframe heroGlow
-- `index.html` — link Google Fonts Bebas Neue + DM Sans
+- `src/components/landing/LandingHeader.tsx` — texto do botao CTA
+- `src/components/landing/HeroSection.tsx` — botao, subtitulo, stats, novo subtexto
+- `src/components/landing/HowItWorks.tsx` — textos dos passos 01 e 02
+- `src/components/landing/CtaFinal.tsx` — secao expandida com mini-destaques
 
 ### Arquivos que NAO serao alterados:
 - `src/components/landing/PricingSection.tsx` — mantida como esta
+- Todos os demais componentes da landing
 
-### Arquivos que podem ser removidos do uso:
-- `src/components/landing/ZigZagFeatures.tsx` — nao sera mais importado
-- `src/components/landing/GallerySection.tsx` — nao sera mais importado
-
-### Navegacao dos botoes (mantida):
-- Hero CTA principal: scroll suave para `#precos`
-- Header "Comecar gratis": scroll suave para `#precos`
-- Cards de preco "Assinar Agora": Link para `/auth?tab=signup&redirect=onboarding`
-- "Entrar" / "Login": Link para `/auth`
+### Nenhuma dependencia nova necessaria
 
