@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 
 export interface TeamConfig {
   id: string | null;
@@ -16,19 +17,20 @@ export interface TeamConfig {
 
 const DEFAULT_TEAM: TeamConfig = {
   id: null,
-  nome: "Meu Time",
+  nome: "FutGestor",
   slug: null,
   escudo_url: null,
   redes_sociais: {},
 };
 
 export function useTeamConfig() {
+  const teamSlug = useOptionalTeamSlug();
   const { profile } = useAuth();
   const teamId = profile?.team_id;
 
   const { data: teamData, isLoading } = useQuery({
     queryKey: ["team-config", teamId],
-    enabled: !!teamId,
+    enabled: !!teamId && !teamSlug,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("teams")
@@ -39,6 +41,19 @@ export function useTeamConfig() {
       return data;
     },
   });
+
+  if (teamSlug?.team) {
+    return {
+      team: {
+        id: teamSlug.team.id,
+        nome: teamSlug.team.nome,
+        slug: teamSlug.team.slug,
+        escudo_url: teamSlug.team.escudo_url,
+        redes_sociais: teamSlug.team.redes_sociais || {},
+      } as TeamConfig,
+      isLoading: false,
+    };
+  }
 
   const team: TeamConfig = teamData
     ? {

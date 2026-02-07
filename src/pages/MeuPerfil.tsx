@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { supabase } from "@/integrations/supabase/client";
 import { positionLabels } from "@/lib/types";
 import type { Database } from "@/integrations/supabase/types";
@@ -33,6 +34,7 @@ export default function MeuPerfil() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, profile, isApproved, isLoading: authLoading, refreshProfile } = useAuth();
+  const { basePath } = useTeamSlug();
   
   const [jogador, setJogador] = useState<any>(null);
   const [isLoadingJogador, setIsLoadingJogador] = useState(true);
@@ -62,7 +64,7 @@ export default function MeuPerfil() {
         description: "Seu cadastro ainda está pendente de aprovação.",
         variant: "destructive",
       });
-      navigate("/");
+      navigate(basePath);
     }
   }, [authLoading, user, isApproved, navigate, toast]);
 

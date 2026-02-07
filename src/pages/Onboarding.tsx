@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 
 const onboardingSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
@@ -30,11 +31,13 @@ export default function Onboarding() {
   const { user, profile, refreshProfile } = useAuth();
 
   // Guard: se já tem time, redireciona
+  const { team: existingTeam, isLoading: teamLoading } = useTeamConfig();
+
   useEffect(() => {
-    if (profile?.team_id) {
-      navigate("/");
+    if (profile?.team_id && existingTeam.slug) {
+      navigate(`/time/${existingTeam.slug}`);
     }
-  }, [profile, navigate]);
+  }, [profile, existingTeam.slug, navigate]);
 
   const form = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
@@ -110,7 +113,7 @@ export default function Onboarding() {
       await refreshProfile();
 
       toast({ title: "Time criado!", description: "Bem-vindo ao FutGestor." });
-      navigate("/admin");
+      navigate(`/time/${data.slug}/admin`);
     } catch (err: any) {
       console.error("Onboarding error:", err);
       toast({ variant: "destructive", title: "Erro ao criar time", description: err.message });
@@ -165,7 +168,7 @@ export default function Onboarding() {
                       <Input placeholder="fc-unidos" {...field} />
                     </FormControl>
                     <p className="text-xs text-muted-foreground">
-                      futgestor.app/{field.value || "slug"}
+                      futgestor.app/time/{field.value || "slug"}
                     </p>
                     <FormMessage />
                   </FormItem>
