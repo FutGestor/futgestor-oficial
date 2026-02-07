@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
+import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 import escudo from "@/assets/escudo-real-tralhas.png";
 
 const loginSchema = z.object({
@@ -31,11 +33,20 @@ type SignupFormData = z.infer<typeof signupSchema>;
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
+  const [view, setView] = useState<"auth" | "forgot" | "reset">("auth");
   const [rememberMe, setRememberMe] = useState(() => {
     return localStorage.getItem("rememberMe") === "true";
   });
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+
+  // Detect recovery redirect
+  useEffect(() => {
+    if (searchParams.get("type") === "recovery") {
+      setView("reset");
+    }
+  }, [searchParams]);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -213,6 +224,11 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {view === "forgot" ? (
+            <ForgotPasswordForm onBack={() => setView("auth")} />
+          ) : view === "reset" ? (
+            <ResetPasswordForm onSuccess={() => { setView("auth"); navigate("/auth"); }} />
+          ) : (
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Entrar</TabsTrigger>
@@ -280,6 +296,13 @@ export default function Auth() {
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Entrar
                   </Button>
+                  <button
+                    type="button"
+                    onClick={() => setView("forgot")}
+                    className="w-full text-center text-sm text-primary hover:underline"
+                  >
+                    Esqueci minha senha
+                  </button>
                 </form>
               </Form>
             </TabsContent>
@@ -363,6 +386,8 @@ export default function Auth() {
               </p>
             </TabsContent>
           </Tabs>
+          )}
+
         </CardContent>
       </Card>
     </div>
