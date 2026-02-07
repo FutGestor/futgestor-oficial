@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <title>Real Tralhas</title>
-    <meta name="description" content="Portal oficial do time Real Tralhas - Agenda, escalação, resultados e muito mais." />
-    <meta name="author" content="Real Tralhas" />
+    <title>Portal do Time</title>
+    <meta name="description" content="Portal de gestão do time - Agenda, escalação, resultados e muito mais." />
+    <meta name="author" content="Portal do Time" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/favicon.png" />
@@ -17,17 +17,17 @@
     <meta name="theme-color" content="#1B3A5C" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Real Tralhas" />
+    <meta name="apple-mobile-web-app-title" content="Portal do Time" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Real Tralhas" />
-    <meta property="og:description" content="Portal oficial do time Real Tralhas" />
+    <meta property="og:title" content="Portal do Time" />
+    <meta property="og:description" content="Portal de gestão do time" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/favicon.png" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Real Tralhas" />
+    <meta name="twitter:title" content="Portal do Time" />
     <meta name="twitter:image" content="/favicon.png" />
 
     <!-- Splash Screen Styles -->
@@ -62,7 +62,6 @@
         height: 100px;
       }
       
-      /* Soccer ball SVG */
       .soccer-ball {
         width: 60px;
         height: 60px;
@@ -72,7 +71,6 @@
         animation: bounce 0.6s ease-in-out infinite;
       }
       
-      /* Ball shadow */
       .ball-shadow {
         position: absolute;
         bottom: 0;
@@ -85,7 +83,6 @@
         animation: shadow 0.6s ease-in-out infinite;
       }
       
-      /* Field line */
       .field-line {
         width: 120px;
         height: 3px;
@@ -114,8 +111,6 @@
         right: -12px;
       }
       
-      
-      /* Loading text */
       .loading-text {
         color: #D4A84B;
         font-family: system-ui, -apple-system, sans-serif;
@@ -124,13 +119,6 @@
         letter-spacing: 2px;
         text-transform: uppercase;
         animation: pulse 1.5s ease-in-out infinite;
-      }
-      
-      .splash-logo {
-        width: 100px;
-        height: 100px;
-        object-fit: contain;
-        margin-bottom: 16px;
       }
       
       @keyframes bounce {
@@ -155,7 +143,6 @@
         }
       }
       
-      
       @keyframes pulse {
         0%, 100% {
           opacity: 1;
@@ -171,23 +158,13 @@
     <!-- Animated Splash Screen -->
     <div id="splash-screen">
       <div class="splash-container">
-        <!-- Escudo do time -->
-        <img 
-          src="/escudo-light.png" 
-          alt="Real Tralhas" 
-          class="splash-logo"
-        />
-        
         <div class="ball-container">
-          <!-- Soccer Ball SVG -->
           <svg class="soccer-ball" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="50" cy="50" r="48" fill="white" stroke="#1B3A5C" stroke-width="2"/>
-            <!-- Pentagon pattern -->
             <path d="M50 15L65 30L60 50L40 50L35 30Z" fill="#1B3A5C"/>
             <path d="M75 45L85 55L75 75L60 70L60 50Z" fill="#1B3A5C"/>
             <path d="M25 45L40 50L40 70L25 75L15 55Z" fill="#1B3A5C"/>
             <path d="M35 80L40 70L60 70L65 80L50 90Z" fill="#1B3A5C"/>
-            <!-- Connecting lines -->
             <path d="M35 30L15 40" stroke="#1B3A5C" stroke-width="2"/>
             <path d="M65 30L85 40" stroke="#1B3A5C" stroke-width="2"/>
             <path d="M60 50L75 45" stroke="#1B3A5C" stroke-width="2"/>
@@ -205,7 +182,6 @@
     </div>
 
     <script>
-      // Initialize theme before first render to prevent flash
       (function() {
         const stored = localStorage.getItem('theme');
         if (stored === 'dark') {

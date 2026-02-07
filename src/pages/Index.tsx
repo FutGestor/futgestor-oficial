@@ -14,12 +14,14 @@ import { categoryLabels, statusLabels } from "@/lib/types";
 import fotoTime from "@/assets/foto-time.jpeg";
 import { ScheduleGameCard } from "@/components/ScheduleGameCard";
 import { useConfirmacoesJogo, useConfirmarPresenca } from "@/hooks/useConfirmacoes";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 
 function NextGameCard() {
   const { data: jogo, isLoading } = useProximoJogo();
   const { user, profile } = useAuth();
   const { data: confirmacoes } = useConfirmacoesJogo(jogo?.id);
   const confirmarPresenca = useConfirmarPresenca();
+  const { team } = useTeamConfig();
 
   const isApproved = profile?.aprovado === true;
   const jogadorId = profile?.jogador_id;
@@ -70,7 +72,7 @@ function NextGameCard() {
       <CardContent>
         <div className="space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-xl font-bold sm:text-2xl">Real Tralhas vs {jogo.adversario}</span>
+            <span className="text-xl font-bold sm:text-2xl">{team.nome} vs {jogo.adversario}</span>
             <Badge variant="secondary" className="w-fit">{statusLabels[jogo.status]}</Badge>
           </div>
           <div className="flex flex-wrap gap-4 text-muted-foreground">
@@ -118,6 +120,7 @@ function NextGameCard() {
 
 function LastResultCard() {
   const { data: resultado, isLoading } = useUltimoResultado();
+  const { team } = useTeamConfig();
 
   if (isLoading) {
     return (
@@ -174,7 +177,7 @@ function LastResultCard() {
       <CardContent>
         <div className={`rounded-lg p-4 ${bgColor}`}>
           <div className="flex flex-col items-center gap-2 text-center sm:flex-row sm:justify-center sm:gap-4">
-            <span className="text-lg font-semibold">Real Tralhas</span>
+            <span className="text-lg font-semibold">{team.nome}</span>
             <span className={`whitespace-nowrap text-2xl font-bold ${resultadoColor}`}>
               {golsFavor} x {golsContra}
             </span>
@@ -364,6 +367,7 @@ function LineupPreviewCard() {
 
 const Index = () => {
   const { user } = useAuth();
+  const { team } = useTeamConfig();
 
   return (
     <Layout>
@@ -382,7 +386,7 @@ const Index = () => {
         <div className="container relative z-10 flex min-h-[500px] md:min-h-[600px] items-center justify-center px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
             <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">
-              Real Tralhas
+              {team.nome}
             </h1>
             <p className="mb-8 max-w-2xl text-lg text-white/90">
               Bem-vindo ao portal oficial do time. Aqui você encontra todas as informações sobre jogos, escalações, finanças e muito mais.
@@ -394,26 +398,30 @@ const Index = () => {
                   Ver Agenda
                 </Button>
               </Link>
-              <a
-                href="https://instagram.com/real_tralhas2025"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button size="lg" variant="outline" className="gap-2 border-black bg-white text-black hover:bg-gray-100">
-                  <Instagram className="h-5 w-5" />
-                  Instagram
-                </Button>
-              </a>
-              <a
-                href="https://wa.me/qr/BN7NUIGCATZFE1"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button size="lg" variant="outline" className="gap-2 border-green-600 bg-green-500 text-white hover:bg-green-600">
-                  <MessageCircle className="h-5 w-5" />
-                  WhatsApp
-                </Button>
-              </a>
+              {team.redes_sociais.instagram && (
+                <a
+                  href={team.redes_sociais.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button size="lg" variant="outline" className="gap-2 border-foreground bg-card text-foreground hover:bg-muted">
+                    <Instagram className="h-5 w-5" />
+                    Instagram
+                  </Button>
+                </a>
+              )}
+              {team.redes_sociais.whatsapp && (
+                <a
+                  href={team.redes_sociais.whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button size="lg" variant="outline" className="gap-2 border-green-600 bg-green-500 text-white hover:bg-green-600">
+                    <MessageCircle className="h-5 w-5" />
+                    WhatsApp
+                  </Button>
+                </a>
+              )}
             </div>
           </div>
         </div>

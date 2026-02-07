@@ -1,4 +1,4 @@
-// Types para o portal Real Tralhas
+// Types para o portal de gestão de time
 
 export type PlayerPosition = 'goleiro' | 'zagueiro' | 'lateral' | 'volante' | 'meia' | 'atacante';
 

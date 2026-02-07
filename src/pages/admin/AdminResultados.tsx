@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useResultados, useJogos } from "@/hooks/useData";
 import { type Resultado } from "@/lib/types";
 import EstatisticasPartidaForm from "@/components/EstatisticasPartidaForm";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 
 type ResultadoFormData = {
   jogo_id: string;
@@ -44,6 +45,7 @@ export default function AdminResultados() {
   const { data: jogos } = useJogos();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { team } = useTeamConfig();
 
   // Jogos sem resultado ainda
   const jogosSemResultado = jogos?.filter(
@@ -191,7 +193,7 @@ export default function AdminResultados() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="gols_favor">Gols Real Tralhas</Label>
+                  <Label htmlFor="gols_favor">Gols do Time</Label>
                   <Input
                     id="gols_favor"
                     type="number"
@@ -252,7 +254,7 @@ export default function AdminResultados() {
                     <Trophy className={`h-6 w-6 shrink-0 sm:h-8 sm:w-8 ${tipo === "vitoria" ? "text-green-600" : tipo === "derrota" ? "text-destructive" : "text-muted-foreground"}`} />
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                        <span className="text-sm font-semibold sm:text-base">Real Tralhas</span>
+                        <span className="text-sm font-semibold sm:text-base">{team.nome}</span>
                         <span className={`rounded px-1.5 py-0.5 text-sm font-bold sm:px-2 sm:py-1 sm:text-lg ${
                           tipo === "vitoria" ? "bg-green-100 text-green-800" :
                           tipo === "derrota" ? "bg-red-100 text-red-800" :

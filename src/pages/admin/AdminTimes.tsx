@@ -251,7 +251,7 @@ export default function AdminTimes() {
                   id="nome"
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                  placeholder="Ex: Real Tralhas FC"
+                  placeholder="Ex: FC Meu Time"
                   required
                 />
               </div>
@@ -290,7 +290,7 @@ export default function AdminTimes() {
                 <div>
                   <Label htmlFor="is_casa" className="cursor-pointer">Time da Casa</Label>
                   <p className="text-sm text-muted-foreground">
-                    Marque se este é o seu time (Real Tralhas)
+                    Marque se este é o seu time principal
                   </p>
                 </div>
                 <Switch

@@ -65,7 +65,7 @@ export default function FinanceiroPage() {
       <div className="container py-8 px-4 md:px-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-primary">Dashboard Financeiro</h1>
-          <p className="text-muted-foreground">Acompanhe as finanças do Real Tralhas</p>
+          <p className="text-muted-foreground">Acompanhe as finanças do time</p>
         </div>
 
         {/* Summary Cards */}
