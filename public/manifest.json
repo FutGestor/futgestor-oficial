@@ -1,8 +1,8 @@
 {
-  "name": "Real Tralhas",
+  "name": "FutGestor",
   "version": "1.0.1",
-  "short_name": "Real Tralhas",
-  "description": "Portal oficial do time Real Tralhas",
+  "short_name": "FutGestor",
+  "description": "Plataforma de gestão para times de futebol",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1B3A5C",

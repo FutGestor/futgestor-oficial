@@ -57,7 +57,7 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Cores personalizadas do Real Tralhas
+        // Cores personalizadas
         navy: "hsl(var(--navy))",
         gold: "hsl(var(--gold))",
         "team-red": "hsl(var(--red))",

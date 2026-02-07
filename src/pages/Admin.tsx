@@ -24,8 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSolicitacoesPendentesCount } from "@/hooks/useSolicitacoes";
 import { cn } from "@/lib/utils";
-import escudoDark from "@/assets/escudo-real-tralhas.png";
-import escudoLight from "@/assets/escudo-light.png";
+import { CircleDot } from "lucide-react";
 
 // Admin pages
 import AdminDashboard from "./admin/AdminDashboard";
@@ -121,7 +120,7 @@ export default function Admin() {
     return () => observer.disconnect();
   }, []);
 
-  const escudoAtual = theme === "light" ? escudoLight : escudoDark;
+  // Theme detection kept for future use
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -190,7 +189,7 @@ export default function Admin() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <img src={escudoAtual} alt="Real Tralhas" className="mx-auto mb-4 h-16 w-auto" />
+          <CircleDot className="mx-auto mb-4 h-16 w-16 text-primary" />
           <Skeleton className="mx-auto h-6 w-32" />
         </div>
       </div>
@@ -206,7 +205,7 @@ export default function Admin() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="text-center">
-          <img src={escudoAtual} alt="Real Tralhas" className="mx-auto mb-4 h-20 w-auto" />
+          <CircleDot className="mx-auto mb-4 h-20 w-20 text-primary" />
           <h1 className="mb-2 text-2xl font-bold text-destructive">Acesso Negado</h1>
           <p className="mb-4 text-muted-foreground">
             Você não tem permissão para acessar o painel administrativo.
@@ -242,9 +241,9 @@ export default function Admin() {
           {/* Header com Logo e Botões */}
           <div className="flex items-center justify-between border-b border-sidebar-border p-4">
             <div className="flex items-center gap-3">
-              <img src={escudoAtual} alt="Real Tralhas" className="h-10 w-auto" />
+              <CircleDot className="h-10 w-10 text-sidebar-primary" />
               <div>
-                <p className="font-bold text-sidebar-foreground">Real Tralhas</p>
+                <p className="font-bold text-sidebar-foreground">FutGestor</p>
                 <p className="text-xs text-sidebar-foreground/70">Painel Admin</p>
               </div>
             </div>

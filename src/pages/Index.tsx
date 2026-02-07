@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, MapPin, Users, TrendingUp, Bell, Instagram, ChevronRight, MessageCircle, Check, X } from "lucide-react";
+import { Calendar, MapPin, Users, TrendingUp, Bell, ChevronRight, Check, X, CircleDot } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,7 @@ import { useProximoJogo, useAvisos, useFinancialSummary, useProximaEscalacao, us
 import { useAuth } from "@/hooks/useAuth";
 import { Trophy } from "lucide-react";
 import { categoryLabels, statusLabels } from "@/lib/types";
-import fotoTime from "@/assets/foto-time.jpeg";
+
 import { ScheduleGameCard } from "@/components/ScheduleGameCard";
 import { useConfirmacoesJogo, useConfirmarPresenca } from "@/hooks/useConfirmacoes";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
@@ -373,23 +373,19 @@ const Index = () => {
     <Layout>
       {/* Hero Section */}
       <section className="relative overflow-hidden min-h-[500px] md:min-h-[600px]">
-        {/* Imagem de fundo */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${fotoTime})` }}
-        />
-        
-        {/* Overlay escuro para legibilidade */}
-        <div className="absolute inset-0 bg-black/50" />
+        {/* Gradiente de fundo */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-accent/40" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,hsl(var(--accent)/0.15),transparent_60%)]" />
         
         {/* Conteúdo sobreposto */}
         <div className="container relative z-10 flex min-h-[500px] md:min-h-[600px] items-center justify-center px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
-            <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">
+            <CircleDot className="mb-6 h-20 w-20 text-primary-foreground/90" />
+            <h1 className="mb-4 text-4xl font-bold text-primary-foreground md:text-5xl">
               {team.nome}
             </h1>
-            <p className="mb-8 max-w-2xl text-lg text-white/90">
-              Bem-vindo ao portal oficial do time. Aqui você encontra todas as informações sobre jogos, escalações, finanças e muito mais.
+            <p className="mb-8 max-w-2xl text-lg text-primary-foreground/80">
+              Gerencie seu time de futebol. Agenda, escalações, resultados, finanças e muito mais em um só lugar.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link to="/agenda">
@@ -398,30 +394,6 @@ const Index = () => {
                   Ver Agenda
                 </Button>
               </Link>
-              {team.redes_sociais.instagram && (
-                <a
-                  href={team.redes_sociais.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button size="lg" variant="outline" className="gap-2 border-foreground bg-card text-foreground hover:bg-muted">
-                    <Instagram className="h-5 w-5" />
-                    Instagram
-                  </Button>
-                </a>
-              )}
-              {team.redes_sociais.whatsapp && (
-                <a
-                  href={team.redes_sociais.whatsapp}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button size="lg" variant="outline" className="gap-2 border-green-600 bg-green-500 text-white hover:bg-green-600">
-                    <MessageCircle className="h-5 w-5" />
-                    WhatsApp
-                  </Button>
-                </a>
-              )}
             </div>
           </div>
         </div>

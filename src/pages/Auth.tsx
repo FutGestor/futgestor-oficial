@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, Loader2, User } from "lucide-react";
+import { Mail, Lock, Loader2, User, CircleDot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,7 +15,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
-import escudo from "@/assets/escudo-real-tralhas.png";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -217,12 +216,12 @@ export default function Auth() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4">
-            <img src={escudo} alt="Real Tralhas" className="h-20 w-auto" />
+          <div className="mx-auto mb-4 flex items-center justify-center">
+            <CircleDot className="h-16 w-16 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Real Tralhas</CardTitle>
+          <CardTitle className="text-2xl">FutGestor</CardTitle>
           <CardDescription>
-            Acesse o painel administrativo
+            Acesse o painel do seu time
           </CardDescription>
         </CardHeader>
         <CardContent>
