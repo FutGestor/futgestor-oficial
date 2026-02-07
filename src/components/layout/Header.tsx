@@ -11,7 +11,8 @@ import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { user, isAdmin, isApproved, signOut } = useAuth();
+  const { user, profile, isAdmin, isApproved, signOut } = useAuth();
+  const isPlayer = !!profile?.jogador_id && !isAdmin;
   const teamSlug = useOptionalTeamSlug();
 
   const basePath = teamSlug?.basePath || "";
@@ -119,7 +120,7 @@ export function Header() {
           
           {user ? (
             <>
-              {isApproved && teamSlug && (
+              {isApproved && teamSlug && !isPlayer && (
                 <Link to={`${basePath}/meu-perfil`}>
                   <Button
                     variant="ghost"
@@ -128,6 +129,14 @@ export function Header() {
                   >
                     <User className="mr-1 h-4 w-4" />
                     Meu Perfil
+                  </Button>
+                </Link>
+              )}
+              {isPlayer && (
+                <Link to="/player/dashboard">
+                  <Button variant="secondary" size="sm" className="hidden md:inline-flex">
+                    <User className="mr-1 h-4 w-4" />
+                    Minha Área
                   </Button>
                 </Link>
               )}
@@ -212,7 +221,15 @@ export function Header() {
               )}
               {user ? (
                 <div className="ml-auto flex flex-wrap gap-2">
-                  {isApproved && teamSlug && (
+                  {isPlayer && (
+                    <Link to="/player/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="secondary" size="sm">
+                        <User className="mr-1 h-4 w-4" />
+                        Minha Área
+                      </Button>
+                    </Link>
+                  )}
+                  {isApproved && teamSlug && !isPlayer && (
                     <Link to={`${basePath}/meu-perfil`} onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="secondary" size="sm">
                         <User className="mr-1 h-4 w-4" />
