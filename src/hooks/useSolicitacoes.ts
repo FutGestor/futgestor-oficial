@@ -68,19 +68,21 @@ export function useCreateSolicitacao() {
       local_sugerido: string;
       observacoes?: string;
       team_id?: string;
+      captcha_answer: number;
+      captcha_expected: number;
     }) => {
-      const { error } = await supabase.from("solicitacoes_jogo").insert({
-        nome_time: data.nome_time,
-        email_contato: data.email_contato || null,
-        telefone_contato: data.telefone_contato,
-        data_preferida: data.data_preferida,
-        horario_preferido: data.horario_preferido,
-        local_sugerido: data.local_sugerido,
-        observacoes: data.observacoes || null,
-        team_id: data.team_id || null,
+      const response = await supabase.functions.invoke("create-solicitacao", {
+        body: data,
       });
 
-      if (error) throw error;
+      if (response.error) {
+        throw new Error(response.error.message || "Erro ao enviar solicitação");
+      }
+
+      const result = response.data;
+      if (result?.error) {
+        throw new Error(result.error);
+      }
     },
     onSuccess: () => {
       toast({

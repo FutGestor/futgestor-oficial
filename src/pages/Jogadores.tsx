@@ -1,15 +1,15 @@
-import { User, Phone, Mail } from "lucide-react";
+import { User } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useJogadores } from "@/hooks/useData";
+import { useJogadoresPublicos } from "@/hooks/useData";
 import { useEstatisticasJogadores } from "@/hooks/useEstatisticas";
 import { JogadorStats } from "@/components/JogadorStats";
-import { positionLabels, type Jogador } from "@/lib/types";
-import { RequireTeam } from "@/components/RequireTeam";
+import { positionLabels, type JogadorPublico } from "@/lib/types";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
-function JogadorCard({ jogador, stats }: { jogador: Jogador; stats: any }) {
+function JogadorCard({ jogador, stats }: { jogador: JogadorPublico; stats: any }) {
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg">
       <div className="aspect-square bg-muted">
@@ -45,45 +45,21 @@ function JogadorCard({ jogador, stats }: { jogador: Jogador; stats: any }) {
         </Badge>
 
         <JogadorStats stats={stats} />
-
-        {(jogador.telefone || jogador.email) && (
-          <div className="mt-3 space-y-1 border-t pt-3 text-sm text-muted-foreground">
-            {jogador.telefone && (
-              <a
-                href={`tel:${jogador.telefone}`}
-                className="flex items-center gap-2 hover:text-primary"
-              >
-                <Phone className="h-4 w-4" />
-                {jogador.telefone}
-              </a>
-            )}
-            {jogador.email && (
-              <a
-                href={`mailto:${jogador.email}`}
-                className="flex items-center gap-2 hover:text-primary"
-              >
-                <Mail className="h-4 w-4" />
-                {jogador.email}
-              </a>
-            )}
-          </div>
-        )}
       </CardContent>
     </Card>
   );
 }
 
-function JogadoresContent() {
-  const { data: jogadores, isLoading } = useJogadores();
+export default function JogadoresPage() {
+  const { team } = useTeamSlug();
+  const { data: jogadores, isLoading } = useJogadoresPublicos(team?.id);
   const { data: estatisticas } = useEstatisticasJogadores();
 
   const jogadoresPorPosicao = jogadores?.reduce((acc, j) => {
-    if (!acc[j.posicao]) {
-      acc[j.posicao] = [];
-    }
+    if (!acc[j.posicao]) acc[j.posicao] = [];
     acc[j.posicao].push(j);
     return acc;
-  }, {} as Record<string, Jogador[]>);
+  }, {} as Record<string, JogadorPublico[]>);
 
   const posicaoOrder = ['goleiro', 'zagueiro', 'lateral', 'volante', 'meia', 'atacante'];
 
@@ -141,13 +117,5 @@ function JogadoresContent() {
         )}
       </div>
     </Layout>
-  );
-}
-
-export default function JogadoresPage() {
-  return (
-    <RequireTeam>
-      <JogadoresContent />
-    </RequireTeam>
   );
 }

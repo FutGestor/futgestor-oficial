@@ -22,6 +22,18 @@ export interface Jogador {
   updated_at: string;
 }
 
+// Public-safe version (no email/telefone)
+export interface JogadorPublico {
+  id: string;
+  nome: string;
+  apelido: string | null;
+  posicao: PlayerPosition;
+  numero: number | null;
+  foto_url: string | null;
+  ativo: boolean;
+  team_id: string | null;
+}
+
 export type PresenceStatus = 'confirmado' | 'indisponivel' | 'pendente';
 
 export interface Time {

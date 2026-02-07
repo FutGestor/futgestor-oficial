@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Jogador, Jogo, Resultado, Transacao, Escalacao, EscalacaoJogador, Aviso, FinancialSummary } from "@/lib/types";
+import type { Jogador, JogadorPublico, Jogo, Resultado, Transacao, Escalacao, EscalacaoJogador, Aviso, FinancialSummary } from "@/lib/types";
 
-// Jogadores
+// Jogadores (authenticated - full data)
 export function useJogadores(ativos = true) {
   return useQuery({
     queryKey: ["jogadores", ativos],
@@ -14,6 +14,24 @@ export function useJogadores(ativos = true) {
       const { data, error } = await query.order("nome");
       if (error) throw error;
       return data as Jogador[];
+    },
+  });
+}
+
+// Jogadores públicos (view sem email/telefone)
+export function useJogadoresPublicos(teamId?: string) {
+  return useQuery({
+    queryKey: ["jogadores-publicos", teamId],
+    enabled: !!teamId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("jogadores_public" as any)
+        .select("*")
+        .eq("team_id", teamId)
+        .eq("ativo", true)
+        .order("nome");
+      if (error) throw error;
+      return (data as unknown) as JogadorPublico[];
     },
   });
 }
