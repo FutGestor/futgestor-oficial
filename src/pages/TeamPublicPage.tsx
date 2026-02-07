@@ -373,7 +373,7 @@ export default function TeamPublicPage() {
                 </a>
               )}
               {team.redes_sociais?.whatsapp && (
-                <a href={team.redes_sociais.whatsapp} target="_blank" rel="noopener noreferrer">
+                <a href={team.redes_sociais.whatsapp.startsWith('http') ? team.redes_sociais.whatsapp : `https://${team.redes_sociais.whatsapp}`} target="_blank" rel="noopener noreferrer">
                   <Button size="lg" className="gap-2 bg-green-600 text-white hover:bg-green-700">
                     <MessageCircle className="h-5 w-5" />
                     WhatsApp
