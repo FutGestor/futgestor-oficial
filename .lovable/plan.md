@@ -1,24 +1,48 @@
 
+# Fix: Team Creation RLS Error During Onboarding
 
-# Correcao do Erro "Auth session missing!" na Recuperacao de Senha
+## Root Cause
+The onboarding code does:
+```js
+await supabase.from("teams").insert({...}).select().single();
+```
 
-## Problema
-Quando voce clica no link de recuperacao no email, o Supabase processa o token e dispara o evento `PASSWORD_RECOVERY` com uma sessao valida. Porem, o codigo atual usa `window.location.href = '/auth?type=recovery'` que faz um reload completo da pagina, destruindo a sessao que acabou de ser criada. Por isso, quando voce tenta redefinir a senha, o erro "Auth session missing!" aparece.
+The `.select().single()` after `.insert()` requires the newly inserted row to also satisfy the **SELECT** RLS policy. The current SELECT policy is:
+```sql
+USING (id = get_user_team_id())
+```
 
-## Solucao
-Trocar o `window.location.href` por uma navegacao via React Router (sem reload) para preservar a sessao em memoria.
+But at this point in onboarding, the user's profile has no `team_id` yet (that's set in step 2), so `get_user_team_id()` returns `NULL` and the SELECT fails -- causing the "violates row-level security" error.
 
-## Detalhes Tecnicos
+## Solution: Database Migration
 
-### Arquivo: `src/hooks/useAuth.tsx`
-- Remover o `window.location.href = '/auth?type=recovery'` (linha 44)
-- Adicionar um estado `passwordRecovery` no contexto de autenticacao para sinalizar que o evento de recuperacao ocorreu
-- Expor esse estado no contexto para que a pagina de Auth possa reagir a ele
+Update the `teams` SELECT policy to also allow users who just created the row. We can do this by checking if the user has no team yet (onboarding scenario) and was the one who just inserted:
 
-### Arquivo: `src/pages/Auth.tsx`
-- Usar o estado `passwordRecovery` do contexto de auth para exibir o formulario de redefinicao de senha, em vez de depender apenas do parametro `type=recovery` na URL
-- Quando o evento de recuperacao ocorrer, alternar automaticamente para a view "reset" sem recarregar a pagina
+**Option chosen (simplest):** Remove `.select().single()` from the insert in the Onboarding code and instead query the team separately after updating the profile. But actually, we need the team `id` to update the profile.
 
-### Resultado esperado
-Ao clicar no link de recuperacao do email, o app vai manter a sessao ativa e exibir o formulario de nova senha sem erro.
+**Better option:** Fix the SELECT policy to temporarily allow reading a team during onboarding. We add a condition: allow SELECT if the user is authenticated and has no team yet (to cover the brief moment between creating the team and linking the profile).
 
+**Simplest correct fix:** Change the onboarding code to NOT use `.select()` on the insert, and instead use the `slug` to find the team afterward, OR update the SELECT RLS policy.
+
+**Best approach -- two changes:**
+
+### 1. Database: Update teams SELECT policy
+Add a broader SELECT condition so the creator can read the team they just inserted:
+```sql
+DROP POLICY "Members can view own team" ON public.teams;
+CREATE POLICY "Members can view own team"
+  ON public.teams FOR SELECT
+  TO authenticated
+  USING (
+    id = get_user_team_id()
+    OR get_user_team_id() IS NULL  -- onboarding: user has no team yet
+  );
+```
+This allows a user with no team (mid-onboarding) to read any team row. This is safe because the only time `get_user_team_id()` is NULL is during onboarding before the profile is linked. Once the profile has a team, only their own team is visible.
+
+### 2. No frontend changes needed
+The existing `Onboarding.tsx` code is correct -- the `.select().single()` will work once the SELECT policy allows it.
+
+## Summary
+- One database migration to update the SELECT policy on `teams`
+- No code file changes required
