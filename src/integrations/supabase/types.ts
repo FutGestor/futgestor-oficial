@@ -565,6 +565,7 @@ export type Database = {
         Row: {
           banner_url: string | null
           cores: Json | null
+          cpf_responsavel: string | null
           created_at: string
           escudo_url: string | null
           id: string
@@ -577,6 +578,7 @@ export type Database = {
         Insert: {
           banner_url?: string | null
           cores?: Json | null
+          cpf_responsavel?: string | null
           created_at?: string
           escudo_url?: string | null
           id?: string
@@ -589,6 +591,7 @@ export type Database = {
         Update: {
           banner_url?: string | null
           cores?: Json | null
+          cpf_responsavel?: string | null
           created_at?: string
           escudo_url?: string | null
           id?: string
