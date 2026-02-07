@@ -1,0 +1,221 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { EstatisticaPartida, EstatisticasJogador, Jogador } from "@/lib/types";
+
+// Estatísticas de uma partida específica
+export function useEstatisticasPartida(resultadoId: string | undefined) {
+  return useQuery({
+    queryKey: ["estatisticas-partida", resultadoId],
+    enabled: !!resultadoId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("estatisticas_partida")
+        .select(`*, jogador:jogadores(*)`)
+        .eq("resultado_id", resultadoId)
+        .order("gols", { ascending: false });
+      if (error) throw error;
+      return data as (EstatisticaPartida & { jogador: Jogador })[];
+    },
+  });
+}
+
+// Estatísticas totais de todos os jogadores
+export function useEstatisticasJogadores() {
+  return useQuery({
+    queryKey: ["estatisticas-jogadores"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("estatisticas_partida")
+        .select("*");
+      if (error) throw error;
+
+      // Agregar estatísticas por jogador
+      const estatisticasPorJogador: Record<string, EstatisticasJogador> = {};
+
+      for (const stat of data) {
+        if (!estatisticasPorJogador[stat.jogador_id]) {
+          estatisticasPorJogador[stat.jogador_id] = {
+            jogador_id: stat.jogador_id,
+            jogos: 0,
+            gols: 0,
+            assistencias: 0,
+            cartoes_amarelos: 0,
+            cartoes_vermelhos: 0,
+          };
+        }
+
+        const jogadorStats = estatisticasPorJogador[stat.jogador_id];
+        if (stat.participou) jogadorStats.jogos++;
+        jogadorStats.gols += stat.gols;
+        jogadorStats.assistencias += stat.assistencias;
+        if (stat.cartao_amarelo) jogadorStats.cartoes_amarelos++;
+        if (stat.cartao_vermelho) jogadorStats.cartoes_vermelhos++;
+      }
+
+      return estatisticasPorJogador;
+    },
+  });
+}
+
+// Ranking de artilheiros e assistências
+export function useRanking() {
+  return useQuery({
+    queryKey: ["ranking"],
+    queryFn: async () => {
+      // Buscar todas as estatísticas com jogadores
+      const { data: estatisticas, error: estError } = await supabase
+        .from("estatisticas_partida")
+        .select(`*, jogador:jogadores(*)`);
+      if (estError) throw estError;
+
+      // Agregar por jogador
+      const jogadoresMap: Record<string, {
+        jogador: Jogador;
+        gols: number;
+        assistencias: number;
+        jogos: number;
+        cartoes_amarelos: number;
+        cartoes_vermelhos: number;
+      }> = {};
+
+      for (const stat of estatisticas) {
+        if (!stat.jogador) continue;
+        
+        if (!jogadoresMap[stat.jogador_id]) {
+          jogadoresMap[stat.jogador_id] = {
+            jogador: stat.jogador as Jogador,
+            gols: 0,
+            assistencias: 0,
+            jogos: 0,
+            cartoes_amarelos: 0,
+            cartoes_vermelhos: 0,
+          };
+        }
+
+        const entry = jogadoresMap[stat.jogador_id];
+        if (stat.participou) entry.jogos++;
+        entry.gols += stat.gols;
+        entry.assistencias += stat.assistencias;
+        if (stat.cartao_amarelo) entry.cartoes_amarelos++;
+        if (stat.cartao_vermelho) entry.cartoes_vermelhos++;
+      }
+
+      const jogadores = Object.values(jogadoresMap);
+
+      // Ordenar para artilheiros
+      const artilheiros = [...jogadores]
+        .filter(j => j.gols > 0)
+        .sort((a, b) => b.gols - a.gols);
+
+      // Ordenar para assistências
+      const assistencias = [...jogadores]
+        .filter(j => j.assistencias > 0)
+        .sort((a, b) => b.assistencias - a.assistencias);
+
+      // Ordenar por participação
+      const participacao = [...jogadores]
+        .filter(j => j.jogos > 0)
+        .sort((a, b) => b.jogos - a.jogos);
+
+      return { artilheiros, assistencias, participacao };
+    },
+  });
+}
+
+// Ranking de destaques (votos MVP)
+export function useRankingDestaques() {
+  return useQuery({
+    queryKey: ["ranking-destaques"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("votos_destaque")
+        .select(`
+          jogador_id,
+          jogador:jogadores(id, nome, apelido, foto_url)
+        `);
+
+      if (error) throw error;
+
+      // Agregar votos por jogador
+      const votosMap: Record<string, {
+        jogador: {
+          id: string;
+          nome: string;
+          apelido: string | null;
+          foto_url: string | null;
+        };
+        votos: number;
+      }> = {};
+
+      for (const voto of data) {
+        if (!voto.jogador) continue;
+        
+        const jogador = voto.jogador as {
+          id: string;
+          nome: string;
+          apelido: string | null;
+          foto_url: string | null;
+        };
+        
+        if (!votosMap[voto.jogador_id]) {
+          votosMap[voto.jogador_id] = {
+            jogador,
+            votos: 0,
+          };
+        }
+        votosMap[voto.jogador_id].votos++;
+      }
+
+      return Object.values(votosMap).sort((a, b) => b.votos - a.votos);
+    },
+  });
+}
+
+// Mutação para salvar estatísticas de uma partida
+export function useSaveEstatisticasPartida() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      resultadoId,
+      estatisticas,
+    }: {
+      resultadoId: string;
+      estatisticas: Array<{
+        jogador_id: string;
+        gols: number;
+        assistencias: number;
+        cartao_amarelo: boolean;
+        cartao_vermelho: boolean;
+        participou: boolean;
+      }>;
+    }) => {
+      // Deletar estatísticas existentes
+      await supabase
+        .from("estatisticas_partida")
+        .delete()
+        .eq("resultado_id", resultadoId);
+
+      // Inserir novas
+      if (estatisticas.length > 0) {
+        const { error } = await supabase.from("estatisticas_partida").insert(
+          estatisticas.map((e) => ({
+            resultado_id: resultadoId,
+            jogador_id: e.jogador_id,
+            gols: e.gols,
+            assistencias: e.assistencias,
+            cartao_amarelo: e.cartao_amarelo,
+            cartao_vermelho: e.cartao_vermelho,
+            participou: e.participou,
+          }))
+        );
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["estatisticas-partida"] });
+      queryClient.invalidateQueries({ queryKey: ["estatisticas-jogadores"] });
+      queryClient.invalidateQueries({ queryKey: ["ranking"] });
+    },
+  });
+}

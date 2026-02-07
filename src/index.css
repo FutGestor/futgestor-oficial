@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Real Tralhas Design System - Cores baseadas no escudo do time */
+
+@layer base {
+  :root {
+    /* Cores principais do escudo Real Tralhas */
+    --background: 40 23% 94%; /* Creme claro #F5F0E6 */
+    --foreground: 210 45% 23%; /* Azul marinho escuro */
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 45% 23%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 45% 23%;
+
+    /* Azul Marinho do escudo */
+    --primary: 210 52% 23%; /* #1B3A5C */
+    --primary-foreground: 40 23% 94%;
+
+    /* Dourado do escudo */
+    --secondary: 40 55% 56%; /* #D4A84B */
+    --secondary-foreground: 210 45% 15%;
+
+    /* Creme para elementos secundários */
+    --muted: 40 23% 90%;
+    --muted-foreground: 210 20% 40%;
+
+    /* Dourado para acentos */
+    --accent: 40 55% 56%; /* #D4A84B */
+    --accent-foreground: 210 45% 15%;
+
+    /* Vermelho do escudo para alertas/destrutivo */
+    --destructive: 0 56% 34%; /* #8B2323 */
+    --destructive-foreground: 40 23% 94%;
+
+    --border: 40 20% 85%;
+    --input: 40 20% 85%;
+    --ring: 210 52% 23%;
+
+    --radius: 0.5rem;
+
+    /* Cores personalizadas do Real Tralhas */
+    --navy: 210 52% 23%;
+    --gold: 40 55% 56%;
+    --red: 0 56% 34%;
+    --cream: 40 23% 94%;
+    --cream-dark: 40 23% 88%;
+
+    /* Sidebar */
+    --sidebar-background: 210 52% 20%;
+    --sidebar-foreground: 40 23% 94%;
+    --sidebar-primary: 40 55% 56%;
+    --sidebar-primary-foreground: 210 45% 15%;
+    --sidebar-accent: 210 52% 28%;
+    --sidebar-accent-foreground: 40 23% 94%;
+    --sidebar-border: 210 52% 30%;
+    --sidebar-ring: 40 55% 56%;
+  }
+
+  .dark {
+    --background: 210 52% 10%;
+    --foreground: 40 23% 94%;
+
+    --card: 210 52% 15%;
+    --card-foreground: 40 23% 94%;
+
+    --popover: 210 52% 15%;
+    --popover-foreground: 40 23% 94%;
+
+    --primary: 40 55% 56%;
+    --primary-foreground: 210 52% 10%;
+
+    --secondary: 210 52% 25%;
+    --secondary-foreground: 40 23% 94%;
+
+    --muted: 210 52% 20%;
+    --muted-foreground: 40 20% 70%;
+
+    --accent: 40 55% 56%;
+    --accent-foreground: 210 52% 10%;
+
+    --destructive: 0 56% 45%;
+    --destructive-foreground: 40 23% 94%;
+
+    --border: 210 52% 25%;
+    --input: 210 52% 25%;
+    --ring: 40 55% 56%;
+
+    --sidebar-background: 210 52% 8%;
+    --sidebar-foreground: 40 23% 94%;
+    --sidebar-primary: 40 55% 56%;
+    --sidebar-primary-foreground: 210 52% 10%;
+    --sidebar-accent: 210 52% 15%;
+    --sidebar-accent-foreground: 40 23% 94%;
+    --sidebar-border: 210 52% 20%;
+    --sidebar-ring: 40 55% 56%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Scrollbar personalizada */
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.8);
+  }
+}
