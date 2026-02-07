@@ -372,28 +372,25 @@ export default function TeamPublicPage() {
         </div>
       </section>
 
-      {isMember && (
-        <>
-          {/* Agendamento */}
-          <section className="py-8 bg-gradient-to-b from-background to-muted/30">
-            <div className="container px-4 md:px-6">
-              <ScheduleGameCard />
-            </div>
-          </section>
+      {/* Agendamento - visível para todos */}
+      <section className="py-8 bg-gradient-to-b from-background to-muted/30">
+        <div className="container px-4 md:px-6">
+          <ScheduleGameCard />
+        </div>
+      </section>
 
-          {/* Cards Section */}
-          <section className="py-12">
-            <div className="container px-4 md:px-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <NextGameCard />
-                <LastResultCard />
-                <FinancialCard />
-                <NoticesCard />
-                <LineupPreviewCard />
-              </div>
+      {isMember && (
+        <section className="py-12">
+          <div className="container px-4 md:px-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <NextGameCard />
+              <LastResultCard />
+              <FinancialCard />
+              <NoticesCard />
+              <LineupPreviewCard />
             </div>
-          </section>
-        </>
+          </div>
+        </section>
       )}
     </Layout>
   );
