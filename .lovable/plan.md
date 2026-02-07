@@ -1,48 +1,39 @@
 
-# Correção: Estatísticas e Presenças — team_id ausente nos INSERTs
+# Correções na Landing Page
 
-## Problema
-Os INSERTs nas tabelas `estatisticas_partida` e `confirmacoes_presenca` não incluem `team_id`, violando as políticas RLS que exigem `team_id = get_user_team_id()`.
+## Problemas identificados
+
+1. **Botão "Criar meu time" ilegível**: O botão usa `variant="outline"` com `text-primary-foreground` — como o fundo do hero é escuro, o texto do botão fica claro sobre um fundo claro (outline), impossível de ler.
+
+2. **Logo ausente**: O ícone genérico `CircleDot` precisa ser substituído pela logo do FutGestor enviada pelo usuário.
 
 ## Correções
 
-### 1. `src/hooks/useEstatisticas.ts` — useSaveEstatisticasPartida
+### 1. Adicionar a logo ao projeto
 
-A mutation precisa receber o `team_id` e incluí-lo em cada registro inserido.
+- Copiar a imagem `da50adb8-92af-46e8-b5d0-65284c0dfbee.jpg` para `src/assets/logo-futgestor.jpg`
+- Também copiar para `public/logo-futgestor.jpg` para uso no HTML/Auth
 
-- Adicionar `team_id` ao tipo do parâmetro da mutation
-- Incluir `team_id` no payload de cada insert (linha 202-210)
+### 2. `src/pages/Index.tsx`
 
-```typescript
-// Parâmetro adicional:
-team_id: string;
+- Substituir o ícone `CircleDot` pela imagem da logo importada de `@/assets/logo-futgestor.jpg`
+- Corrigir o botão "Criar meu time" para usar cores legíveis: trocar `variant="outline"` por `variant="secondary"` ou ajustar as classes para garantir contraste (ex: fundo branco com texto escuro)
 
-// No insert (linha 202-210), adicionar:
-team_id: team_id,
+### 3. `src/pages/Auth.tsx`
+
+- Substituir o ícone `CircleDot` pela mesma logo do FutGestor na tela de login
+
+## Detalhes Técnicos
+
+**Index.tsx** — substituir:
+```tsx
+<CircleDot className="mb-6 h-20 w-20 text-primary-foreground/90" />
+```
+por:
+```tsx
+<img src={logoFutgestor} alt="FutGestor" className="mb-6 h-24 w-auto" />
 ```
 
-### 2. `src/components/EstatisticasPartidaForm.tsx` — handleSave
+**Index.tsx** — botão "Criar meu time": trocar para `variant="secondary"` para manter a legibilidade.
 
-Passar o `team_id` do perfil do usuário ao chamar a mutation.
-
-- Importar `useAuth`
-- Obter `profile` do hook
-- Passar `team_id: profile?.team_id` na chamada `saveEstatisticas.mutateAsync()`
-
-### 3. `src/components/AdminPresencaManager.tsx` — handleSave
-
-O INSERT de `confirmacoes_presenca` (linha 70-76) não inclui `team_id`.
-
-- Importar `useAuth`
-- Obter `profile` do hook
-- Adicionar `team_id: profile?.team_id` ao payload do insert (linha 72-76)
-
-## Resumo
-
-| Arquivo | Mudança |
-|---|---|
-| `src/hooks/useEstatisticas.ts` | Aceitar e incluir `team_id` no insert |
-| `src/components/EstatisticasPartidaForm.tsx` | Passar `team_id` do perfil na mutation |
-| `src/components/AdminPresencaManager.tsx` | Incluir `team_id` do perfil no insert |
-
-Três arquivos, mesma correção: adicionar `team_id` aos INSERTs.
+**Auth.tsx** — substituir o `CircleDot` pela mesma logo com tamanho menor (`h-16`).
