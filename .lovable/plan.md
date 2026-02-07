@@ -1,73 +1,81 @@
 
 
-# Tornar Agenda e Resultados visíveis para visitantes
+# Filtrar dados de Agenda e Resultados por time
 
-## Problema atual
+## Problema
 
-As páginas Agenda e Resultados estão envolvidas pelo componente `RequireTeam`, que exige login. Além disso, as políticas de segurança do banco de dados só permitem leitura para membros do time. Visitantes veem "Acesso restrito".
+As queries de `useJogos()` e `useResultados()` nao filtram por `team_id`. Para membros logados, o RLS filtra automaticamente. Mas para visitantes anonimos, a policy publica usa `USING (true)`, retornando dados de TODOS os times.
 
-## O que será feito
+## Solucao
 
-### 1. Banco de dados - Novas políticas de leitura pública
+Adicionar parametro opcional `teamId` aos hooks `useJogos()` e `useResultados()`, e passar o `team_id` do contexto do slug nas paginas Agenda e Resultados.
 
-Criar políticas SELECT para as tabelas `jogos` e `resultados` que permitam leitura anônima filtrada por `team_id` (o visitante só vê dados do time cujo slug acessou):
+## Detalhes tecnicos
 
-- `jogos`: SELECT para role `anon` com filtro por `team_id`
-- `resultados`: SELECT para role `anon` com filtro por `team_id`
+### 1. Hook `useJogos` (src/hooks/useData.ts)
 
-### 2. Remover `RequireTeam` das páginas Agenda e Resultados
+Adicionar parametro opcional `teamId`:
 
-- **`src/pages/Agenda.tsx`**: Remover o wrapper `RequireTeam` do export, renderizar `AgendaContent` diretamente
-- **`src/pages/Resultados.tsx`**: Remover o wrapper `RequireTeam` do export, renderizar `ResultadosContent` diretamente
-
-### 3. Ocultar itens de navegação restritos para visitantes
-
-- **`src/components/layout/Header.tsx`**: Separar os nav items em dois grupos:
-  - Visíveis para todos: Início, Agenda, Resultados
-  - Visíveis apenas para membros logados: Escalação, Jogadores, Ranking
-  - Manter Financeiro e Avisos como já estão (apenas para logados)
-
-### 4. Ajustar MobileBottomNav para visitantes
-
-- **`src/components/layout/MobileBottomNav.tsx`**: Mostrar apenas Agenda e Resultados para visitantes não logados. Ranking e Avisos ficam restritos a membros.
-
-### 5. Ocultar funcionalidades de membro nas páginas públicas
-
-- Na página Agenda, esconder o botão de confirmação de presença (`ConfirmacaoPresenca`) quando o visitante não está logado
-- Na página Resultados, esconder o componente `VotacaoDestaque` quando o visitante não está logado
-
-## Detalhes técnicos
-
-### Migration SQL
-```sql
-CREATE POLICY "Public can view jogos by team"
-ON public.jogos FOR SELECT TO anon
-USING (true);
-
-CREATE POLICY "Public can view resultados by team"
-ON public.resultados FOR SELECT TO anon
-USING (true);
-```
-
-### Header - Lógica de nav items
 ```typescript
-const visitorNavItems = [
-  { href: basePath, label: "Início" },
-  { href: `${basePath}/agenda`, label: "Agenda" },
-  { href: `${basePath}/resultados`, label: "Resultados" },
-];
-
-const memberNavItems = [
-  { href: `${basePath}/escalacao`, label: "Escalação" },
-  { href: `${basePath}/jogadores`, label: "Jogadores" },
-  { href: `${basePath}/ranking`, label: "Ranking" },
-];
+export function useJogos(teamId?: string) {
+  return useQuery({
+    queryKey: ["jogos", teamId],
+    queryFn: async () => {
+      let query = supabase.from("jogos").select(`*, time_adversario:times(*)`);
+      if (teamId) {
+        query = query.eq("team_id", teamId);
+      }
+      const { data, error } = await query.order("data_hora", { ascending: false });
+      if (error) throw error;
+      return data as Jogo[];
+    },
+  });
+}
 ```
+
+### 2. Hook `useResultados` (src/hooks/useData.ts)
+
+Mesma abordagem:
+
+```typescript
+export function useResultados(teamId?: string) {
+  return useQuery({
+    queryKey: ["resultados", teamId],
+    queryFn: async () => {
+      let query = supabase.from("resultados").select(`*, jogo:jogos(*)`);
+      if (teamId) {
+        query = query.eq("team_id", teamId);
+      }
+      const { data, error } = await query.order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as (Resultado & { jogo: Jogo })[];
+    },
+  });
+}
+```
+
+### 3. Pagina Agenda (src/pages/Agenda.tsx)
+
+Importar `useTeamConfig` e passar o `team.id` para `useJogos`:
+
+```typescript
+const { team } = useTeamConfig();
+const { data: jogos, isLoading } = useJogos(team.id || undefined);
+```
+
+### 4. Pagina Resultados (src/pages/Resultados.tsx)
+
+Ja importa `useTeamConfig`. Passar o `team.id` para `useResultados`:
+
+```typescript
+const { data: resultados, isLoading } = useResultados(team.id || undefined);
+```
+
+### 5. Verificar outros usos de useJogos/useResultados
+
+Chamadas existentes sem parametro continuarao funcionando como antes (sem filtro extra, RLS protege para membros logados). Nenhuma quebra de compatibilidade.
 
 ### Arquivos modificados
-- Migration SQL (nova policy RLS)
-- `src/pages/Agenda.tsx` (remover RequireTeam, esconder presença para anon)
-- `src/pages/Resultados.tsx` (remover RequireTeam, esconder votação para anon)
-- `src/components/layout/Header.tsx` (filtrar nav items por autenticação)
-- `src/components/layout/MobileBottomNav.tsx` (filtrar itens para visitantes)
-
+- `src/hooks/useData.ts` (useJogos e useResultados aceitam teamId)
+- `src/pages/Agenda.tsx` (passa team.id)
+- `src/pages/Resultados.tsx` (passa team.id)
