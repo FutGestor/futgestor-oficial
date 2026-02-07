@@ -37,6 +37,7 @@ interface ProfileWithEmail {
   jogador_id: string | null;
   aprovado: boolean;
   created_at: string;
+  team_id: string | null;
   jogador?: {
     nome: string;
     apelido: string | null;
@@ -47,7 +48,7 @@ interface ProfileWithEmail {
 export default function AdminUsuarios() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { profile: authProfile } = useAuth();
+  const { profile: authProfile, isSuperAdmin } = useAuth();
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<ProfileWithEmail | null>(null);
@@ -60,10 +61,10 @@ export default function AdminUsuarios() {
 
   // Buscar profiles com dados relacionados
   const { data: profiles, isLoading } = useQuery({
-    queryKey: ["admin-profiles"],
+    queryKey: ["admin-profiles", authProfile?.team_id, isSuperAdmin],
     queryFn: async () => {
-      // Buscar profiles
-      const { data: profilesData, error: profilesError } = await supabase
+      // Buscar profiles - super admin ve todos, admin normal ve so do seu time
+      let query = supabase
         .from("profiles")
         .select(`
           id,
@@ -71,9 +72,16 @@ export default function AdminUsuarios() {
           jogador_id,
           aprovado,
           created_at,
+          team_id,
           jogador:jogadores(nome, apelido)
         `)
         .order("created_at", { ascending: false });
+
+      if (!isSuperAdmin && authProfile?.team_id) {
+        query = query.or(`team_id.eq.${authProfile.team_id},team_id.is.null`);
+      }
+
+      const { data: profilesData, error: profilesError } = await query;
 
       if (profilesError) throw profilesError;
 
@@ -81,17 +89,20 @@ export default function AdminUsuarios() {
       const { data: rolesData, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id, role")
-        .eq("role", "admin");
+        .in("role", ["admin", "super_admin"]);
 
       if (rolesError) throw rolesError;
 
-      const adminIds = new Set(rolesData?.map(r => r.user_id) || []);
+      const adminIds = new Set(rolesData?.filter(r => r.role === 'admin').map(r => r.user_id) || []);
+      const superAdminIds = new Set(rolesData?.filter(r => r.role === 'super_admin').map(r => r.user_id) || []);
 
-      // Retornar com flag de admin
-      return (profilesData || []).map(p => ({
-        ...p,
-        isAdmin: adminIds.has(p.id),
-      })) as ProfileWithEmail[];
+      // Retornar com flag de admin, excluindo super admins da lista (a menos que seja o próprio super admin vendo)
+      return (profilesData || [])
+        .filter(p => isSuperAdmin || !superAdminIds.has(p.id))
+        .map(p => ({
+          ...p,
+          isAdmin: adminIds.has(p.id),
+        })) as ProfileWithEmail[];
     },
   });
 
