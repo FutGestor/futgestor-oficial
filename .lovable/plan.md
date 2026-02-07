@@ -1,79 +1,130 @@
 
-# Corrigir Isolamento de Usuarios por Time + Super Admin
+# Sistema de Confirmacao de Presenca por Link Privado
 
-## Problema
-Atualmente, qualquer admin de qualquer time consegue ver TODOS os usuarios do sistema. Isso acontece por dois motivos:
-1. A policy RLS "Admins can manage all profiles" usa `has_role(auth.uid(), 'admin')` que da acesso a QUALQUER admin
-2. A query no `AdminUsuarios.tsx` nao filtra por `team_id`
+## Resumo
+Criar um sistema onde o admin gera um link unico por jogo (ex: `/presenca/abc12345`), compartilha no WhatsApp, e os jogadores confirmam presenca sem precisar de login. O admin visualiza o resumo das confirmacoes no painel.
 
-## Solucao
+## 1. Banco de Dados
 
-### 1. Criar role "super_admin" no banco de dados
-- Adicionar `'super_admin'` ao enum `app_role`
-- Atribuir role `super_admin` a conta `futgestor@gmail.com` (ID: `6dcc735a-95a8-498a-bc21-2a94cdb0a893`)
-- Criar funcao `is_super_admin()` para verificar essa role
+### Tabela `presenca_links`
+| Coluna | Tipo | Detalhes |
+|--------|------|----------|
+| id | uuid | PK, default gen_random_uuid() |
+| jogo_id | uuid | FK para jogos, UNIQUE |
+| team_id | uuid | FK para teams |
+| codigo | text | UNIQUE, 8 caracteres aleatorios |
+| created_at | timestamptz | default now() |
 
-### 2. Corrigir RLS da tabela `profiles`
-- Alterar policy "Admins can manage all profiles" para:
-  - Super admin: acesso total a todos os profiles
-  - Admin de time: acesso apenas aos profiles do mesmo `team_id`
+### Tabela `presencas`
+| Coluna | Tipo | Detalhes |
+|--------|------|----------|
+| id | uuid | PK, default gen_random_uuid() |
+| presenca_link_id | uuid | FK para presenca_links |
+| jogador_id | uuid | FK para jogadores |
+| status | text | 'confirmado' ou 'ausente' |
+| updated_at | timestamptz | default now() |
+| UNIQUE | | (presenca_link_id, jogador_id) |
 
-Nova policy:
+### Politicas RLS
+- **presenca_links**: SELECT publico (anon) para permitir acesso via link. INSERT/UPDATE/DELETE apenas para team admins.
+- **presencas**: SELECT e UPSERT publico (anon) para jogadores confirmarem sem login. DELETE apenas para team admins. Admin tambem pode inserir/atualizar.
+
+## 2. Rota Nova no App
+
+Adicionar rota publica fora do layout `/time/:slug`:
 ```text
-USING (
-  is_super_admin(auth.uid()) 
-  OR is_team_admin(auth.uid(), team_id)
-)
+<Route path="/presenca/:codigo" element={<PresencaPublica />} />
 ```
+Essa rota nao aparece em nenhuma navegacao -- so acessivel por quem tem o link.
 
-### 3. Corrigir a query no `AdminUsuarios.tsx`
-- Para admins normais: filtrar profiles por `team_id` do admin logado
-- Para super admin (futgestor@gmail.com): mostrar todos os profiles
-- Adicionar flag no `useAuth` ou verificar diretamente se o usuario tem role `super_admin`
+## 3. Pagina Publica (`/presenca/:codigo`)
 
-### 4. Atualizar `useAuth` para detectar super admin
-- Adicionar campo `isSuperAdmin` ao contexto de autenticacao
-- Verificar na tabela `user_roles` se tem role `super_admin`
+Nova pagina `src/pages/PresencaPublica.tsx`:
+- Busca o `presenca_link` pelo codigo, carrega dados do jogo (adversario, data, horario, local) e lista de jogadores do time.
+- Exibe info do jogo no topo.
+- Lista todos os jogadores. Ao clicar no nome, abre opcoes: "Vou jogar" ou "Nao vou".
+- Faz upsert na tabela `presencas`.
+- Mostra mensagem de sucesso apos confirmar.
+- NAO mostra respostas de outros jogadores.
 
-### 5. Ajustar a interface do `AdminUsuarios`
-- Super admin vera todos os usuarios de todos os times, com indicacao do time de cada um
-- Admin normal vera apenas usuarios do seu proprio time
+## 4. Botao "Link de Presenca" no Admin
+
+No componente `JogoCard` dentro de `AdminJogos.tsx`:
+- Adicionar botao com icone de link (Link2).
+- Ao clicar, verifica se ja existe `presenca_link` para o jogo. Se nao, cria com codigo aleatorio de 8 chars.
+- Mostra dialog com o link completo e botao "Copiar link".
+- Hook `usePresencaLink(jogoId)` para buscar/criar o link.
+
+## 5. Painel Admin de Presencas (melhorar existente)
+
+O `AdminPresencaManager` existente usa a tabela `confirmacoes_presenca`. A nova feature usa a tabela `presencas` (via link). Vou adicionar uma aba ou secao no dialog de presencas mostrando:
+- Resumo: X confirmados, X ausentes, X sem resposta (baseado na tabela `presencas`).
+- Lista de jogadores com status.
+- Admin pode marcar presenca manualmente (upsert na tabela `presencas`).
 
 ## Detalhes Tecnicos
 
 ### Migracao SQL
 ```text
--- Adicionar super_admin ao enum
-ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'super_admin';
-
--- Criar funcao helper
-CREATE OR REPLACE FUNCTION public.is_super_admin(_user_id uuid)
-RETURNS boolean
-LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path TO 'public'
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE user_id = _user_id AND role = 'super_admin'
-  )
-$$;
-
--- Atribuir role ao futgestor
-INSERT INTO public.user_roles (user_id, role)
-VALUES ('6dcc735a-95a8-498a-bc21-2a94cdb0a893', 'super_admin')
-ON CONFLICT DO NOTHING;
-
--- Corrigir RLS policy de profiles
-DROP POLICY IF EXISTS "Admins can manage all profiles" ON public.profiles;
-CREATE POLICY "Admins can manage all profiles"
-ON public.profiles FOR ALL
-USING (
-  is_super_admin(auth.uid())
-  OR is_team_admin(auth.uid(), team_id)
+-- Tabela presenca_links
+CREATE TABLE public.presenca_links (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  jogo_id uuid NOT NULL REFERENCES public.jogos(id) ON DELETE CASCADE,
+  team_id uuid NOT NULL REFERENCES public.teams(id),
+  codigo text NOT NULL UNIQUE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(jogo_id)
 );
+ALTER TABLE public.presenca_links ENABLE ROW LEVEL SECURITY;
+
+-- Tabela presencas
+CREATE TABLE public.presencas (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  presenca_link_id uuid NOT NULL REFERENCES public.presenca_links(id) ON DELETE CASCADE,
+  jogador_id uuid NOT NULL REFERENCES public.jogadores(id) ON DELETE CASCADE,
+  status text NOT NULL CHECK (status IN ('confirmado', 'ausente')),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(presenca_link_id, jogador_id)
+);
+ALTER TABLE public.presencas ENABLE ROW LEVEL SECURITY;
+
+-- RLS: presenca_links
+CREATE POLICY "Public can read presenca_links by codigo"
+ON public.presenca_links FOR SELECT TO anon, authenticated
+USING (true);
+
+CREATE POLICY "Team admins can manage presenca_links"
+ON public.presenca_links FOR ALL TO authenticated
+USING (is_team_admin(auth.uid(), team_id));
+
+-- RLS: presencas
+CREATE POLICY "Public can read own presenca"
+ON public.presencas FOR SELECT TO anon, authenticated
+USING (true);
+
+CREATE POLICY "Anyone can upsert presencas"
+ON public.presencas FOR INSERT TO anon, authenticated
+WITH CHECK (true);
+
+CREATE POLICY "Anyone can update presencas"
+ON public.presencas FOR UPDATE TO anon, authenticated
+USING (true);
+
+CREATE POLICY "Team admins can delete presencas"
+ON public.presencas FOR DELETE TO authenticated
+USING (EXISTS (
+  SELECT 1 FROM presenca_links pl
+  WHERE pl.id = presencas.presenca_link_id
+  AND is_team_admin(auth.uid(), pl.team_id)
+));
 ```
 
+### Arquivos a criar
+- `src/pages/PresencaPublica.tsx` -- Pagina publica de confirmacao
+- `src/hooks/usePresencaLink.ts` -- Hook para buscar/criar link de presenca
+
 ### Arquivos a modificar
-- `src/hooks/useAuth.tsx` - Adicionar `isSuperAdmin` ao contexto
-- `src/pages/admin/AdminUsuarios.tsx` - Filtrar por `team_id` para admins normais; mostrar todos para super admin
-- Migracao SQL para enum, funcao e policies
+- `src/App.tsx` -- Adicionar rota `/presenca/:codigo`
+- `src/pages/admin/AdminJogos.tsx` -- Adicionar botao de link no JogoCard e dialog de copia
+- `src/components/AdminPresencaManager.tsx` -- Adicionar secao mostrando respostas da tabela `presencas` (via link)
+- `src/lib/types.ts` -- Adicionar tipos PresencaLink e Presenca
