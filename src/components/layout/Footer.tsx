@@ -1,4 +1,4 @@
-import { Instagram, MessageCircle } from "lucide-react";
+import { Instagram, MessageCircle, Youtube, Facebook } from "lucide-react";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import logoFutgestor from "@/assets/logo-futgestor.png";
 
@@ -37,6 +37,28 @@ export function Footer() {
               >
                 <Instagram className="h-5 w-5" />
                 Instagram
+              </a>
+            )}
+            {team.redes_sociais.youtube && (
+              <a
+                href={team.redes_sociais.youtube}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              >
+                <Youtube className="h-5 w-5" />
+                YouTube
+              </a>
+            )}
+            {team.redes_sociais.facebook && (
+              <a
+                href={team.redes_sociais.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              >
+                <Facebook className="h-5 w-5" />
+                Facebook
               </a>
             )}
             {team.redes_sociais.whatsapp && (
