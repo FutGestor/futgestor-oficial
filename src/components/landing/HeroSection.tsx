@@ -34,16 +34,16 @@ export function HeroSection() {
         </h1>
 
         <p className="text-lg text-gray-300 leading-relaxed max-w-xl mx-auto mb-8">
-          Abandone o caderno e a confusão no WhatsApp. Financeiro, Escalação, Estatísticas e Área do Jogador — tudo em um só lugar.
+          A plataforma completa para gerenciar seu time de futebol amador. Controle financeiro, escalação tática no campo virtual, ranking de jogadores, agenda de jogos e portal exclusivo para cada atleta — tudo acessível pelo celular.
         </p>
 
         {/* Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={() => scrollTo("precos")}
             className="px-8 py-4 rounded-xl font-bold text-base bg-gradient-to-r from-gold to-[#F0CC6B] text-[#0A1628] shadow-[0_4px_20px_rgba(212,168,75,0.3)] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(212,168,75,0.4)] transition-all"
           >
-            Criar meu time grátis
+            Começar agora
           </button>
           <button
             onClick={() => scrollTo("funcionalidades")}
@@ -53,10 +53,15 @@ export function HeroSection() {
           </button>
         </div>
 
+        {/* Pricing note */}
+        <p className="text-sm text-gray-500 mt-4 mb-12">
+          Planos a partir de R$ 9,90/mês — Sem fidelidade, cancele quando quiser
+        </p>
+
         {/* Stats */}
         <div className="flex gap-8 md:gap-12 justify-center flex-wrap">
           {[
-            { num: "100%", label: "Gratuito pra começar" },
+            { num: "R$ 9,90", label: "A partir de / mês" },
             { num: "2min", label: "Pra configurar" },
             { num: "24/7", label: "Acesso pelo celular" },
           ].map((s) => (

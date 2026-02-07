@@ -30,7 +30,7 @@ export function LandingHeader() {
           onClick={() => scroll("precos")}
           className="ml-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-gradient-to-r from-gold to-[#F0CC6B] text-[#0A1628] shadow-[0_4px_20px_rgba(212,168,75,0.3)] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(212,168,75,0.4)] transition-all"
         >
-          Começar grátis
+          Conhecer planos
         </button>
       </nav>
 
@@ -50,7 +50,7 @@ export function LandingHeader() {
             onClick={() => scroll("precos")}
             className="mt-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-gradient-to-r from-gold to-[#F0CC6B] text-[#0A1628] w-full"
           >
-            Começar grátis
+            Conhecer planos
           </button>
         </div>
       )}
