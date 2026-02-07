@@ -10,6 +10,7 @@ export interface TeamSlugData {
   nome: string;
   slug: string;
   escudo_url: string | null;
+  banner_url: string | null;
   cores: any;
   redes_sociais: Record<string, string>;
 }
@@ -58,6 +59,7 @@ export function TeamSlugLayout() {
       nome: teamData.nome,
       slug: teamData.slug,
       escudo_url: teamData.escudo_url,
+      banner_url: (teamData as any).banner_url || null,
       cores: teamData.cores,
       redes_sociais: (teamData.redes_sociais as Record<string, string>) || {},
     },

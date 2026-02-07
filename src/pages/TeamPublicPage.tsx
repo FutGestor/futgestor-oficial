@@ -335,7 +335,13 @@ export default function TeamPublicPage() {
     <Layout>
       {/* Hero Section */}
       <section className="relative overflow-hidden min-h-[500px] md:min-h-[600px]">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-accent/40" />
+        {team.banner_url && (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${team.banner_url})` }}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-accent/40" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,hsl(var(--accent)/0.15),transparent_60%)]" />
         <div className="container relative z-10 flex min-h-[500px] md:min-h-[600px] items-center justify-center px-4 md:px-6">
           <div className="flex flex-col items-center text-center">

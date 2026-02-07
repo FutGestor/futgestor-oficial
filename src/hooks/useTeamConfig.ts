@@ -8,9 +8,12 @@ export interface TeamConfig {
   nome: string;
   slug: string | null;
   escudo_url: string | null;
+  banner_url: string | null;
   redes_sociais: {
     instagram?: string;
     whatsapp?: string;
+    youtube?: string;
+    facebook?: string;
     [key: string]: string | undefined;
   };
 }
@@ -20,6 +23,7 @@ const DEFAULT_TEAM: TeamConfig = {
   nome: "FutGestor",
   slug: null,
   escudo_url: null,
+  banner_url: null,
   redes_sociais: {},
 };
 
@@ -49,6 +53,7 @@ export function useTeamConfig() {
         nome: teamSlug.team.nome,
         slug: teamSlug.team.slug,
         escudo_url: teamSlug.team.escudo_url,
+        banner_url: teamSlug.team.banner_url,
         redes_sociais: teamSlug.team.redes_sociais || {},
       } as TeamConfig,
       isLoading: false,
@@ -61,6 +66,7 @@ export function useTeamConfig() {
         nome: teamData.nome,
         slug: teamData.slug,
         escudo_url: teamData.escudo_url,
+        banner_url: (teamData as any).banner_url || null,
         redes_sociais: (teamData.redes_sociais as any) || {},
       }
     : DEFAULT_TEAM;

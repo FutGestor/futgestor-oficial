@@ -3,7 +3,7 @@ import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom"
 import { User, Session } from "@supabase/supabase-js";
 import { 
   LayoutDashboard, Calendar, Users, DollarSign, Trophy, Bell, ClipboardList,
-  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, LucideIcon
+  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,6 +26,7 @@ import AdminEscalacoes from "./admin/AdminEscalacoes";
 import AdminUsuarios from "./admin/AdminUsuarios";
 import AdminSolicitacoes from "./admin/AdminSolicitacoes";
 import AdminTimes from "./admin/AdminTimes";
+import AdminConfiguracoes from "./admin/AdminConfiguracoes";
 
 interface SidebarItem {
   href: string;
@@ -46,6 +47,7 @@ function getSidebarItems(basePath: string): SidebarItem[] {
     { href: `${basePath}/admin/resultados`, label: "Resultados", icon: Trophy },
     { href: `${basePath}/admin/escalacoes`, label: "Escalações", icon: ClipboardList },
     { href: `${basePath}/admin/avisos`, label: "Avisos", icon: Bell },
+    { href: `${basePath}/admin/configuracoes`, label: "Configurações", icon: Settings },
   ];
 }
 
@@ -287,6 +289,7 @@ export default function Admin() {
             <Route path="/resultados" element={<AdminResultados />} />
             <Route path="/escalacoes" element={<AdminEscalacoes />} />
             <Route path="/avisos" element={<AdminAvisos />} />
+            <Route path="/configuracoes" element={<AdminConfiguracoes />} />
           </Routes>
         </main>
       </div>

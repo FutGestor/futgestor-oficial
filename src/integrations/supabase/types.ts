@@ -563,6 +563,7 @@ export type Database = {
       }
       teams: {
         Row: {
+          banner_url: string | null
           cores: Json | null
           created_at: string
           escudo_url: string | null
@@ -574,6 +575,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          banner_url?: string | null
           cores?: Json | null
           created_at?: string
           escudo_url?: string | null
@@ -585,6 +587,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          banner_url?: string | null
           cores?: Json | null
           created_at?: string
           escudo_url?: string | null
