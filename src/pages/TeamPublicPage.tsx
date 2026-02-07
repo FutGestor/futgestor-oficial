@@ -1,10 +1,8 @@
 import { Layout } from "@/components/layout/Layout";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
-import { Shield, Calendar, Users, MapPin } from "lucide-react";
+import { Calendar, Users, MapPin, Instagram, MessageCircle, Youtube, Facebook } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +14,6 @@ import { useConfirmacoesJogo, useConfirmarPresenca } from "@/hooks/useConfirmaco
 import { useProximoJogo, useAvisos, useFinancialSummary, useProximaEscalacao, useEscalacaoJogadores, useUltimoResultado } from "@/hooks/useData";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { Trophy, TrendingUp, Bell, ChevronRight, Check, X } from "lucide-react";
-import { FutGestorLogo } from "@/components/FutGestorLogo";
 import { categoryLabels } from "@/lib/types";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -341,24 +338,18 @@ export default function TeamPublicPage() {
             style={{ backgroundImage: `url(${team.banner_url})` }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-accent/40" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,hsl(var(--accent)/0.15),transparent_60%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/20" />
         <div className="container relative z-10 flex min-h-[500px] md:min-h-[600px] items-center justify-center px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
-            {team.escudo_url ? (
-              <img src={team.escudo_url} alt={team.nome} className="mb-6 h-20 w-20 object-contain" />
-            ) : (
-              <FutGestorLogo className="mb-6 h-20 w-20" />
-            )}
-            <h1 className="mb-4 text-4xl font-bold text-primary-foreground md:text-5xl">
+            <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">
               {team.nome}
             </h1>
-            <p className="mb-8 max-w-2xl text-lg text-primary-foreground/80">
+            <p className="mb-8 max-w-2xl text-lg text-white/80">
               {isMember
                 ? "Gerencie seu time de futebol. Agenda, escalações, resultados, finanças e muito mais em um só lugar."
                 : "Bem-vindo à página do time. Faça login para acessar todas as funcionalidades."}
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-3">
               {isMember ? (
                 <Link to={`${basePath}/agenda`}>
                   <Button size="lg" variant="secondary" className="gap-2">
@@ -373,6 +364,38 @@ export default function TeamPublicPage() {
                   </Button>
                 </Link>
               ) : null}
+              {team.redes_sociais?.instagram && (
+                <a href={team.redes_sociais.instagram} target="_blank" rel="noopener noreferrer">
+                  <Button size="lg" variant="outline" className="gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20">
+                    <Instagram className="h-5 w-5" />
+                    Instagram
+                  </Button>
+                </a>
+              )}
+              {team.redes_sociais?.whatsapp && (
+                <a href={team.redes_sociais.whatsapp} target="_blank" rel="noopener noreferrer">
+                  <Button size="lg" className="gap-2 bg-green-600 text-white hover:bg-green-700">
+                    <MessageCircle className="h-5 w-5" />
+                    WhatsApp
+                  </Button>
+                </a>
+              )}
+              {team.redes_sociais?.youtube && (
+                <a href={team.redes_sociais.youtube} target="_blank" rel="noopener noreferrer">
+                  <Button size="lg" variant="outline" className="gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20">
+                    <Youtube className="h-5 w-5" />
+                    YouTube
+                  </Button>
+                </a>
+              )}
+              {team.redes_sociais?.facebook && (
+                <a href={team.redes_sociais.facebook} target="_blank" rel="noopener noreferrer">
+                  <Button size="lg" variant="outline" className="gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20">
+                    <Facebook className="h-5 w-5" />
+                    Facebook
+                  </Button>
+                </a>
+              )}
             </div>
           </div>
         </div>
