@@ -21,6 +21,9 @@ const onboardingSchema = z.object({
     .min(3, "Slug deve ter pelo menos 3 caracteres")
     .max(50, "Slug muito longo")
     .regex(/^[a-z0-9-]+$/, "Apenas letras minúsculas, números e hífens"),
+  cpf: z
+    .string()
+    .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, "CPF inválido. Use o formato 000.000.000-00"),
 });
 
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
@@ -42,8 +45,16 @@ export default function Onboarding() {
 
   const form = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
-    defaultValues: { nome: "", slug: "" },
+    defaultValues: { nome: "", slug: "", cpf: "" },
   });
+
+  const formatCpf = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    return digits
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  };
 
   const handleNomeChange = (value: string, onChange: (v: string) => void) => {
     onChange(value);
@@ -175,6 +186,24 @@ export default function Onboarding() {
                     <p className="text-xs text-muted-foreground">
                       futgestor.app/time/{field.value || "slug"}
                     </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cpf"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CPF do responsável</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="000.000.000-00"
+                        {...field}
+                        onChange={(e) => field.onChange(formatCpf(e.target.value))}
+                        maxLength={14}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
