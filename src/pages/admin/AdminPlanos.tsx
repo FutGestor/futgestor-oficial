@@ -67,11 +67,12 @@ export default function AdminPlanos() {
 
     setRedirectingPlan(plano);
     try {
+      const cleanUrl = window.location.origin + window.location.pathname;
       const result = await createPreference.mutateAsync({
         plano,
         team_id: profile.team_id,
-        success_url: window.location.href,
-        failure_url: window.location.href,
+        success_url: cleanUrl,
+        failure_url: cleanUrl,
       });
       window.location.href = result.init_point;
     } catch (error: any) {
