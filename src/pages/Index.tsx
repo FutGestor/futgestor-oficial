@@ -1,5 +1,5 @@
 import { Link, Navigate } from "react-router-dom";
-import { Calendar, CircleDot } from "lucide-react";
+import logoFutgestor from "@/assets/logo-futgestor.jpg";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,7 +21,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,hsl(var(--accent)/0.15),transparent_60%)]" />
         <div className="container relative z-10 flex min-h-[600px] md:min-h-[700px] items-center justify-center px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
-            <CircleDot className="mb-6 h-20 w-20 text-primary-foreground/90" />
+            <img src={logoFutgestor} alt="FutGestor" className="mb-6 h-24 w-auto rounded-xl" />
             <h1 className="mb-4 text-4xl font-bold text-primary-foreground md:text-5xl">
               FutGestor
             </h1>
@@ -45,7 +45,7 @@ const Index = () => {
                     </Button>
                   </Link>
                   <Link to="/onboarding">
-                    <Button size="lg" variant="outline" className="gap-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+                    <Button size="lg" variant="secondary" className="gap-2">
                       Criar meu time
                     </Button>
                   </Link>

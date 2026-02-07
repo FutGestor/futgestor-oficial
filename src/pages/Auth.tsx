@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, Loader2, User, CircleDot } from "lucide-react";
+import { Mail, Lock, Loader2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -240,7 +240,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex items-center justify-center">
-            <CircleDot className="h-16 w-16 text-primary" />
+            <img src="/logo-futgestor.jpg" alt="FutGestor" className="h-16 w-auto rounded-lg" />
           </div>
           <CardTitle className="text-2xl">FutGestor</CardTitle>
           <CardDescription>
