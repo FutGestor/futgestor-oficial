@@ -1,79 +1,96 @@
 
 
-# Diagnóstico e Correção: Problemas Graves no Fluxo de Onboarding
+# Correção Urgente: Novos Usuários Virando Admin
 
-## O que aconteceu
+## Problema
 
-### Problema 1: Usuário futgestor@gmail.com vendo tela de onboarding
-O login verifica `if (!profile?.team_id)` e redireciona para `/onboarding`. O admin original (futgestor@gmail.com) tem `team_id` no perfil, MAS seu registro na tabela `user_roles` tem `team_id: NULL` (foi criado antes da migração multi-tenancy). Como o `Admin.tsx` usa `is_team_admin()` que exige match de `team_id`, o admin foi considerado "não admin" e algo no fluxo o redirecionou ao onboarding.
+O fluxo atual redireciona **todos** os usuários sem `team_id` para o `/onboarding`, onde eles criam um novo time e se tornam admin automaticamente. Isso significa que qualquer pessoa que se cadastra ganha acesso admin ao seu próprio time, em vez de aguardar aprovacao para entrar no time existente.
 
-### Problema 2: Erro "duplicate key violates unique constraint user_roles_user_id_role_key"
-O admin já tem um registro `(user_id, role=admin)` na tabela `user_roles`. Ao tentar criar outro time no onboarding, o step 3 tenta inserir outro registro com o mesmo `user_id + role`, violando a constraint unique.
+## Causa Raiz
 
-### Problema 3: Usuário de teste acessou dados do admin
-A política SELECT com `get_user_team_id() IS NULL` permite que qualquer usuário sem time veja TODOS os times. Combinado com o `Admin.tsx` que verifica admin sem escopo de team, o teste pode ter visto dados de outro time.
-
-## Correções Necessárias
-
-### 1. Correção de dados (migração SQL)
-- Atualizar o `user_roles` do admin original para incluir o `team_id` correto
-- Limpar dados duplicados/órfãos do time de teste se necessário
-
-```sql
--- Corrigir user_roles do admin original que tem team_id NULL
-UPDATE public.user_roles 
-SET team_id = (SELECT team_id FROM public.profiles WHERE id = user_roles.user_id)
-WHERE team_id IS NULL AND role = 'admin';
-
--- Remover o time de teste e dados associados se desejado
+No `Auth.tsx`, linha 138:
+```
+if (!profile?.team_id) → navigate("/onboarding")
 ```
 
-### 2. Proteção no Onboarding (código)
-- Adicionar redirect no `Onboarding.tsx`: se o usuário JÁ tem `team_id`, redirecionar para `/admin` ou `/` em vez de permitir criar outro time
-- Usar `useAuth()` para verificar `profile?.team_id` e fazer redirect
+Isso envia tanto criadores de time quanto membros comuns para a mesma tela de criacao de time.
 
-### 3. Usar UPSERT em vez de INSERT para user_roles (código)
-- No `Onboarding.tsx`, trocar o `.insert()` do step 3 por `.upsert()` para evitar o erro de constraint unique, ou verificar se já existe antes de inserir
+## Solucao
 
-### 4. Restringir política SELECT do teams (migração SQL)
-- A política `get_user_team_id() IS NULL` é necessária durante onboarding mas muito permissiva
-- Não é um risco grave pois só expõe nomes de times, mas pode ser refinada futuramente
+### 1. Mudar o fluxo de login para membros comuns
 
-## Detalhes Técnicos
+Em vez de redirecionar para `/onboarding`, usuarios sem `team_id` devem ver uma tela de "aguardando aprovacao" (o admin vincula o usuario ao time manualmente). O onboarding so deve ser acessivel quando o usuario realmente precisa criar um time novo.
 
-### Migração SQL
-```sql
--- Fix: user_roles sem team_id
-UPDATE public.user_roles 
-SET team_id = (SELECT team_id FROM public.profiles WHERE id = user_roles.user_id)
-WHERE team_id IS NULL;
-```
+**Arquivo: `src/pages/Auth.tsx`**
+- Remover o redirect automatico para `/onboarding` quando `!profile?.team_id`
+- Se o usuario nao tem `team_id` E nao esta aprovado: mostrar mensagem "Aguardando aprovacao"
+- Se o usuario nao tem `team_id` MAS esta aprovado: isso nao deveria acontecer, tratar como erro
 
-### Onboarding.tsx - Adicionar guard
+### 2. Proteger a rota `/onboarding`
+
+**Arquivo: `src/pages/Onboarding.tsx`**
+- Adicionar verificacao: so permitir acesso ao onboarding se o usuario nao tem time E nao existe nenhum time no sistema para ele se juntar (ou via um parametro explicito)
+- Alternativa mais simples: remover o redirect automatico e tornar o onboarding acessivel apenas por link direto ou botao especifico
+
+### 3. Admin vincula usuario ao time
+
+**Arquivo: `src/pages/admin/AdminUsuarios.tsx`**
+- Quando o admin aprova um usuario pendente, tambem definir o `team_id` do profile para o time do admin
+- Atualmente o `handleApprove` so muda `aprovado: true`, mas NAO define o `team_id`
+
+## Detalhes Tecnicos
+
+### Auth.tsx - Novo fluxo de login (linhas 137-162)
 ```typescript
-const { user, profile, refreshProfile } = useAuth();
-const navigate = useNavigate();
+// Sem team → aguardando vinculação por admin
+if (!profile?.team_id) {
+  toast({
+    title: "Aguardando aprovação",
+    description: "Sua conta ainda não foi vinculada a um time. Aguarde a aprovação de um administrador.",
+  });
+  await supabase.auth.signOut();
+  return;
+}
 
-useEffect(() => {
-  if (profile?.team_id) {
-    navigate("/admin");
-  }
-}, [profile, navigate]);
+// Com team, é admin → admin panel  
+if (adminRole) {
+  navigate("/admin");
+}
+// Com team, aprovado → site normal
+else if (profile?.aprovado) {
+  navigate("/");
+}
+// Com team, não aprovado → aguardando
+else {
+  toast({ title: "Aguardando aprovação", ... });
+  await supabase.auth.signOut();
+}
 ```
 
-### Onboarding.tsx - Usar upsert no step 3
+### AdminUsuarios.tsx - Aprovar com team_id
 ```typescript
-// Step 3: usar upsert para evitar erro de duplicate key
-const { error: roleError } = await supabase
-  .from("user_roles")
-  .upsert(
-    { user_id: user.id, role: "admin", team_id: team.id },
-    { onConflict: "user_id,role" }
-  );
+const handleApprove = async (profileId: string) => {
+  // Buscar o team_id do admin atual
+  const { data: adminProfile } = await supabase
+    .from("profiles")
+    .select("team_id")
+    .eq("id", (await supabase.auth.getUser()).data.user?.id)
+    .single();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ aprovado: true, team_id: adminProfile?.team_id })
+    .eq("id", profileId);
+};
 ```
 
-## Resumo das mudanças
-1. **Migração SQL**: corrigir `user_roles` com `team_id` NULL
-2. **Onboarding.tsx**: adicionar guard para usuários que já tem time + usar upsert no user_roles
-3. Nenhuma mudança no Auth.tsx ou Admin.tsx necessária
+### Onboarding.tsx - Proteger acesso
+- Manter a pagina, mas nao redirecionar automaticamente para ela
+- Sera usada apenas para criar times novos (acesso futuro via link ou funcionalidade especifica)
+
+## Resumo das Mudancas
+
+1. **Auth.tsx**: Remover redirect para `/onboarding`; usuarios sem time fazem sign out com mensagem
+2. **AdminUsuarios.tsx**: Ao aprovar, tambem definir o `team_id` do usuario para o time do admin
+3. **Onboarding.tsx**: Nenhuma mudanca estrutural, mas nao sera mais acessado automaticamente
 
