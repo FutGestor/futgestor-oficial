@@ -7,6 +7,7 @@ import { useJogadores } from "@/hooks/useData";
 import { useEstatisticasJogadores } from "@/hooks/useEstatisticas";
 import { JogadorStats } from "@/components/JogadorStats";
 import { positionLabels, type Jogador } from "@/lib/types";
+import { RequireTeam } from "@/components/RequireTeam";
 
 function JogadorCard({ jogador, stats }: { jogador: Jogador; stats: any }) {
   return (
@@ -43,7 +44,6 @@ function JogadorCard({ jogador, stats }: { jogador: Jogador; stats: any }) {
           {positionLabels[jogador.posicao]}
         </Badge>
 
-        {/* Estatísticas do jogador */}
         <JogadorStats stats={stats} />
 
         {(jogador.telefone || jogador.email) && (
@@ -73,11 +73,10 @@ function JogadorCard({ jogador, stats }: { jogador: Jogador; stats: any }) {
   );
 }
 
-export default function JogadoresPage() {
+function JogadoresContent() {
   const { data: jogadores, isLoading } = useJogadores();
   const { data: estatisticas } = useEstatisticasJogadores();
 
-  // Group by position
   const jogadoresPorPosicao = jogadores?.reduce((acc, j) => {
     if (!acc[j.posicao]) {
       acc[j.posicao] = [];
@@ -142,5 +141,13 @@ export default function JogadoresPage() {
         )}
       </div>
     </Layout>
+  );
+}
+
+export default function JogadoresPage() {
+  return (
+    <RequireTeam>
+      <JogadoresContent />
+    </RequireTeam>
   );
 }

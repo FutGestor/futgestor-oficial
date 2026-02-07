@@ -9,6 +9,7 @@ import { useResultados } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
 import { VotacaoDestaque } from "@/components/VotacaoDestaque";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
+import { RequireTeam } from "@/components/RequireTeam";
 
 function getResultType(golsFavor: number, golsContra: number) {
   if (golsFavor > golsContra) return "vitoria";
@@ -22,7 +23,7 @@ function ResultIcon({ tipo }: { tipo: "vitoria" | "derrota" | "empate" }) {
   return <Minus className="h-5 w-5 text-muted-foreground" />;
 }
 
-export default function ResultadosPage() {
+function ResultadosContent() {
   const { data: resultados, isLoading } = useResultados();
   const { team } = useTeamConfig();
 
@@ -222,5 +223,13 @@ export default function ResultadosPage() {
         </Card>
       </div>
     </Layout>
+  );
+}
+
+export default function ResultadosPage() {
+  return (
+    <RequireTeam>
+      <ResultadosContent />
+    </RequireTeam>
   );
 }

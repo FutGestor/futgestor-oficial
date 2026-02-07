@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useJogadores } from "@/hooks/useData";
+import { useAuth } from "@/hooks/useAuth";
 import { positionLabels, type Jogador, type PlayerPosition } from "@/lib/types";
 
 type JogadorFormData = {
@@ -48,6 +49,7 @@ export default function AdminJogadores() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { data: jogadores, isLoading } = useJogadores(false);
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -164,6 +166,7 @@ export default function AdminJogadores() {
             telefone: formData.telefone || null,
             email: formData.email || null,
             ativo: formData.ativo,
+            team_id: profile?.team_id,
           })
           .select()
           .single();

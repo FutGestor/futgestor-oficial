@@ -12,6 +12,7 @@ import { useTimeCasa } from "@/hooks/useTimes";
 import { ConfirmacaoPresenca } from "@/components/ConfirmacaoPresenca";
 import { statusLabels, type Jogo, type Time } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { RequireTeam } from "@/components/RequireTeam";
 
 function GameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
   const gameDate = new Date(jogo.data_hora);
@@ -88,7 +89,7 @@ function GameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
   );
 }
 
-export default function AgendaPage() {
+function AgendaContent() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const { data: jogos, isLoading } = useJogos();
   const { data: timeCasa } = useTimeCasa();
@@ -241,5 +242,13 @@ export default function AgendaPage() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+export default function AgendaPage() {
+  return (
+    <RequireTeam>
+      <AgendaContent />
+    </RequireTeam>
   );
 }

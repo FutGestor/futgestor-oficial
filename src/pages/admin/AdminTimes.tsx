@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useTimes, useCreateTime, useUpdateTime, useDeleteTime } from "@/hooks/useTimes";
+import { useAuth } from "@/hooks/useAuth";
 import type { Time } from "@/lib/types";
 
 type TimeFormData = {
@@ -48,6 +49,7 @@ export default function AdminTimes() {
   const createTime = useCreateTime();
   const updateTime = useUpdateTime();
   const deleteTime = useDeleteTime();
+  const { profile } = useAuth();
   const { toast } = useToast();
 
   const openCreateDialog = () => {
@@ -143,6 +145,7 @@ export default function AdminTimes() {
           is_casa: formData.is_casa,
           ativo: formData.ativo,
           escudo_url: null,
+          team_id: profile?.team_id || null,
         });
 
         // Faz upload do escudo se existir

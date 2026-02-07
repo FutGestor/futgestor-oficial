@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRanking, useRankingDestaques } from "@/hooks/useEstatisticas";
 import { cn } from "@/lib/utils";
+import { RequireTeam } from "@/components/RequireTeam";
 
 function PodiumItem({ 
   position, 
@@ -185,7 +186,7 @@ function RankingTable({
   );
 }
 
-export default function RankingPage() {
+function RankingContent() {
   const { data: ranking, isLoading } = useRanking();
   const { data: destaques, isLoading: isLoadingDestaques } = useRankingDestaques();
 
@@ -266,5 +267,13 @@ export default function RankingPage() {
         )}
       </div>
     </Layout>
+  );
+}
+
+export default function RankingPage() {
+  return (
+    <RequireTeam>
+      <RankingContent />
+    </RequireTeam>
   );
 }

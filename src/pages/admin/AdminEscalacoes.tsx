@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEscalacoes, useJogos, useJogadores } from "@/hooks/useData";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   modalityLabels, 
   formacoesPorModalidade, 
@@ -52,6 +53,7 @@ export default function AdminEscalacoes() {
   const { data: escalacoes, isLoading } = useEscalacoes();
   const { data: jogos } = useJogos();
   const { data: jogadores } = useJogadores();
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -180,6 +182,7 @@ export default function AdminEscalacoes() {
             formacao: formData.formacao,
             modalidade: formData.modalidade,
             publicada: formData.publicada,
+            team_id: profile?.team_id,
           })
           .select()
           .single();

@@ -16,6 +16,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useJogos } from "@/hooks/useData";
+import { useAuth } from "@/hooks/useAuth";
 import { useTimesAtivos } from "@/hooks/useTimes";
 import { useConfirmacoesContagem } from "@/hooks/useConfirmacoes";
 import { statusLabels, type Jogo, type GameStatus } from "@/lib/types";
@@ -56,6 +57,7 @@ export default function AdminJogos() {
   
   const { data: jogos, isLoading } = useJogos();
   const { data: times } = useTimesAtivos();
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -144,6 +146,7 @@ export default function AdminJogos() {
           time_adversario_id: formData.time_adversario_id,
           status: formData.status,
           observacoes: formData.observacoes || null,
+          team_id: profile?.team_id,
         });
 
         if (error) throw error;

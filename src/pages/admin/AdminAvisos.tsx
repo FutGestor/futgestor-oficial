@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAvisos } from "@/hooks/useData";
+import { useAuth } from "@/hooks/useAuth";
 import { categoryLabels, type Aviso, type NoticeCategory } from "@/lib/types";
 
 type AvisoFormData = {
@@ -52,6 +53,7 @@ export default function AdminAvisos() {
   
   // Get all notices including unpublished for admin
   const { data: avisos, isLoading } = useAvisos();
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -82,6 +84,7 @@ export default function AdminAvisos() {
         conteudo: formData.conteudo,
         categoria: formData.categoria,
         publicado: formData.publicado,
+        team_id: profile?.team_id,
       };
 
       if (editingAviso) {

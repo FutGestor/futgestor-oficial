@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useTransacoes, useFinancialSummary } from "@/hooks/useData";
+import { useAuth } from "@/hooks/useAuth";
 import { type Transacao, type TransactionType } from "@/lib/types";
 
 const categorias = [
@@ -50,6 +51,7 @@ export default function AdminTransacoes() {
   
   const { data: transacoes, isLoading } = useTransacoes();
   const { data: summary } = useFinancialSummary();
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -82,6 +84,7 @@ export default function AdminTransacoes() {
         categoria: formData.categoria,
         tipo: formData.tipo,
         valor: parseFloat(formData.valor),
+        team_id: profile?.team_id,
       };
 
       if (editingTransacao) {

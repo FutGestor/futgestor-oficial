@@ -52,6 +52,7 @@ import {
 } from "@/hooks/useSolicitacoes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 
 const statusLabels: Record<RequestStatus, string> = {
@@ -83,6 +84,7 @@ export default function AdminSolicitacoes() {
   const updateStatus = useUpdateSolicitacaoStatus();
   const deleteSolicitacao = useDeleteSolicitacao();
   const { toast } = useToast();
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
 
   const handleAccept = (solicitacao: SolicitacaoJogo) => {
@@ -106,6 +108,7 @@ export default function AdminSolicitacoes() {
         local: gameData.local,
         status: "agendado",
         observacoes: selectedSolicitacao.observacoes || null,
+        team_id: profile?.team_id,
       });
 
       if (gameError) throw gameError;
