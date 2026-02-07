@@ -1,50 +1,40 @@
 
 
-# Resolver Conflito de Slug no Onboarding
+# Corrigir Navegacao entre Perfil, Admin e Planos
 
-## Problema
+## Problemas Identificados
 
-O slug (URL do time) e gerado automaticamente a partir do nome. Como no Brasil existem muitos times com nomes iguais (ex: "Galaticos", "Real", "Barcelona"), o slug colide e o usuario recebe "Slug ja em uso" sem saber o que fazer.
+### 1. Botao "Fazer Upgrade" no Financeiro leva ao lugar errado
+O componente `RequireProPlan.tsx` (usado no Financeiro e Avisos) tem um botao "Fazer Upgrade" que redireciona para `/meu-perfil` em vez de `/admin/planos`. Isso cria um loop onde o usuario nunca consegue chegar na pagina de planos.
+
+### 2. Pagina "Meu Perfil" nao oferece caminho claro para o admin
+O usuario que acabou de criar o time e direcionado ao `/meu-perfil`, onde ve "Sem plano ativo" mas o botao "Escolher Plano" so aparece para admins (e vai para `/admin/planos`). Se por algum motivo o `isAdmin` nao carregou ainda, o botao nao aparece e o usuario fica preso.
 
 ## Solucao
 
-Adicionar um campo **Cidade** ao formulario de onboarding e usar cidade + nome para gerar o slug automaticamente, reduzindo drasticamente as colisoes. Alem disso, implementar verificacao em tempo real e sugestoes automaticas caso ainda haja conflito.
+### Arquivo 1: `src/components/RequireProPlan.tsx`
+- Alterar o link do botao "Fazer Upgrade" de `basePath/meu-perfil` para `basePath/admin/planos`
+- Isso permite que o usuario acesse diretamente a pagina de selecao de planos
 
-### Fluxo novo:
-1. Usuario digita "Galaticos" no nome
-2. Usuario digita "Recife" na cidade
-3. Slug gerado automaticamente: `galaticos-recife`
-4. Se ainda existir conflito, o sistema sugere alternativas: `galaticos-recife-01`, `galaticos-recife-02`
-5. Indicador visual (verde/vermelho) mostra em tempo real se o slug esta disponivel
+### Arquivo 2: `src/components/MeuPlanoSection.tsx`
+- Remover a condicao `isAdmin` do botao "Escolher Plano" para que qualquer usuario aprovado veja o botao
+- Se nao for admin, o botao levara a uma versao publica dos planos ou diretamente ao `/admin/planos` (que ja permite acesso a rota de planos mesmo sem plano ativo)
+
+### Arquivo 3: `src/pages/Admin.tsx` (paywall redirect)
+- Garantir que a rota `/admin/planos` e sempre acessivel para admins, mesmo sem plano ativo (ja funciona, apenas confirmar)
 
 ## Detalhes Tecnicos
 
-### Arquivo editado: `src/pages/Onboarding.tsx`
+### RequireProPlan.tsx — Correcao do link
+```
+Linha 42: Trocar `${basePath}/meu-perfil` por `${basePath}/admin/planos`
+```
 
-**Mudancas:**
-- Adicionar campo `cidade` ao schema Zod e ao formulario
-- Alterar `handleNomeChange` para gerar slug como `nome-cidade` (quando cidade preenchida)
-- Adicionar handler `handleCidadeChange` que tambem regenera o slug
-- Adicionar verificacao async de disponibilidade do slug (debounced, consulta tabela `teams`)
-- Mostrar indicador visual: icone verde "Disponivel" ou vermelho "Em uso" + sugestoes
-- Se conflito, gerar e exibir ate 3 slugs alternativos clicaveis
-- Salvar a cidade no campo `cidade` da tabela `times` (time da casa criado no onboarding)
+### MeuPlanoSection.tsx — Mostrar botao para todos
+```
+Linha 68: Remover condicao `isAdmin &&` para que o botao sempre apareca
+Alternativa: manter isAdmin mas adicionar um fallback com link para /auth ou /admin/planos para nao-admins
+```
 
-### Verificacao de disponibilidade:
-- Query simples: `supabase.from('teams').select('slug').eq('slug', valor).maybeSingle()`
-- Executada com debounce de 500ms apos o usuario parar de digitar
-- Resultado mostrado como badge ao lado do campo slug
-
-### Sugestoes automaticas de slug:
-- Se `galaticos-recife` estiver em uso, sugerir: `galaticos-recife-01`, `galaticos-recife-02`, `galaticos-recife-fc`
-- Sugestoes aparecem como chips/botoes clicaveis abaixo do campo
-
-### Campo cidade:
-- Input simples com placeholder "Ex: Recife"
-- Posicionado entre o campo Nome e o campo URL
-- Obrigatorio (min 2 caracteres)
-
-### Nenhuma migration necessaria:
-- A tabela `times` ja possui o campo `cidade` (text, nullable)
-- O campo sera preenchido ao criar o time da casa no onboarding
-
+### Nenhuma migration ou dependencia necessaria
+Apenas correcoes de rotas e condicoes de exibicao em 2 arquivos.
