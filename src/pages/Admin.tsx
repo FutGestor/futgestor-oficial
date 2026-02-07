@@ -2,20 +2,8 @@ import { useEffect, useState } from "react";
 import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 import { User, Session } from "@supabase/supabase-js";
 import { 
-  LayoutDashboard, 
-  Calendar, 
-  Users, 
-  DollarSign, 
-  Trophy, 
-  Bell, 
-  ClipboardList,
-  LogOut,
-  Menu,
-  Home,
-  UserCog,
-  CalendarPlus,
-  Shield,
-  LucideIcon
+  LayoutDashboard, Calendar, Users, DollarSign, Trophy, Bell, ClipboardList,
+  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, LucideIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSolicitacoesPendentesCount } from "@/hooks/useSolicitacoes";
 import { cn } from "@/lib/utils";
 import { CircleDot } from "lucide-react";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 // Admin pages
 import AdminDashboard from "./admin/AdminDashboard";
@@ -45,20 +34,22 @@ interface SidebarItem {
   hasBadge?: boolean;
 }
 
-const sidebarItems: SidebarItem[] = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/jogos", label: "Jogos", icon: Calendar },
-  { href: "/admin/solicitacoes", label: "Solicitações", icon: CalendarPlus, hasBadge: true },
-  { href: "/admin/times", label: "Times", icon: Shield },
-  { href: "/admin/jogadores", label: "Jogadores", icon: Users },
-  { href: "/admin/usuarios", label: "Usuários", icon: UserCog },
-  { href: "/admin/transacoes", label: "Transações", icon: DollarSign },
-  { href: "/admin/resultados", label: "Resultados", icon: Trophy },
-  { href: "/admin/escalacoes", label: "Escalações", icon: ClipboardList },
-  { href: "/admin/avisos", label: "Avisos", icon: Bell },
-];
+function getSidebarItems(basePath: string): SidebarItem[] {
+  return [
+    { href: `${basePath}/admin`, label: "Dashboard", icon: LayoutDashboard },
+    { href: `${basePath}/admin/jogos`, label: "Jogos", icon: Calendar },
+    { href: `${basePath}/admin/solicitacoes`, label: "Solicitações", icon: CalendarPlus, hasBadge: true },
+    { href: `${basePath}/admin/times`, label: "Times", icon: Shield },
+    { href: `${basePath}/admin/jogadores`, label: "Jogadores", icon: Users },
+    { href: `${basePath}/admin/usuarios`, label: "Usuários", icon: UserCog },
+    { href: `${basePath}/admin/transacoes`, label: "Transações", icon: DollarSign },
+    { href: `${basePath}/admin/resultados`, label: "Resultados", icon: Trophy },
+    { href: `${basePath}/admin/escalacoes`, label: "Escalações", icon: ClipboardList },
+    { href: `${basePath}/admin/avisos`, label: "Avisos", icon: Bell },
+  ];
+}
 
-function NavMenu({ setSidebarOpen, currentPath }: { setSidebarOpen: (open: boolean) => void; currentPath: string }) {
+function NavMenu({ setSidebarOpen, currentPath, sidebarItems }: { setSidebarOpen: (open: boolean) => void; currentPath: string; sidebarItems: SidebarItem[] }) {
   const { data: pendingCount } = useSolicitacoesPendentesCount();
 
   return (
@@ -97,30 +88,12 @@ export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { basePath } = useTeamSlug();
 
-  // Detectar mudanças de tema
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    setTheme(stored === "dark" ? "dark" : "light");
-    
-    const observer = new MutationObserver(() => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setTheme(isDark ? "dark" : "light");
-    });
-    
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"]
-    });
-    
-    return () => observer.disconnect();
-  }, []);
-
-  // Theme detection kept for future use
+  const sidebarItems = getSidebarItems(basePath);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -214,7 +187,7 @@ export default function Admin() {
             Conectado como: {user.email}
           </p>
           <div className="flex justify-center gap-4">
-            <Button variant="outline" onClick={() => navigate("/")}>
+            <Button variant="outline" onClick={() => navigate(basePath)}>
               <Home className="mr-2 h-4 w-4" />
               Voltar ao Site
             </Button>
@@ -238,7 +211,6 @@ export default function Admin() {
         )}
       >
         <div className="flex h-full flex-col">
-          {/* Header com Logo e Botões */}
           <div className="flex items-center justify-between border-b border-sidebar-border p-4">
             <div className="flex items-center gap-3">
               <CircleDot className="h-10 w-10 text-sidebar-primary" />
@@ -252,7 +224,7 @@ export default function Admin() {
                 variant="ghost"
                 size="icon"
                 className="text-sidebar-foreground hover:bg-sidebar-accent"
-                onClick={() => navigate("/")}
+                onClick={() => navigate(basePath)}
                 title="Ir para o Site"
               >
                 <Home className="h-4 w-4" />
@@ -269,10 +241,8 @@ export default function Admin() {
             </div>
           </div>
 
-          {/* Navigation */}
-          <NavMenu setSidebarOpen={setSidebarOpen} currentPath={location.pathname} />
+          <NavMenu setSidebarOpen={setSidebarOpen} currentPath={location.pathname} sidebarItems={sidebarItems} />
 
-          {/* Footer */}
           <div className="border-t border-sidebar-border p-4">
             <p className="truncate text-xs text-sidebar-foreground/70">
               {user.email}
@@ -291,7 +261,6 @@ export default function Admin() {
 
       {/* Main content */}
       <div className="flex-1">
-        {/* Top bar */}
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
           <Button
             variant="ghost"
@@ -306,7 +275,6 @@ export default function Admin() {
           </h1>
         </header>
 
-        {/* Page content */}
         <main className="p-4 lg:p-6">
           <Routes>
             <Route path="/" element={<AdminDashboard />} />

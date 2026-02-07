@@ -1,17 +1,19 @@
 import { Link } from "react-router-dom";
-import { Calendar, Users, DollarSign, Trophy, Bell, ClipboardList, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { Calendar, Users, DollarSign, Trophy, Bell, ClipboardList } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useJogos, useJogadores, useFinancialSummary, useResultados, useAvisos } from "@/hooks/useData";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { Wallet } from "lucide-react";
 
 export default function AdminDashboard() {
   const { data: jogos, isLoading: loadingJogos } = useJogos();
   const { data: jogadores, isLoading: loadingJogadores } = useJogadores(false);
   const { data: summary, isLoading: loadingSummary } = useFinancialSummary();
   const { data: resultados, isLoading: loadingResultados } = useResultados();
-  const { data: avisos, isLoading: loadingAvisos } = useAvisos();
   const { team } = useTeamConfig();
+  const { basePath } = useTeamSlug();
 
   const proximosJogos = jogos?.filter(j => new Date(j.data_hora) >= new Date()).length || 0;
   const jogosFinalizados = resultados?.length || 0;
@@ -27,67 +29,46 @@ export default function AdminDashboard() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Saldo Atual
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Atual</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {loadingSummary ? (
-              <Skeleton className="h-8 w-24" />
-            ) : (
+            {loadingSummary ? <Skeleton className="h-8 w-24" /> : (
               <div className={`text-2xl font-bold ${(summary?.saldoAtual ?? 0) >= 0 ? "text-green-600" : "text-destructive"}`}>
                 R$ {(summary?.saldoAtual ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </div>
             )}
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Jogadores Ativos
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Jogadores Ativos</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {loadingJogadores ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">
-                {jogadores?.filter(j => j.ativo).length || 0}
-              </div>
+            {loadingJogadores ? <Skeleton className="h-8 w-16" /> : (
+              <div className="text-2xl font-bold">{jogadores?.filter(j => j.ativo).length || 0}</div>
             )}
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Próximos Jogos
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Próximos Jogos</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {loadingJogos ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
+            {loadingJogos ? <Skeleton className="h-8 w-16" /> : (
               <div className="text-2xl font-bold">{proximosJogos}</div>
             )}
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Jogos Finalizados
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Jogos Finalizados</CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {loadingResultados ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
+            {loadingResultados ? <Skeleton className="h-8 w-16" /> : (
               <div className="text-2xl font-bold">{jogosFinalizados}</div>
             )}
           </CardContent>
@@ -96,7 +77,7 @@ export default function AdminDashboard() {
 
       {/* Quick Links */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Link to="/admin/jogos">
+        <Link to={`${basePath}/admin/jogos`}>
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -109,8 +90,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </Link>
-
-        <Link to="/admin/jogadores">
+        <Link to={`${basePath}/admin/jogadores`}>
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -123,8 +103,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </Link>
-
-        <Link to="/admin/transacoes">
+        <Link to={`${basePath}/admin/transacoes`}>
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -137,8 +116,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </Link>
-
-        <Link to="/admin/resultados">
+        <Link to={`${basePath}/admin/resultados`}>
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -151,8 +129,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </Link>
-
-        <Link to="/admin/escalacoes">
+        <Link to={`${basePath}/admin/escalacoes`}>
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -165,8 +142,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </Link>
-
-        <Link to="/admin/avisos">
+        <Link to={`${basePath}/admin/avisos`}>
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">

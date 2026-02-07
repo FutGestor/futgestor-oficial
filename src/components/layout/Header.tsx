@@ -5,33 +5,40 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useTeamConfig } from "@/hooks/useTeamConfig";
-
-// Itens públicos - visíveis para todos
-const publicNavItems = [
-  { href: "/", label: "Início" },
-  { href: "/agenda", label: "Agenda" },
-  { href: "/escalacao", label: "Escalação" },
-  { href: "/jogadores", label: "Jogadores" },
-  { href: "/ranking", label: "Ranking" },
-  { href: "/resultados", label: "Resultados" },
-];
-
-// Itens privados - visíveis apenas para usuários logados
-const privateNavItems = [
-  { href: "/financeiro", label: "Financeiro" },
-  { href: "/avisos", label: "Avisos" },
-];
+import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user, isAdmin, isApproved, signOut } = useAuth();
-  const { team } = useTeamConfig();
+  const teamSlug = useOptionalTeamSlug();
 
-  // Combinar itens de navegação baseado no estado de login
-  const navItems = user 
-    ? [...publicNavItems, ...privateNavItems] 
+  const basePath = teamSlug?.basePath || "";
+  const teamName = teamSlug?.team.nome || "FutGestor";
+  const teamEscudo = teamSlug?.team.escudo_url || null;
+  const redesSociais = teamSlug?.team.redes_sociais || {};
+
+  // Build nav items based on team context
+  const publicNavItems = teamSlug
+    ? [
+        { href: basePath, label: "Início" },
+        { href: `${basePath}/agenda`, label: "Agenda" },
+        { href: `${basePath}/escalacao`, label: "Escalação" },
+        { href: `${basePath}/jogadores`, label: "Jogadores" },
+        { href: `${basePath}/ranking`, label: "Ranking" },
+        { href: `${basePath}/resultados`, label: "Resultados" },
+      ]
+    : [{ href: "/", label: "Início" }];
+
+  const privateNavItems = teamSlug
+    ? [
+        { href: `${basePath}/financeiro`, label: "Financeiro" },
+        { href: `${basePath}/avisos`, label: "Avisos" },
+      ]
+    : [];
+
+  const navItems = user
+    ? [...publicNavItems, ...privateNavItems]
     : publicNavItems;
 
   const handleSignOut = async () => {
@@ -39,22 +46,25 @@ export function Header() {
     setMobileMenuOpen(false);
   };
 
+  const isActive = (href: string) => {
+    if (href === basePath || href === "/") {
+      return location.pathname === href;
+    }
+    return location.pathname.startsWith(href);
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-primary shadow-lg">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3">
-          {team.escudo_url ? (
-            <img
-              src={team.escudo_url}
-              alt={team.nome}
-              className="h-12 w-12 object-contain"
-            />
+        <Link to={basePath || "/"} className="flex items-center gap-3">
+          {teamEscudo ? (
+            <img src={teamEscudo} alt={teamName} className="h-12 w-12 object-contain" />
           ) : (
             <Shield className="h-12 w-12 text-primary-foreground" />
           )}
           <span className="hidden text-lg font-bold text-primary-foreground md:inline-block">
-            {team.nome}
+            {teamName}
           </span>
         </Link>
 
@@ -66,7 +76,7 @@ export function Header() {
               to={item.href}
               className={cn(
                 "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                location.pathname === item.href
+                isActive(item.href)
                   ? "bg-secondary text-secondary-foreground"
                   : "text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
               )}
@@ -79,9 +89,9 @@ export function Header() {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          {team.redes_sociais.instagram && (
+          {redesSociais.instagram && (
             <a
-              href={team.redes_sociais.instagram}
+              href={redesSociais.instagram}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden rounded-md p-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground md:inline-flex"
@@ -89,9 +99,9 @@ export function Header() {
               <Instagram className="h-5 w-5" />
             </a>
           )}
-          {team.redes_sociais.whatsapp && (
+          {redesSociais.whatsapp && (
             <a
-              href={team.redes_sociais.whatsapp}
+              href={redesSociais.whatsapp}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden rounded-md p-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground md:inline-flex"
@@ -102,8 +112,8 @@ export function Header() {
           
           {user ? (
             <>
-              {isApproved && (
-                <Link to="/meu-perfil">
+              {isApproved && teamSlug && (
+                <Link to={`${basePath}/meu-perfil`}>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -114,13 +124,9 @@ export function Header() {
                   </Button>
                 </Link>
               )}
-              {isAdmin && (
-                <Link to="/admin">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="hidden md:inline-flex"
-                  >
+              {isAdmin && teamSlug && (
+                <Link to={`${basePath}/admin`}>
+                  <Button variant="secondary" size="sm" className="hidden md:inline-flex">
                     Admin
                   </Button>
                 </Link>
@@ -136,11 +142,7 @@ export function Header() {
             </>
           ) : (
             <Link to="/auth">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="hidden md:inline-flex"
-              >
+              <Button variant="secondary" size="sm" className="hidden md:inline-flex">
                 <User className="mr-1 h-4 w-4" />
                 Entrar
               </Button>
@@ -154,11 +156,7 @@ export function Header() {
             className="text-primary-foreground md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
         </div>
       </div>
@@ -174,7 +172,7 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={cn(
                   "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  location.pathname === item.href
+                  isActive(item.href)
                     ? "bg-secondary text-secondary-foreground"
                     : "text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
                 )}
@@ -183,9 +181,9 @@ export function Header() {
               </Link>
             ))}
             <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/40 pt-2">
-              {team.redes_sociais.instagram && (
+              {redesSociais.instagram && (
                 <a
-                  href={team.redes_sociais.instagram}
+                  href={redesSociais.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 hover:bg-primary-foreground/10"
@@ -194,9 +192,9 @@ export function Header() {
                   Instagram
                 </a>
               )}
-              {team.redes_sociais.whatsapp && (
+              {redesSociais.whatsapp && (
                 <a
-                  href={team.redes_sociais.whatsapp}
+                  href={redesSociais.whatsapp}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 hover:bg-primary-foreground/10"
@@ -207,45 +205,26 @@ export function Header() {
               )}
               {user ? (
                 <div className="ml-auto flex flex-wrap gap-2">
-                  {isApproved && (
-                    <Link
-                      to="/meu-perfil"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                    <Button 
-                      variant="secondary" 
-                      size="sm"
-                    >
-                      <User className="mr-1 h-4 w-4" />
-                      Meu Perfil
-                    </Button>
-                    </Link>
-                  )}
-                  {isAdmin && (
-                    <Link
-                      to="/admin"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
+                  {isApproved && teamSlug && (
+                    <Link to={`${basePath}/meu-perfil`} onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="secondary" size="sm">
-                        Admin
+                        <User className="mr-1 h-4 w-4" />
+                        Meu Perfil
                       </Button>
                     </Link>
                   )}
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    onClick={handleSignOut}
-                  >
+                  {isAdmin && teamSlug && (
+                    <Link to={`${basePath}/admin`} onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="secondary" size="sm">Admin</Button>
+                    </Link>
+                  )}
+                  <Button variant="secondary" size="sm" onClick={handleSignOut}>
                     <LogOut className="mr-1 h-4 w-4" />
                     Sair
                   </Button>
                 </div>
               ) : (
-                <Link
-                  to="/auth"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="ml-auto"
-                >
+                <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="ml-auto">
                   <Button variant="secondary" size="sm">
                     <User className="mr-1 h-4 w-4" />
                     Entrar

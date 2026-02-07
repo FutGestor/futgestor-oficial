@@ -2,17 +2,19 @@ import { Link, useLocation } from "react-router-dom";
 import { Calendar, Trophy, Medal, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAvisos } from "@/hooks/useData";
-
-const navItems = [
-  { href: "/agenda", label: "Agenda", icon: Calendar },
-  { href: "/ranking", label: "Ranking", icon: Medal },
-  { href: "/resultados", label: "Resultados", icon: Trophy },
-  { href: "/avisos", label: "Avisos", icon: Bell },
-];
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 export function MobileBottomNav() {
   const location = useLocation();
   const { data: avisos } = useAvisos();
+  const { basePath } = useTeamSlug();
+
+  const navItems = [
+    { href: `${basePath}/agenda`, label: "Agenda", icon: Calendar },
+    { href: `${basePath}/ranking`, label: "Ranking", icon: Medal },
+    { href: `${basePath}/resultados`, label: "Resultados", icon: Trophy },
+    { href: `${basePath}/avisos`, label: "Avisos", icon: Bell },
+  ];
 
   // Contar avisos dos últimos 7 dias
   const avisosRecentes = avisos?.filter((a) => {
@@ -30,7 +32,7 @@ export function MobileBottomNav() {
         {navItems.map((item) => {
           const isActive = location.pathname === item.href;
           const Icon = item.icon;
-          const showBadge = item.href === "/avisos" && notificationCount > 0;
+          const showBadge = item.href === `${basePath}/avisos` && notificationCount > 0;
 
           return (
             <Link

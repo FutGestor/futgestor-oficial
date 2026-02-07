@@ -123,6 +123,17 @@ export default function Auth() {
         .eq("id", authData.user.id)
         .maybeSingle();
 
+      // Fetch team slug for redirect
+      let teamSlug = "";
+      if (profile?.team_id) {
+        const { data: teamData } = await supabase
+          .from("teams")
+          .select("slug")
+          .eq("id", profile.team_id)
+          .maybeSingle();
+        teamSlug = teamData?.slug || "";
+      }
+
       // Salvar ou remover credenciais baseado no checkbox
       if (rememberMe) {
         localStorage.setItem("savedEmail", data.email);
@@ -144,18 +155,20 @@ export default function Auth() {
         return;
       }
 
+      const teamBase = teamSlug ? `/time/${teamSlug}` : "/";
+
       if (adminRole) {
         toast({
           title: "Login realizado!",
           description: "Bem-vindo ao painel administrativo.",
         });
-        navigate("/admin");
+        navigate(`${teamBase}/admin`);
       } else if (profile?.aprovado) {
         toast({
           title: "Login realizado!",
           description: "Bem-vindo de volta!",
         });
-        navigate("/");
+        navigate(teamBase);
       } else {
         toast({
           title: "Aguardando aprovação",
