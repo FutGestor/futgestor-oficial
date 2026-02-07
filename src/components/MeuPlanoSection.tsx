@@ -1,16 +1,12 @@
-import { useState } from "react";
-import { Crown, Check, Loader2, ExternalLink } from "lucide-react";
+import { Crown, Check, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { useCurrentPlan, useCreateMpPreference } from "@/hooks/useSubscription";
+import { useCurrentPlan } from "@/hooks/useSubscription";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { Link } from "react-router-dom";
 
 export function MeuPlanoSection() {
-  const { profile, isAdmin } = useAuth();
   const { plan, subscription, isLoading, isActive } = useCurrentPlan();
   const { basePath } = useTeamSlug();
 
@@ -65,14 +61,12 @@ export function MeuPlanoSection() {
           </div>
         )}
 
-        {isAdmin && (
-          <Link to={`${basePath}/admin/planos`}>
-            <Button className="w-full" variant={isActive ? "outline" : "default"}>
-              <Crown className="mr-2 h-4 w-4" />
-              {isActive ? "Alterar Plano" : "Escolher Plano"}
-            </Button>
-          </Link>
-        )}
+        <Link to={`${basePath}/admin/planos`}>
+          <Button className="w-full" variant={isActive ? "outline" : "default"}>
+            <Crown className="mr-2 h-4 w-4" />
+            {isActive ? "Alterar Plano" : "Escolher Plano"}
+          </Button>
+        </Link>
       </CardContent>
     </Card>
   );
