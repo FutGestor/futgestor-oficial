@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -33,46 +33,29 @@ import {
 import { cn } from "@/lib/utils";
 import { useCreateSolicitacao } from "@/hooks/useSolicitacoes";
 
+function generateCaptcha() {
+  const a = Math.floor(Math.random() * 10) + 1;
+  const b = Math.floor(Math.random() * 10) + 1;
+  return { a, b, answer: a + b, question: `Quanto é ${a} + ${b}?` };
+}
+
 const solicitacaoSchema = z.object({
-  nome_time: z
-    .string()
-    .min(2, "Nome do time deve ter pelo menos 2 caracteres")
-    .max(100, "Nome muito longo"),
-  email_contato: z
-    .string()
-    .email("Email inválido")
-    .optional()
-    .or(z.literal("")),
-  telefone_contato: z
-    .string()
-    .min(10, "Telefone deve ter pelo menos 10 dígitos")
-    .max(20, "Telefone muito longo"),
+  nome_time: z.string().min(2, "Nome do time deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
+  email_contato: z.string().email("Email inválido").optional().or(z.literal("")),
+  telefone_contato: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos").max(20, "Telefone muito longo"),
   data_preferida: z.date({ required_error: "Selecione uma data" }),
   horario_preferido: z.string().min(1, "Selecione um horário"),
-  local_sugerido: z
-    .string()
-    .min(2, "Local deve ter pelo menos 2 caracteres")
-    .max(200, "Local muito longo"),
+  local_sugerido: z.string().min(2, "Local deve ter pelo menos 2 caracteres").max(200, "Local muito longo"),
   observacoes: z.string().max(500, "Máximo 500 caracteres").optional(),
+  captcha: z.string().min(1, "Responda a pergunta de segurança"),
 });
 
 type SolicitacaoFormData = z.infer<typeof solicitacaoSchema>;
 
 const horarios = [
-  "07:00",
-  "08:00",
-  "09:00",
-  "10:00",
-  "11:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-  "18:00",
-  "19:00",
-  "20:00",
-  "21:00",
-  "22:00",
+  "07:00", "08:00", "09:00", "10:00", "11:00",
+  "14:00", "15:00", "16:00", "17:00", "18:00",
+  "19:00", "20:00", "21:00", "22:00",
 ];
 
 interface SolicitacaoJogoFormProps {
@@ -82,10 +65,12 @@ interface SolicitacaoJogoFormProps {
 
 export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormProps) {
   const [submitted, setSubmitted] = useState(false);
+  const [captcha, setCaptcha] = useState(() => generateCaptcha());
   const createSolicitacao = useCreateSolicitacao();
   const { data: jogosFuturos } = useJogosFuturos();
 
-  // Extrair datas dos jogos futuros para marcar no calendário
+  const refreshCaptcha = useCallback(() => setCaptcha(generateCaptcha()), []);
+
   const datasOcupadas = useMemo(() => {
     if (!jogosFuturos) return [];
     return jogosFuturos.map(jogo => {
@@ -102,10 +87,19 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
       telefone_contato: "",
       local_sugerido: "",
       observacoes: "",
+      captcha: "",
     },
   });
 
   const onSubmit = async (data: SolicitacaoFormData) => {
+    const userAnswer = parseInt(data.captcha, 10);
+    if (isNaN(userAnswer) || userAnswer !== captcha.answer) {
+      form.setError("captcha", { message: "Resposta incorreta. Tente novamente." });
+      refreshCaptcha();
+      form.setValue("captcha", "");
+      return;
+    }
+
     await createSolicitacao.mutateAsync({
       nome_time: data.nome_time,
       email_contato: data.email_contato || undefined,
@@ -115,6 +109,8 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
       local_sugerido: data.local_sugerido,
       observacoes: data.observacoes,
       team_id: teamId,
+      captcha_answer: userAnswer,
+      captcha_expected: captcha.answer,
     });
     setSubmitted(true);
     onSuccess?.();
@@ -164,7 +160,6 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="email_contato"
@@ -172,11 +167,7 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
               <FormItem>
                 <FormLabel>Email (opcional)</FormLabel>
                 <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="contato@seutime.com"
-                    {...field}
-                  />
+                  <Input type="email" placeholder="contato@seutime.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -196,16 +187,9 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
                     <FormControl>
                       <Button
                         variant="outline"
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
+                        className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
                       >
-                        {field.value ? (
-                          format(field.value, "dd/MM/yyyy", { locale: ptBR })
-                        ) : (
-                          <span>Selecione uma data</span>
-                        )}
+                        {field.value ? format(field.value, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione uma data</span>}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -218,11 +202,7 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
                       disabled={(date) => date < new Date()}
                       modifiers={{ occupied: datasOcupadas }}
                       modifiersStyles={{
-                        occupied: { 
-                          backgroundColor: "rgba(239, 68, 68, 0.2)",
-                          borderRadius: "50%",
-                          fontWeight: "bold"
-                        },
+                        occupied: { backgroundColor: "rgba(239, 68, 68, 0.2)", borderRadius: "50%", fontWeight: "bold" },
                       }}
                       locale={ptBR}
                       initialFocus
@@ -240,7 +220,6 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="horario_preferido"
@@ -255,9 +234,7 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
                   </FormControl>
                   <SelectContent>
                     {horarios.map((hora) => (
-                      <SelectItem key={hora} value={hora}>
-                        {hora}
-                      </SelectItem>
+                      <SelectItem key={hora} value={hora}>{hora}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -274,10 +251,7 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
             <FormItem>
               <FormLabel>Local Sugerido *</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Ex: Arena Society - Rua das Flores, 123"
-                  {...field}
-                />
+                <Input placeholder="Ex: Arena Society - Rua das Flores, 123" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -291,22 +265,39 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
             <FormItem>
               <FormLabel>Observações (opcional)</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Alguma informação adicional..."
-                  className="resize-none"
-                  {...field}
-                />
+                <Textarea placeholder="Alguma informação adicional..." className="resize-none" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={createSolicitacao.isPending}
-        >
+        {/* Captcha */}
+        <FormField
+          control={form.control}
+          name="captcha"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Verificação de segurança *</FormLabel>
+              <div className="flex items-center gap-3">
+                <span className="rounded-md bg-muted px-3 py-2 font-mono text-sm font-semibold">
+                  {captcha.question}
+                </span>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Resposta"
+                    className="w-24"
+                    {...field}
+                  />
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="w-full" disabled={createSolicitacao.isPending}>
           {createSolicitacao.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
