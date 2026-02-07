@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSolicitacoesPendentesCount } from "@/hooks/useSolicitacoes";
 import { cn } from "@/lib/utils";
-import { CircleDot } from "lucide-react";
+// Logo
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 // Admin pages
@@ -162,7 +162,7 @@ export default function Admin() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <CircleDot className="mx-auto mb-4 h-16 w-16 text-primary" />
+          <img src="/logo-futgestor.png" alt="FutGestor" className="mx-auto mb-4 h-16 w-auto" />
           <Skeleton className="mx-auto h-6 w-32" />
         </div>
       </div>
@@ -178,7 +178,7 @@ export default function Admin() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="text-center">
-          <CircleDot className="mx-auto mb-4 h-20 w-20 text-primary" />
+          <img src="/logo-futgestor.png" alt="FutGestor" className="mx-auto mb-4 h-20 w-auto" />
           <h1 className="mb-2 text-2xl font-bold text-destructive">Acesso Negado</h1>
           <p className="mb-4 text-muted-foreground">
             Você não tem permissão para acessar o painel administrativo.
@@ -213,7 +213,7 @@ export default function Admin() {
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b border-sidebar-border p-4">
             <div className="flex items-center gap-3">
-              <CircleDot className="h-10 w-10 text-sidebar-primary" />
+              <img src="/logo-futgestor.png" alt="FutGestor" className="h-10 w-auto" />
               <div>
                 <p className="font-bold text-sidebar-foreground">FutGestor</p>
                 <p className="text-xs text-sidebar-foreground/70">Painel Admin</p>

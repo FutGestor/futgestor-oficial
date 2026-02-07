@@ -15,7 +15,7 @@ import { ScheduleGameCard } from "@/components/ScheduleGameCard";
 import { useConfirmacoesJogo, useConfirmarPresenca } from "@/hooks/useConfirmacoes";
 import { useProximoJogo, useAvisos, useFinancialSummary, useProximaEscalacao, useEscalacaoJogadores, useUltimoResultado } from "@/hooks/useData";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
-import { Trophy, TrendingUp, Bell, ChevronRight, Check, X, CircleDot } from "lucide-react";
+import { Trophy, TrendingUp, Bell, ChevronRight, Check, X } from "lucide-react";
 import { categoryLabels } from "@/lib/types";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -341,7 +341,7 @@ export default function TeamPublicPage() {
             {team.escudo_url ? (
               <img src={team.escudo_url} alt={team.nome} className="mb-6 h-20 w-20 object-contain" />
             ) : (
-              <CircleDot className="mb-6 h-20 w-20 text-primary-foreground/90" />
+              <img src="/logo-futgestor.png" alt="FutGestor" className="mb-6 h-20 w-auto" />
             )}
             <h1 className="mb-4 text-4xl font-bold text-primary-foreground md:text-5xl">
               {team.nome}
