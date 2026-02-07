@@ -1,81 +1,47 @@
 
 
-# Filtrar dados de Agenda e Resultados por time
+# Vincular solicitacoes de jogo ao time correto
 
 ## Problema
 
-As queries de `useJogos()` e `useResultados()` nao filtram por `team_id`. Para membros logados, o RLS filtra automaticamente. Mas para visitantes anonimos, a policy publica usa `USING (true)`, retornando dados de TODOS os times.
+Quando um visitante envia uma solicitacao de partida pela pagina publica (`/time/demo-fc`), o campo `team_id` nao e preenchido no registro. Como a politica de seguranca dos admins filtra por `team_id`, as solicitacoes nunca aparecem para nenhum admin.
 
 ## Solucao
 
-Adicionar parametro opcional `teamId` aos hooks `useJogos()` e `useResultados()`, e passar o `team_id` do contexto do slug nas paginas Agenda e Resultados.
+Passar o `team_id` do contexto da pagina publica ate o hook de criacao da solicitacao, garantindo que cada solicitacao fique vinculada ao time correto.
 
 ## Detalhes tecnicos
 
-### 1. Hook `useJogos` (src/hooks/useData.ts)
+### 1. Componente `ScheduleGameCard` (src/components/ScheduleGameCard.tsx)
 
-Adicionar parametro opcional `teamId`:
+- Adicionar prop `teamId?: string`
+- Passar `teamId` para o `SolicitacaoJogoForm`
 
-```typescript
-export function useJogos(teamId?: string) {
-  return useQuery({
-    queryKey: ["jogos", teamId],
-    queryFn: async () => {
-      let query = supabase.from("jogos").select(`*, time_adversario:times(*)`);
-      if (teamId) {
-        query = query.eq("team_id", teamId);
-      }
-      const { data, error } = await query.order("data_hora", { ascending: false });
-      if (error) throw error;
-      return data as Jogo[];
-    },
-  });
-}
-```
+### 2. Componente `SolicitacaoJogoForm` (src/components/SolicitacaoJogoForm.tsx)
 
-### 2. Hook `useResultados` (src/hooks/useData.ts)
+- Adicionar prop `teamId?: string`
+- Passar `teamId` ao chamar `createSolicitacao.mutateAsync()`
 
-Mesma abordagem:
+### 3. Hook `useCreateSolicitacao` (src/hooks/useSolicitacoes.ts)
 
-```typescript
-export function useResultados(teamId?: string) {
-  return useQuery({
-    queryKey: ["resultados", teamId],
-    queryFn: async () => {
-      let query = supabase.from("resultados").select(`*, jogo:jogos(*)`);
-      if (teamId) {
-        query = query.eq("team_id", teamId);
-      }
-      const { data, error } = await query.order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as (Resultado & { jogo: Jogo })[];
-    },
-  });
-}
-```
+- Adicionar campo `team_id` ao tipo de dados do `mutationFn`
+- Incluir `team_id` no insert para a tabela `solicitacoes_jogo`
 
-### 3. Pagina Agenda (src/pages/Agenda.tsx)
+### 4. Pagina `TeamPublicPage` (src/pages/TeamPublicPage.tsx)
 
-Importar `useTeamConfig` e passar o `team.id` para `useJogos`:
+- Passar `teamId={team.id}` ao renderizar `<ScheduleGameCard>`
 
-```typescript
-const { team } = useTeamConfig();
-const { data: jogos, isLoading } = useJogos(team.id || undefined);
-```
+### Fluxo corrigido
 
-### 4. Pagina Resultados (src/pages/Resultados.tsx)
-
-Ja importa `useTeamConfig`. Passar o `team.id` para `useResultados`:
-
-```typescript
-const { data: resultados, isLoading } = useResultados(team.id || undefined);
-```
-
-### 5. Verificar outros usos de useJogos/useResultados
-
-Chamadas existentes sem parametro continuarao funcionando como antes (sem filtro extra, RLS protege para membros logados). Nenhuma quebra de compatibilidade.
+1. Visitante acessa `/time/demo-fc`
+2. `TeamPublicPage` obtem o `team.id` via `useTeamConfig()`
+3. Passa `team.id` para `ScheduleGameCard` -> `SolicitacaoJogoForm` -> `useCreateSolicitacao`
+4. O INSERT inclui `team_id`, vinculando a solicitacao ao time
+5. Admin do time ve a solicitacao na area administrativa
 
 ### Arquivos modificados
-- `src/hooks/useData.ts` (useJogos e useResultados aceitam teamId)
-- `src/pages/Agenda.tsx` (passa team.id)
-- `src/pages/Resultados.tsx` (passa team.id)
+- `src/pages/TeamPublicPage.tsx` (passa teamId ao ScheduleGameCard)
+- `src/components/ScheduleGameCard.tsx` (recebe e repassa teamId)
+- `src/components/SolicitacaoJogoForm.tsx` (recebe e usa teamId)
+- `src/hooks/useSolicitacoes.ts` (inclui team_id no insert)
+
