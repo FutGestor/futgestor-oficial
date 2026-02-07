@@ -108,7 +108,7 @@ export function Header() {
           )}
           {redesSociais.whatsapp && (
             <a
-              href={redesSociais.whatsapp}
+              href={redesSociais.whatsapp.startsWith('http') ? redesSociais.whatsapp : `https://${redesSociais.whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden rounded-md p-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground md:inline-flex"
@@ -201,7 +201,7 @@ export function Header() {
               )}
               {redesSociais.whatsapp && (
                 <a
-                  href={redesSociais.whatsapp}
+                  href={redesSociais.whatsapp.startsWith('http') ? redesSociais.whatsapp : `https://${redesSociais.whatsapp}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 hover:bg-primary-foreground/10"

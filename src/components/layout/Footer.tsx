@@ -63,7 +63,7 @@ export function Footer() {
             )}
             {team.redes_sociais.whatsapp && (
               <a
-                href={team.redes_sociais.whatsapp}
+                href={team.redes_sociais.whatsapp.startsWith('http') ? team.redes_sociais.whatsapp : `https://${team.redes_sociais.whatsapp}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
