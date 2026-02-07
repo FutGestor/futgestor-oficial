@@ -26,9 +26,10 @@ const TeamSlugContext = createContext<TeamSlugContextType | null>(null);
 export function TeamSlugLayout() {
   const { slug } = useParams<{ slug: string }>();
 
-  const { data: teamData, isLoading } = useQuery({
+  const { data: teamData, isLoading, isError } = useQuery({
     queryKey: ["team-by-slug", slug],
     enabled: !!slug,
+    retry: 1,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("teams")
@@ -44,6 +45,18 @@ export function TeamSlugLayout() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Skeleton className="h-32 w-32 rounded-full" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted">
+        <div className="text-center">
+          <h1 className="mb-4 text-2xl font-bold">Erro ao carregar</h1>
+          <p className="mb-4 text-muted-foreground">Não foi possível carregar os dados do time.</p>
+          <a href="/" className="text-primary underline hover:text-primary/90">Voltar ao início</a>
+        </div>
       </div>
     );
   }
