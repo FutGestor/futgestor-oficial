@@ -1,59 +1,50 @@
 
 
-# Revisao de CTAs e Textos da Landing Page
+# Resolver Conflito de Slug no Onboarding
 
-## Problema Identificado
+## Problema
 
-O site menciona "gratis" em varios lugares, mas na pratica o usuario precisa de um plano pago (a partir de R$ 9,90/mes) para usar qualquer funcionalidade do painel. Isso gera frustacao e confusao. Alem disso, faltam explicacoes mais detalhadas sobre a plataforma nos CTAs.
+O slug (URL do time) e gerado automaticamente a partir do nome. Como no Brasil existem muitos times com nomes iguais (ex: "Galaticos", "Real", "Barcelona"), o slug colide e o usuario recebe "Slug ja em uso" sem saber o que fazer.
 
-## Locais com "gratis" que serao corrigidos
+## Solucao
 
-| Arquivo | Texto atual | Novo texto |
-|---|---|---|
-| **LandingHeader** (botao CTA) | "Comecar gratis" | "Conhecer planos" |
-| **HeroSection** (botao principal) | "Criar meu time gratis" | "Comecar agora" |
-| **HeroSection** (stat "100%") | "100% / Gratuito pra comecar" | "A partir de / R$ 9,90/mes" |
-| **HowItWorks** (passo 01) | "Sem cartao de credito." | "Rapido e simples." |
-| **CtaFinal** (botao) | "Criar meu time agora — e gratis" | "Criar meu time agora" |
+Adicionar um campo **Cidade** ao formulario de onboarding e usar cidade + nome para gerar o slug automaticamente, reduzindo drasticamente as colisoes. Alem disso, implementar verificacao em tempo real e sugestoes automaticas caso ainda haja conflito.
 
-## Melhorias no conteudo dos CTAs
-
-### HeroSection — Subtitulo mais explicativo
-**Atual:** "Abandone o caderno e a confusao no WhatsApp. Financeiro, Escalacao, Estatisticas e Area do Jogador — tudo em um so lugar."
-
-**Novo:** "A plataforma completa para gerenciar seu time de futebol amador. Controle financeiro, escalacao tatica no campo virtual, ranking de jogadores, agenda de jogos e portal exclusivo para cada atleta — tudo acessivel pelo celular."
-
-### HeroSection — Adicionar subtexto abaixo dos botoes
-Novo elemento entre os botoes e os stats:
-- Texto pequeno: "Planos a partir de R$ 9,90/mes — Sem fidelidade, cancele quando quiser"
-
-### CtaFinal — Mais contexto sobre a plataforma
-Transformar de secao simples para secao mais rica com:
-- Titulo mantido: "SEU TIME MERECE ORGANIZACAO DE VERDADE"
-- Subtitulo expandido com 3 mini-destaques em grid (icones + texto curto):
-  - "Agenda, escalacao e resultados organizados"
-  - "Financeiro transparente para todo o elenco"
-  - "Acesso pelo celular, sem instalar nada"
-- Texto: "Planos a partir de R$ 9,90/mes"
-- Botao: "Criar meu time agora"
-
-### HowItWorks — Ajustar passo 2 (escudo)
-**Atual passo 02:** "Nome, escudo e pronto. Seu time tem um portal proprio."
-**Novo passo 02:** "Nome do time e pronto. Seu time ganha um portal exclusivo. Personalize com escudo e cores depois."
-
-Isso alinha com a realidade de que o upload de escudo pode nao funcionar no cadastro inicial.
+### Fluxo novo:
+1. Usuario digita "Galaticos" no nome
+2. Usuario digita "Recife" na cidade
+3. Slug gerado automaticamente: `galaticos-recife`
+4. Se ainda existir conflito, o sistema sugere alternativas: `galaticos-recife-01`, `galaticos-recife-02`
+5. Indicador visual (verde/vermelho) mostra em tempo real se o slug esta disponivel
 
 ## Detalhes Tecnicos
 
-### Arquivos a editar:
-- `src/components/landing/LandingHeader.tsx` — texto do botao CTA
-- `src/components/landing/HeroSection.tsx` — botao, subtitulo, stats, novo subtexto
-- `src/components/landing/HowItWorks.tsx` — textos dos passos 01 e 02
-- `src/components/landing/CtaFinal.tsx` — secao expandida com mini-destaques
+### Arquivo editado: `src/pages/Onboarding.tsx`
 
-### Arquivos que NAO serao alterados:
-- `src/components/landing/PricingSection.tsx` — mantida como esta
-- Todos os demais componentes da landing
+**Mudancas:**
+- Adicionar campo `cidade` ao schema Zod e ao formulario
+- Alterar `handleNomeChange` para gerar slug como `nome-cidade` (quando cidade preenchida)
+- Adicionar handler `handleCidadeChange` que tambem regenera o slug
+- Adicionar verificacao async de disponibilidade do slug (debounced, consulta tabela `teams`)
+- Mostrar indicador visual: icone verde "Disponivel" ou vermelho "Em uso" + sugestoes
+- Se conflito, gerar e exibir ate 3 slugs alternativos clicaveis
+- Salvar a cidade no campo `cidade` da tabela `times` (time da casa criado no onboarding)
 
-### Nenhuma dependencia nova necessaria
+### Verificacao de disponibilidade:
+- Query simples: `supabase.from('teams').select('slug').eq('slug', valor).maybeSingle()`
+- Executada com debounce de 500ms apos o usuario parar de digitar
+- Resultado mostrado como badge ao lado do campo slug
+
+### Sugestoes automaticas de slug:
+- Se `galaticos-recife` estiver em uso, sugerir: `galaticos-recife-01`, `galaticos-recife-02`, `galaticos-recife-fc`
+- Sugestoes aparecem como chips/botoes clicaveis abaixo do campo
+
+### Campo cidade:
+- Input simples com placeholder "Ex: Recife"
+- Posicionado entre o campo Nome e o campo URL
+- Obrigatorio (min 2 caracteres)
+
+### Nenhuma migration necessaria:
+- A tabela `times` ja possui o campo `cidade` (text, nullable)
+- O campo sera preenchido ao criar o time da casa no onboarding
 
