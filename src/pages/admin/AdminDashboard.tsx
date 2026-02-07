@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
-import { Calendar, Users, DollarSign, Trophy, Bell, ClipboardList } from "lucide-react";
+import { Calendar, Users, DollarSign, Trophy, Bell, ClipboardList, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useJogos, useJogadores, useFinancialSummary, useResultados, useAvisos } from "@/hooks/useData";
+import { useJogos, useJogadores, useFinancialSummary, useResultados } from "@/hooks/useData";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
-import { Wallet } from "lucide-react";
+import { usePlanAccess } from "@/hooks/useSubscription";
 
 export default function AdminDashboard() {
   const { data: jogos, isLoading: loadingJogos } = useJogos();
@@ -14,6 +14,7 @@ export default function AdminDashboard() {
   const { data: resultados, isLoading: loadingResultados } = useResultados();
   const { team } = useTeamConfig();
   const { basePath } = useTeamSlug();
+  const { hasSaldoCard } = usePlanAccess();
 
   const proximosJogos = jogos?.filter(j => new Date(j.data_hora) >= new Date()).length || 0;
   const jogosFinalizados = resultados?.length || 0;
@@ -27,6 +28,7 @@ export default function AdminDashboard() {
 
       {/* Quick Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {hasSaldoCard && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Atual</CardTitle>
@@ -40,6 +42,7 @@ export default function AdminDashboard() {
             )}
           </CardContent>
         </Card>
+        )}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Jogadores Ativos</CardTitle>
