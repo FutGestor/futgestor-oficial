@@ -76,10 +76,11 @@ const horarios = [
 ];
 
 interface SolicitacaoJogoFormProps {
+  teamId?: string;
   onSuccess?: () => void;
 }
 
-export function SolicitacaoJogoForm({ onSuccess }: SolicitacaoJogoFormProps) {
+export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const createSolicitacao = useCreateSolicitacao();
   const { data: jogosFuturos } = useJogosFuturos();
@@ -113,6 +114,7 @@ export function SolicitacaoJogoForm({ onSuccess }: SolicitacaoJogoFormProps) {
       horario_preferido: data.horario_preferido,
       local_sugerido: data.local_sugerido,
       observacoes: data.observacoes,
+      team_id: teamId,
     });
     setSubmitted(true);
     onSuccess?.();

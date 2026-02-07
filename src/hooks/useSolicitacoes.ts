@@ -67,6 +67,7 @@ export function useCreateSolicitacao() {
       horario_preferido: string;
       local_sugerido: string;
       observacoes?: string;
+      team_id?: string;
     }) => {
       const { error } = await supabase.from("solicitacoes_jogo").insert({
         nome_time: data.nome_time,
@@ -76,6 +77,7 @@ export function useCreateSolicitacao() {
         horario_preferido: data.horario_preferido,
         local_sugerido: data.local_sugerido,
         observacoes: data.observacoes || null,
+        team_id: data.team_id || null,
       });
 
       if (error) throw error;
