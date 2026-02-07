@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           id: string
           publicado: boolean | null
+          team_id: string | null
           titulo: string
           updated_at: string
         }
@@ -30,6 +31,7 @@ export type Database = {
           created_at?: string
           id?: string
           publicado?: boolean | null
+          team_id?: string | null
           titulo: string
           updated_at?: string
         }
@@ -39,10 +41,19 @@ export type Database = {
           created_at?: string
           id?: string
           publicado?: boolean | null
+          team_id?: string | null
           titulo?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avisos_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       confirmacoes_presenca: {
         Row: {
@@ -51,6 +62,7 @@ export type Database = {
           jogador_id: string
           jogo_id: string
           status: Database["public"]["Enums"]["presence_status"]
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -59,6 +71,7 @@ export type Database = {
           jogador_id: string
           jogo_id: string
           status?: Database["public"]["Enums"]["presence_status"]
+          team_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -67,6 +80,7 @@ export type Database = {
           jogador_id?: string
           jogo_id?: string
           status?: Database["public"]["Enums"]["presence_status"]
+          team_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -82,6 +96,13 @@ export type Database = {
             columns: ["jogo_id"]
             isOneToOne: false
             referencedRelation: "jogos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "confirmacoes_presenca_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -136,6 +157,7 @@ export type Database = {
           jogo_id: string
           modalidade: string | null
           publicada: boolean | null
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -145,6 +167,7 @@ export type Database = {
           jogo_id: string
           modalidade?: string | null
           publicada?: boolean | null
+          team_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -154,6 +177,7 @@ export type Database = {
           jogo_id?: string
           modalidade?: string | null
           publicada?: boolean | null
+          team_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -162,6 +186,13 @@ export type Database = {
             columns: ["jogo_id"]
             isOneToOne: true
             referencedRelation: "jogos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escalacoes_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -177,6 +208,7 @@ export type Database = {
           jogador_id: string
           participou: boolean
           resultado_id: string
+          team_id: string | null
         }
         Insert: {
           assistencias?: number
@@ -188,6 +220,7 @@ export type Database = {
           jogador_id: string
           participou?: boolean
           resultado_id: string
+          team_id?: string | null
         }
         Update: {
           assistencias?: number
@@ -199,6 +232,7 @@ export type Database = {
           jogador_id?: string
           participou?: boolean
           resultado_id?: string
+          team_id?: string | null
         }
         Relationships: [
           {
@@ -215,6 +249,13 @@ export type Database = {
             referencedRelation: "resultados"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "estatisticas_partida_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
         ]
       }
       jogadores: {
@@ -228,6 +269,7 @@ export type Database = {
           nome: string
           numero: number | null
           posicao: Database["public"]["Enums"]["player_position"]
+          team_id: string | null
           telefone: string | null
           updated_at: string
           user_id: string | null
@@ -242,6 +284,7 @@ export type Database = {
           nome: string
           numero?: number | null
           posicao: Database["public"]["Enums"]["player_position"]
+          team_id?: string | null
           telefone?: string | null
           updated_at?: string
           user_id?: string | null
@@ -256,11 +299,20 @@ export type Database = {
           nome?: string
           numero?: number | null
           posicao?: Database["public"]["Enums"]["player_position"]
+          team_id?: string | null
           telefone?: string | null
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "jogadores_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       jogos: {
         Row: {
@@ -271,6 +323,7 @@ export type Database = {
           local: string
           observacoes: string | null
           status: Database["public"]["Enums"]["game_status"] | null
+          team_id: string | null
           temporada: string | null
           time_adversario_id: string | null
           updated_at: string
@@ -283,6 +336,7 @@ export type Database = {
           local: string
           observacoes?: string | null
           status?: Database["public"]["Enums"]["game_status"] | null
+          team_id?: string | null
           temporada?: string | null
           time_adversario_id?: string | null
           updated_at?: string
@@ -295,11 +349,19 @@ export type Database = {
           local?: string
           observacoes?: string | null
           status?: Database["public"]["Enums"]["game_status"] | null
+          team_id?: string | null
           temporada?: string | null
           time_adversario_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "jogos_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "jogos_time_adversario_id_fkey"
             columns: ["time_adversario_id"]
@@ -316,6 +378,7 @@ export type Database = {
           id: string
           jogador_id: string | null
           nome: string | null
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -324,6 +387,7 @@ export type Database = {
           id: string
           jogador_id?: string | null
           nome?: string | null
+          team_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -332,6 +396,7 @@ export type Database = {
           id?: string
           jogador_id?: string | null
           nome?: string | null
+          team_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -340,6 +405,13 @@ export type Database = {
             columns: ["jogador_id"]
             isOneToOne: false
             referencedRelation: "jogadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -352,6 +424,7 @@ export type Database = {
           id: string
           jogo_id: string
           observacoes: string | null
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -361,6 +434,7 @@ export type Database = {
           id?: string
           jogo_id: string
           observacoes?: string | null
+          team_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -370,6 +444,7 @@ export type Database = {
           id?: string
           jogo_id?: string
           observacoes?: string | null
+          team_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -378,6 +453,13 @@ export type Database = {
             columns: ["jogo_id"]
             isOneToOne: true
             referencedRelation: "jogos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resultados_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -393,6 +475,7 @@ export type Database = {
           nome_time: string
           observacoes: string | null
           status: Database["public"]["Enums"]["request_status"]
+          team_id: string | null
           telefone_contato: string
           updated_at: string
         }
@@ -406,6 +489,7 @@ export type Database = {
           nome_time: string
           observacoes?: string | null
           status?: Database["public"]["Enums"]["request_status"]
+          team_id?: string | null
           telefone_contato: string
           updated_at?: string
         }
@@ -419,7 +503,52 @@ export type Database = {
           nome_time?: string
           observacoes?: string | null
           status?: Database["public"]["Enums"]["request_status"]
+          team_id?: string | null
           telefone_contato?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_jogo_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          cores: Json | null
+          created_at: string
+          escudo_url: string | null
+          id: string
+          nome: string
+          plano: string
+          redes_sociais: Json | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          cores?: Json | null
+          created_at?: string
+          escudo_url?: string | null
+          id?: string
+          nome: string
+          plano?: string
+          redes_sociais?: Json | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          cores?: Json | null
+          created_at?: string
+          escudo_url?: string | null
+          id?: string
+          nome?: string
+          plano?: string
+          redes_sociais?: Json | null
+          slug?: string
           updated_at?: string
         }
         Relationships: []
@@ -436,6 +565,7 @@ export type Database = {
           is_casa: boolean
           nome: string
           redes_sociais: Json | null
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -449,6 +579,7 @@ export type Database = {
           is_casa?: boolean
           nome: string
           redes_sociais?: Json | null
+          team_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -462,9 +593,18 @@ export type Database = {
           is_casa?: boolean
           nome?: string
           redes_sociais?: Json | null
+          team_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "times_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transacoes: {
         Row: {
@@ -473,6 +613,7 @@ export type Database = {
           data: string
           descricao: string
           id: string
+          team_id: string | null
           tipo: Database["public"]["Enums"]["transaction_type"]
           updated_at: string
           valor: number
@@ -483,6 +624,7 @@ export type Database = {
           data?: string
           descricao: string
           id?: string
+          team_id?: string | null
           tipo: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
           valor: number
@@ -493,32 +635,52 @@ export type Database = {
           data?: string
           descricao?: string
           id?: string
+          team_id?: string | null
           tipo?: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
           valor?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transacoes_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
           created_at: string
           id: string
           role: Database["public"]["Enums"]["app_role"]
+          team_id: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          team_id?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          team_id?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       votos_destaque: {
         Row: {
@@ -526,6 +688,7 @@ export type Database = {
           id: string
           jogador_id: string
           resultado_id: string
+          team_id: string | null
           updated_at: string
           votante_id: string
         }
@@ -534,6 +697,7 @@ export type Database = {
           id?: string
           jogador_id: string
           resultado_id: string
+          team_id?: string | null
           updated_at?: string
           votante_id: string
         }
@@ -542,6 +706,7 @@ export type Database = {
           id?: string
           jogador_id?: string
           resultado_id?: string
+          team_id?: string | null
           updated_at?: string
           votante_id?: string
         }
@@ -560,6 +725,13 @@ export type Database = {
             referencedRelation: "resultados"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "votos_destaque_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -567,11 +739,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_team_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_team_admin: {
+        Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
     }

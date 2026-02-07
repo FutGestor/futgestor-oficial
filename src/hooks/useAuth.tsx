@@ -7,6 +7,7 @@ interface Profile {
   jogador_id: string | null;
   aprovado: boolean;
   nome: string | null;
+  team_id: string | null;
 }
 
 interface AuthContextType {
@@ -82,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, jogador_id, aprovado, nome")
+        .select("id, jogador_id, aprovado, nome, team_id")
         .eq("id", userId)
         .maybeSingle();
 
