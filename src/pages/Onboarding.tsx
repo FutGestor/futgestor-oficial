@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Shield } from "lucide-react";
+import { FutGestorLogo } from "@/components/FutGestorLogo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -127,7 +128,7 @@ export default function Onboarding() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex items-center justify-center">
-            <img src="/logo-futgestor.png" alt="FutGestor" className="h-16 w-auto" />
+            <FutGestorLogo className="h-16 w-16" />
           </div>
           <CardTitle className="text-2xl">Crie seu time</CardTitle>
           <CardDescription>

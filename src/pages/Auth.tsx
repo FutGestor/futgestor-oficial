@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, Lock, Loader2, User } from "lucide-react";
+import { FutGestorLogo } from "@/components/FutGestorLogo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -240,7 +241,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex items-center justify-center">
-            <img src="/logo-futgestor.png" alt="FutGestor" className="h-16 w-auto" />
+            <FutGestorLogo className="h-16 w-16" />
           </div>
           <CardTitle className="text-2xl">FutGestor</CardTitle>
           <CardDescription>
