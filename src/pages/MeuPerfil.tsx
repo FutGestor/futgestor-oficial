@@ -17,6 +17,7 @@ import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { supabase } from "@/integrations/supabase/client";
 import { positionLabels } from "@/lib/types";
 import type { Database } from "@/integrations/supabase/types";
+import { MeuPlanoSection } from "@/components/MeuPlanoSection";
 
 type PlayerPosition = Database["public"]["Enums"]["player_position"];
 
@@ -243,7 +244,10 @@ export default function MeuPerfil() {
 
   return (
     <Layout>
-      <div className="container max-w-2xl py-8 px-4 md:px-6">
+      <div className="container max-w-2xl py-8 px-4 md:px-6 space-y-6">
+        {/* Seção Meu Plano */}
+        <MeuPlanoSection />
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

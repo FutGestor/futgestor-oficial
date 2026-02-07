@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTransacoes, useFinancialSummary } from "@/hooks/useData";
 import { RequireTeam } from "@/components/RequireTeam";
+import { RequireProPlan } from "@/components/RequireProPlan";
 
 const COLORS = ["#1B3A5C", "#D4A84B", "#8B2323", "#4A7C59", "#6B5B95"];
 
@@ -312,7 +313,9 @@ function FinanceiroContent() {
 export default function FinanceiroPage() {
   return (
     <RequireTeam>
-      <FinanceiroContent />
+      <RequireProPlan featureName="O Dashboard Financeiro">
+        <FinanceiroContent />
+      </RequireProPlan>
     </RequireTeam>
   );
 }
