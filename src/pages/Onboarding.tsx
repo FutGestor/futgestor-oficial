@@ -83,6 +83,7 @@ export default function Onboarding() {
         .insert({
           nome: data.nome,
           slug: data.slug,
+          cpf_responsavel: data.cpf,
         })
         .select()
         .single();
