@@ -534,7 +534,7 @@ export default function AdminEscalacoes() {
                   <Users className="h-8 w-8 text-primary" />
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-semibold">vs {escalacao.jogo?.adversario}</span>
+                      <span className="font-semibold">vs {escalacao.jogo?.adversario || "Jogo removido"}</span>
                       <Badge variant="secondary">{escalacao.formacao}</Badge>
                       <Badge variant="outline">
                         {modalityLabels[((escalacao as any).modalidade as GameModality) || 'society-6']}

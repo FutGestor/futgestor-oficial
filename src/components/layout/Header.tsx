@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
+import { usePlanAccess } from "@/hooks/useSubscription";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,15 +20,17 @@ export function Header() {
   const teamName = teamSlug?.team.nome || "FutGestor";
   const teamEscudo = teamSlug?.team.escudo_url || null;
   const redesSociais = teamSlug?.team.redes_sociais || {};
+  const teamId = teamSlug?.team.id || null;
+  const { hasRanking, hasResultados, hasPresenca } = usePlanAccess(teamId);
 
-  // Nav items visíveis para todos (incluindo visitantes)
+  // Nav items visíveis para todos (incluindo visitantes) - condicionados ao plano
   const visitorNavItems = teamSlug
     ? [
         { href: basePath, label: "Início" },
-        { href: `${basePath}/agenda`, label: "Agenda" },
-        { href: `${basePath}/resultados`, label: "Resultados" },
+        ...(hasPresenca ? [{ href: `${basePath}/agenda`, label: "Agenda" }] : []),
+        ...(hasResultados ? [{ href: `${basePath}/resultados`, label: "Resultados" }] : []),
         { href: `${basePath}/escalacao`, label: "Escalação" },
-        { href: `${basePath}/ranking`, label: "Ranking" },
+        ...(hasRanking ? [{ href: `${basePath}/ranking`, label: "Ranking" }] : []),
       ]
     : [{ href: "/", label: "Início" }];
 
@@ -71,7 +74,7 @@ export function Header() {
           ) : (
             <img src={logoFutgestor} alt="FutGestor" className="h-12 w-12 object-contain" />
           )}
-          <span className="hidden text-lg font-bold text-primary-foreground md:inline-block">
+          <span className="hidden truncate max-w-[120px] lg:max-w-[200px] xl:max-w-none text-lg font-bold text-primary-foreground md:inline-block">
             {teamName}
           </span>
         </Link>
