@@ -66,6 +66,7 @@ export default function SuperAdminVendas() {
     const teamIds = [...new Set(paymentsList.map(p => p.team_id).filter(Boolean))] as string[];
     let namesMap: Record<string, string> = {};
     if (teamIds.length > 0) {
+      // Fetch team names
       const { data: teamsData, error: teamsError } = await supabase
         .from("teams")
         .select("id, nome")
@@ -75,6 +76,19 @@ export default function SuperAdminVendas() {
       }
       if (teamsData) {
         teamsData.forEach(t => { namesMap[t.id] = t.nome; });
+      }
+
+      // Fetch profile emails as fallback (owner of each team)
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("team_id, nome, id")
+        .in("team_id", teamIds);
+      if (profilesData) {
+        profilesData.forEach(p => {
+          if (p.team_id && !namesMap[p.team_id]) {
+            namesMap[p.team_id] = p.nome || p.id;
+          }
+        });
       }
     }
 
