@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FutGestorLogo } from "@/components/FutGestorLogo";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn } from "lucide-react";
 
 export function LandingHeader() {
   const [open, setOpen] = useState(false);
@@ -32,6 +32,13 @@ export function LandingHeader() {
         >
           Conhecer planos
         </button>
+        <Link
+          to="/auth"
+          className="ml-2 px-4 py-2 rounded-lg text-sm font-medium border border-gray-500 text-gray-300 hover:border-gold hover:text-gold transition-all flex items-center gap-1.5"
+        >
+          <LogIn size={16} />
+          Entrar
+        </Link>
       </nav>
 
       {/* Mobile toggle */}
@@ -52,6 +59,13 @@ export function LandingHeader() {
           >
             Conhecer planos
           </button>
+          <Link
+            to="/auth"
+            className="mt-2 px-4 py-2.5 rounded-lg text-sm font-medium border border-gray-500 text-gray-300 hover:border-gold hover:text-gold transition-all flex items-center justify-center gap-1.5 w-full"
+          >
+            <LogIn size={16} />
+            Entrar
+          </Link>
         </div>
       )}
     </header>
