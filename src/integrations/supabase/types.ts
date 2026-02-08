@@ -392,6 +392,131 @@ export type Database = {
           },
         ]
       }
+      league_matches: {
+        Row: {
+          created_at: string
+          id: string
+          league_id: string
+          round: number
+          score_away: number | null
+          score_home: number | null
+          status: string
+          team_away_id: string
+          team_home_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          league_id: string
+          round?: number
+          score_away?: number | null
+          score_home?: number | null
+          status?: string
+          team_away_id: string
+          team_home_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          league_id?: string
+          round?: number
+          score_away?: number | null
+          score_home?: number | null
+          status?: string
+          team_away_id?: string
+          team_home_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_matches_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "league_matches_team_away_id_fkey"
+            columns: ["team_away_id"]
+            isOneToOne: false
+            referencedRelation: "league_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "league_matches_team_home_id_fkey"
+            columns: ["team_home_id"]
+            isOneToOne: false
+            referencedRelation: "league_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      league_teams: {
+        Row: {
+          created_at: string
+          id: string
+          league_id: string
+          logo_url: string | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          league_id: string
+          logo_url?: string | null
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          league_id?: string
+          logo_url?: string | null
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_teams_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leagues: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leagues_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_financeiro: {
         Row: {
           created_at: string
