@@ -45,11 +45,11 @@ export default function AdminTimes() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: times, isLoading } = useTimes();
+  const { profile } = useAuth();
+  const { data: times, isLoading } = useTimes(profile?.team_id);
   const createTime = useCreateTime();
   const updateTime = useUpdateTime();
   const deleteTime = useDeleteTime();
-  const { profile } = useAuth();
   const { toast } = useToast();
 
   const openCreateDialog = () => {

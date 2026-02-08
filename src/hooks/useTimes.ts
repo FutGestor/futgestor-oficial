@@ -2,53 +2,59 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Time } from "@/lib/types";
 
-// Busca todos os times
-export function useTimes() {
+// Busca todos os times (filtrado por team_id)
+export function useTimes(teamId?: string | null) {
   return useQuery({
-    queryKey: ["times"],
+    queryKey: ["times", teamId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("times")
         .select("*")
+        .eq("team_id", teamId!)
         .order("nome");
 
       if (error) throw error;
       return data as Time[];
     },
+    enabled: !!teamId,
   });
 }
 
-// Busca apenas times ativos
-export function useTimesAtivos() {
+// Busca apenas times ativos (filtrado por team_id)
+export function useTimesAtivos(teamId?: string | null) {
   return useQuery({
-    queryKey: ["times", "ativos"],
+    queryKey: ["times", "ativos", teamId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("times")
         .select("*")
+        .eq("team_id", teamId!)
         .eq("ativo", true)
         .order("nome");
 
       if (error) throw error;
       return data as Time[];
     },
+    enabled: !!teamId,
   });
 }
 
-// Busca o time da casa
-export function useTimeCasa() {
+// Busca o time da casa (filtrado por team_id)
+export function useTimeCasa(teamId?: string | null) {
   return useQuery({
-    queryKey: ["times", "casa"],
+    queryKey: ["times", "casa", teamId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("times")
         .select("*")
+        .eq("team_id", teamId!)
         .eq("is_casa", true)
         .maybeSingle();
 
       if (error) throw error;
       return data as Time | null;
     },
+    enabled: !!teamId,
   });
 }
 
