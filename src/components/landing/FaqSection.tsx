@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     q: "O que é o Login de Jogadores do Plano Liga?",
-    a: "No Plano Liga, cada atleta recebe um acesso exclusivo ao sistema. Ele pode ver quanto deve de mensalidade, confirmar presença nos jogos e acompanhar suas estatísticas — tirando todo esse trabalho do administrador.",
+    a: "No Plano Liga, o administrador pode gerar um login individual para cada atleta. Com esse login, o jogador acessa sua área pessoal, onde pode acompanhar as finanças do time, ver avisos e confirmar presença nos jogos. Ele não tem acesso à área administrativa — apenas o dono/admin gerencia tudo.",
   },
   {
     q: "Posso testar antes de assinar?",
