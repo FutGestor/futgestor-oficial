@@ -28,7 +28,6 @@ export function Header() {
     ? [
         { href: basePath, label: "Início" },
         ...(hasResultados ? [{ href: `${basePath}/resultados`, label: "Resultados" }] : []),
-        { href: `${basePath}/escalacao`, label: "Escalação" },
         ...(hasRanking ? [{ href: `${basePath}/ranking`, label: "Ranking" }] : []),
         ...(hasCampeonatos ? [{ href: `${basePath}/ligas`, label: "Ligas" }] : []),
       ]
@@ -37,6 +36,7 @@ export function Header() {
   // Nav items apenas para membros logados
   const memberNavItems = teamSlug
     ? [
+        { href: `${basePath}/escalacao`, label: "Escalação" },
         { href: `${basePath}/jogadores`, label: "Jogadores" },
       ]
     : [];
