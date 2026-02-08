@@ -1,40 +1,31 @@
 
 
-# Redirecionar Logout para Pagina do Time + Botao Login no Header
+# Acesso Rapido a Landing Page
 
-## 1. Redirecionamento apos Logout
+## Problema
+Atualmente, a rota `/` redireciona automaticamente para `/time/{slug}` quando existe um slug salvo no `localStorage`, tornando a Landing Page inacessivel sem ferramentas de desenvolvedor.
 
-**Arquivo: `src/pages/Index.tsx`**
+## Solucao
 
-Atualmente, quando o usuario desloga, ele cai na Landing Page (rota `/`). O comportamento desejado e redirecionar para a pagina publica do time.
+### 1. Criar rota dedicada `/site`
+**Arquivo: `src/App.tsx`**
+- Adicionar uma rota `/site` que renderiza diretamente o `LandingPage`, sem nenhuma logica de redirecionamento.
 
-A logica atual so redireciona se o usuario esta logado E tem `team_id`. Para resolver, precisamos armazenar o ultimo slug do time visitado (via `localStorage`) e redirecionar para `/time/{slug}` mesmo quando deslogado.
+### 2. Adicionar link no Footer da pagina do time
+**Arquivo: `src/components/layout/Footer.tsx`**
+- Adicionar um link "Conheca o FutGestor" ou "FutGestor" que aponta para `/site`, permitindo acesso rapido a partir de qualquer pagina do time.
 
-- Ao carregar o Index, verificar se existe um slug salvo em `localStorage` (ex: `lastTeamSlug`)
-- Se existir, redirecionar para `/time/{slug}` independente do estado de login
-- O slug sera salvo no `localStorage` pelo `TeamSlugLayout` sempre que o usuario acessar uma pagina de time
-
-**Arquivo: `src/hooks/useTeamSlug.tsx`**
-
-Adicionar um `useEffect` no `TeamSlugLayout` que salva o slug atual no `localStorage` toda vez que o usuario navega para uma rota de time.
-
-## 2. Botao "Entrar" no Header da Landing Page
-
-**Arquivo: `src/components/landing/LandingHeader.tsx`**
-
-Adicionar um botao/link "Entrar" ao lado direito do header, proximo ao botao "Conhecer planos":
-
-- Desktop: link estilizado ou botao com borda, texto "Entrar", que leva para `/auth`
-- Mobile: adicionar o mesmo item no menu mobile
-- Estilo: botao outline/ghost para nao competir visualmente com o CTA dourado
+### 3. Adicionar link no Footer da Landing Page
+**Arquivo: `src/components/landing/LandingFooter.tsx`**
+- Atualizar o link "FutGestor" no footer para apontar para `/site` tambem, garantindo consistencia.
 
 ---
 
-## Arquivos a Modificar
+## Resumo de Alteracoes
 
 | Arquivo | Alteracao |
 |---------|-----------|
-| `src/pages/Index.tsx` | Redirecionar para ultimo time visitado via localStorage |
-| `src/hooks/useTeamSlug.tsx` | Salvar slug no localStorage ao acessar rota de time |
-| `src/components/landing/LandingHeader.tsx` | Adicionar botao "Entrar" linkando para /auth |
+| `src/App.tsx` | Nova rota `/site` apontando para `LandingPage` |
+| `src/components/layout/Footer.tsx` | Link "Conheca o FutGestor" apontando para `/site` |
+| `src/components/landing/LandingFooter.tsx` | Atualizar links internos para `/site` |
 
