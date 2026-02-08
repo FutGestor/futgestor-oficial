@@ -1,34 +1,32 @@
 
 
-# Corrigir Listagem e Exclusao de Times no Admin
+# Redirecionar Logout para Pagina do Time + Botao Login no Header
 
-## Problema
+## 1. Redirecionamento apos Logout
 
-A consulta `useTimes()` busca TODOS os times do banco de dados sem filtrar pelo `team_id` do usuario logado. Com a politica publica de leitura adicionada recentemente, agora o admin ve times de todas as contas. Alem disso, ao tentar excluir times de outras contas, o RLS bloqueia a operacao (pois so permite deletar times do proprio team), gerando erro silencioso.
+**Arquivo: `src/pages/Index.tsx`**
 
-## Solucao
+Atualmente, quando o usuario desloga, ele cai na Landing Page (rota `/`). O comportamento desejado e redirecionar para a pagina publica do time.
 
-### 1. Filtrar por `team_id` em todas as consultas de times no Admin
+A logica atual so redireciona se o usuario esta logado E tem `team_id`. Para resolver, precisamos armazenar o ultimo slug do time visitado (via `localStorage`) e redirecionar para `/time/{slug}` mesmo quando deslogado.
 
-**Arquivo: `src/hooks/useTimes.ts`**
+- Ao carregar o Index, verificar se existe um slug salvo em `localStorage` (ex: `lastTeamSlug`)
+- Se existir, redirecionar para `/time/{slug}` independente do estado de login
+- O slug sera salvo no `localStorage` pelo `TeamSlugLayout` sempre que o usuario acessar uma pagina de time
 
-Todas as funcoes de consulta (`useTimes`, `useTimesAtivos`, `useTimeCasa`) precisam receber o `team_id` do usuario logado e aplicar `.eq("team_id", teamId)` na query. Isso garante que cada admin so veja os times da sua organizacao.
+**Arquivo: `src/hooks/useTeamSlug.tsx`**
 
-- `useTimes(teamId)` - adicionar filtro `.eq("team_id", teamId)` e `enabled: !!teamId`
-- `useTimesAtivos(teamId)` - idem
-- `useTimeCasa(teamId)` - idem
+Adicionar um `useEffect` no `TeamSlugLayout` que salva o slug atual no `localStorage` toda vez que o usuario navega para uma rota de time.
 
-### 2. Atualizar os componentes que usam esses hooks
+## 2. Botao "Entrar" no Header da Landing Page
 
-**Arquivo: `src/pages/admin/AdminTimes.tsx`**
+**Arquivo: `src/components/landing/LandingHeader.tsx`**
 
-Passar o `team_id` do perfil do usuario (ja disponivel via `useAuth()`) para o hook `useTimes(profile?.team_id)`.
+Adicionar um botao/link "Entrar" ao lado direito do header, proximo ao botao "Conhecer planos":
 
-Outros arquivos que importam `useTimes`, `useTimesAtivos` ou `useTimeCasa` tambem precisarao ser atualizados para passar o `team_id`.
-
-### 3. Limpeza de dados orfaos (opcional)
-
-Existem times no banco com `team_id = null` (criados antes do sistema multi-tenant). Esses registros podem ser ignorados pelo filtro ou removidos manualmente via SQL se desejado.
+- Desktop: link estilizado ou botao com borda, texto "Entrar", que leva para `/auth`
+- Mobile: adicionar o mesmo item no menu mobile
+- Estilo: botao outline/ghost para nao competir visualmente com o CTA dourado
 
 ---
 
@@ -36,7 +34,7 @@ Existem times no banco com `team_id = null` (criados antes do sistema multi-tena
 
 | Arquivo | Alteracao |
 |---------|-----------|
-| `src/hooks/useTimes.ts` | Adicionar parametro `teamId` e filtro `.eq("team_id", teamId)` em todas as queries |
-| `src/pages/admin/AdminTimes.tsx` | Passar `profile?.team_id` para `useTimes()` |
-| Outros consumidores de `useTimes` | Atualizar chamadas para incluir `teamId` |
+| `src/pages/Index.tsx` | Redirecionar para ultimo time visitado via localStorage |
+| `src/hooks/useTeamSlug.tsx` | Salvar slug no localStorage ao acessar rota de time |
+| `src/components/landing/LandingHeader.tsx` | Adicionar botao "Entrar" linkando para /auth |
 
