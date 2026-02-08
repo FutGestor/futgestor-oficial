@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { useLeagues, useLeagueTeams, useLeagueMatches, computeStandings } from "@/hooks/useLeagues";
 import { LeagueStandingsTable } from "@/components/LeagueStandingsTable";
+import { LeagueRoundMatches } from "@/components/LeagueRoundMatches";
 import { Calendar, Users, MapPin, Instagram, MessageCircle, Youtube, Facebook } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
@@ -304,7 +305,16 @@ function PublicLeagueCard({ leagueId, leagueName }: { leagueId: string; leagueNa
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 sm:p-4">
-        <LeagueStandingsTable standings={standings} compact />
+        <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
+          <div className="overflow-x-auto">
+            <LeagueStandingsTable standings={standings} compact />
+          </div>
+          {matches && matches.length > 0 && teams && (
+            <div className="min-w-[260px] lg:max-w-[320px]">
+              <LeagueRoundMatches matches={matches} teams={teams} />
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -319,7 +329,7 @@ function PublicLeaguesSection({ teamId }: { teamId: string }) {
     <section className="py-12">
       <div className="container px-4 md:px-6">
         <h2 className="mb-6 text-2xl font-bold">Nossos Campeonatos</h2>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6">
           {leagues.map((l) => (
             <PublicLeagueCard key={l.id} leagueId={l.id} leagueName={l.name} />
           ))}
