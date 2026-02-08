@@ -120,14 +120,17 @@ export default function Admin() {
   const location = useLocation();
   const { toast } = useToast();
   const { basePath } = useTeamSlug();
-  const { hasFinanceiro, hasAvisos, hasCampeonatos, isActive, isLoading: planLoading, plan } = usePlanAccess();
+  const { hasFinanceiro, hasAvisos, hasCampeonatos, hasResultados, hasSolicitacoes, isActive, isLoading: planLoading } = usePlanAccess();
 
   // Build sidebar items with lock state
   const sidebarItems: SidebarItem[] = [
     { href: `${basePath}/admin`, label: "Dashboard", icon: LayoutDashboard },
     { href: `${basePath}/admin/planos`, label: "Planos", icon: Crown },
     { href: `${basePath}/admin/jogos`, label: "Jogos", icon: Calendar },
-    { href: `${basePath}/admin/solicitacoes`, label: "Solicitações", icon: CalendarPlus, hasBadge: true },
+    { 
+      href: `${basePath}/admin/solicitacoes`, label: "Solicitações", icon: CalendarPlus, hasBadge: true,
+      locked: !hasSolicitacoes, requiredPlan: "Pro", featureName: "Solicitações de Amistosos"
+    },
     { href: `${basePath}/admin/times`, label: "Times", icon: Shield },
     { href: `${basePath}/admin/jogadores`, label: "Jogadores", icon: Users },
     { href: `${basePath}/admin/usuarios`, label: "Usuários", icon: UserCog },
@@ -135,7 +138,10 @@ export default function Admin() {
       href: `${basePath}/admin/transacoes`, label: "Transações", icon: DollarSign,
       locked: !hasFinanceiro, requiredPlan: "Pro", featureName: "Gestão Financeira"
     },
-    { href: `${basePath}/admin/resultados`, label: "Resultados", icon: Trophy },
+    { 
+      href: `${basePath}/admin/resultados`, label: "Resultados", icon: Trophy,
+      locked: !hasResultados, requiredPlan: "Pro", featureName: "Resultados e Estatísticas"
+    },
     {
       href: `${basePath}/admin/campeonatos`, label: "Campeonatos", icon: Trophy,
       locked: !hasCampeonatos, requiredPlan: "Liga", featureName: "Gestor de Campeonatos"

@@ -89,7 +89,11 @@ export function usePlanAccess(teamId?: string | null) {
     hasDashboard: planLevel >= 1,
     hasJogos: planLevel >= 1,
     hasEscalacao: planLevel >= 1,
-    hasResultados: planLevel >= 1,
+    hasResultados: planLevel >= 2, // pro+
+    hasRanking: planLevel >= 2, // pro+
+    hasPresenca: planLevel >= 2, // pro+
+    hasSolicitacoes: planLevel >= 2, // pro+
+    hasEstatisticasAvancadas: planLevel >= 2, // pro+
     hasFinanceiro: planLevel >= 2, // pro+
     hasAvisos: planLevel >= 2, // pro+
     hasConvidarJogador: planLevel >= 3, // liga
