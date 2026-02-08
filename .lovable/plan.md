@@ -1,31 +1,30 @@
 
 
-# Acesso Rapido a Landing Page
+# Corrigir Nome do Cliente no Dashboard de Vendas
 
 ## Problema
-Atualmente, a rota `/` redireciona automaticamente para `/time/{slug}` quando existe um slug salvo no `localStorage`, tornando a Landing Page inacessivel sem ferramentas de desenvolvedor.
+A coluna "Time / Cliente" mostra "—" porque a tabela `saas_payments` nao possui uma foreign key para a tabela `teams`. Sem essa FK, o join automatico `teams(nome)` nao funciona no Supabase.
 
 ## Solucao
 
-### 1. Criar rota dedicada `/site`
-**Arquivo: `src/App.tsx`**
-- Adicionar uma rota `/site` que renderiza diretamente o `LandingPage`, sem nenhuma logica de redirecionamento.
+### 1. Criar foreign key entre saas_payments e teams
+Adicionar uma migration SQL para criar a constraint de FK entre `saas_payments.team_id` e `teams.id`.
 
-### 2. Adicionar link no Footer da pagina do time
-**Arquivo: `src/components/layout/Footer.tsx`**
-- Adicionar um link "Conheca o FutGestor" ou "FutGestor" que aponta para `/site`, permitindo acesso rapido a partir de qualquer pagina do time.
+```sql
+ALTER TABLE public.saas_payments
+  ADD CONSTRAINT saas_payments_team_id_fkey
+  FOREIGN KEY (team_id) REFERENCES public.teams(id);
+```
 
-### 3. Adicionar link no Footer da Landing Page
-**Arquivo: `src/components/landing/LandingFooter.tsx`**
-- Atualizar o link "FutGestor" no footer para apontar para `/site` tambem, garantindo consistencia.
+### 2. Nenhuma alteracao no codigo
+O codigo em `SuperAdminVendas.tsx` ja faz `.select("*, teams(nome)")` corretamente. Assim que a FK existir, o Supabase vai resolver o join automaticamente e o nome do time aparecera na tabela.
 
 ---
 
-## Resumo de Alteracoes
+## Resumo
 
-| Arquivo | Alteracao |
-|---------|-----------|
-| `src/App.tsx` | Nova rota `/site` apontando para `LandingPage` |
-| `src/components/layout/Footer.tsx` | Link "Conheca o FutGestor" apontando para `/site` |
-| `src/components/landing/LandingFooter.tsx` | Atualizar links internos para `/site` |
+| Alteracao | Detalhe |
+|-----------|---------|
+| Migration SQL | Adicionar FK `saas_payments.team_id -> teams.id` |
+| Codigo | Nenhuma alteracao necessaria |
 
