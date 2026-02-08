@@ -1,27 +1,6 @@
 import { Link } from "react-router-dom";
-import { Check, X, Trophy, Shield, Star } from "lucide-react";
+import { Check, Trophy, Shield, Star } from "lucide-react";
 import { useInView } from "@/hooks/useInView";
-
-const allFeatures = [
-  "Até 15 jogadores",
-  "Até 5 jogos por mês",
-  "Agenda de Jogos",
-  "Escalação Tática (Campo Virtual)",
-  "Resultados e Estatísticas",
-  "Confirmação de Presença",
-  "Portal Público do Time",
-  "Jogadores e elenco ilimitados",
-  "Jogos ilimitados",
-  "Controle Financeiro completo",
-  "Avisos e Comunicados",
-  "Solicitações de Amistosos",
-  "Redes Sociais no Portal",
-  "Estatísticas Avançadas por Jogador",
-  "Até 3 times no mesmo painel",
-  "Campeonatos e Torneios",
-  "Ranking entre Times",
-  "Suporte Prioritário",
-];
 
 const plans = [
   {
@@ -30,8 +9,15 @@ const plans = [
     ideal: "Organização Visual",
     icon: Shield,
     featured: false,
-    included: 7,
-    note: null,
+    features: [
+      "Até 15 jogadores",
+      "Até 5 jogos por mês",
+      "Agenda de Jogos",
+      "Escalação Tática (Campo Virtual)",
+      "Resultados e Estatísticas",
+      "Confirmação de Presença",
+      "Portal Público do Time",
+    ],
   },
   {
     name: "Pro",
@@ -39,8 +25,16 @@ const plans = [
     ideal: "Gestão Completa",
     icon: Trophy,
     featured: true,
-    included: 14,
-    note: null,
+    features: [
+      "Jogadores ilimitados",
+      "Jogos ilimitados",
+      "Tudo do Básico +",
+      "Controle Financeiro completo",
+      "Avisos e Comunicados",
+      "Solicitações de Amistosos",
+      "Redes Sociais no Portal",
+      "Estatísticas Avançadas por Jogador",
+    ],
   },
   {
     name: "Liga",
@@ -48,8 +42,13 @@ const plans = [
     ideal: "Ecossistema Profissional",
     icon: Star,
     featured: false,
-    included: 18,
-    note: null,
+    features: [
+      "Tudo do Pro +",
+      "Até 3 times no mesmo painel",
+      "Campeonatos e Torneios",
+      "Ranking entre Times",
+      "Suporte Prioritário",
+    ],
   },
 ];
 
@@ -96,19 +95,12 @@ export function PricingSection() {
               </div>
               <div className="flex flex-1 flex-col px-6 pb-6">
                 <ul className="mb-6 flex-1 space-y-2.5">
-                  {allFeatures.map((f, i) => {
-                    const included = i < plan.included;
-                    return (
-                      <li key={f} className={`flex items-start gap-2 text-sm ${included ? "text-gray-300" : "text-gray-600"}`}>
-                        {included ? (
-                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-400" />
-                        ) : (
-                          <X className="mt-0.5 h-4 w-4 shrink-0 text-gray-700" />
-                        )}
-                        <span className={!included ? "line-through" : ""}>{f}</span>
-                      </li>
-                    );
-                  })}
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm text-gray-300">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-400" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
                 </ul>
                 <Link to="/auth?tab=signup&redirect=onboarding" className="mt-auto">
                   <button

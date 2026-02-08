@@ -1,18 +1,20 @@
 import { useState, useRef } from "react";
-import { Camera, Upload, Save, Loader2, Instagram, MessageCircle, Youtube, Facebook, Settings } from "lucide-react";
+import { Camera, Upload, Save, Loader2, Instagram, MessageCircle, Youtube, Facebook, Settings, Code2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { MeuPlanoSection } from "@/components/MeuPlanoSection";
+import { useCurrentPlan } from "@/hooks/useSubscription";
 
 export default function AdminConfiguracoes() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { team, isLoading: teamLoading } = useTeamConfig();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -315,6 +317,95 @@ export default function AdminConfiguracoes() {
 
       {/* Meu Plano */}
       <MeuPlanoSection />
+
+      {/* Modo Desenvolvedor - only for super admin */}
+      {user?.email?.toLowerCase() === "futgestor@gmail.com" && (
+        <DevModeSection teamId={teamId} />
+      )}
     </div>
+  );
+}
+
+function DevModeSection({ teamId }: { teamId: string | null | undefined }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { plan } = useCurrentPlan(teamId);
+  const isSimulating = typeof window !== "undefined" && localStorage.getItem("simulatingPlan") === "true";
+  const [loading, setLoading] = useState(false);
+
+  const handleSimulatePlan = async (plano: string) => {
+    if (!teamId) return;
+    setLoading(true);
+    try {
+      // Check if subscription exists
+      const { data: existing } = await supabase
+        .from("subscriptions")
+        .select("id")
+        .eq("team_id", teamId)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase.from("subscriptions").update({ plano, status: "active" }).eq("team_id", teamId);
+      } else {
+        await supabase.from("subscriptions").insert({ team_id: teamId, plano, status: "active" });
+      }
+
+      localStorage.setItem("simulatingPlan", "true");
+      queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      toast({ title: "Plano simulado", description: `Simulando plano: ${plano}` });
+    } catch (e: any) {
+      toast({ title: "Erro", description: e.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!teamId) return;
+    setLoading(true);
+    try {
+      await supabase.from("subscriptions").delete().eq("team_id", teamId);
+      localStorage.removeItem("simulatingPlan");
+      queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      toast({ title: "Plano resetado", description: "Voltou ao plano real (sem assinatura)." });
+    } catch (e: any) {
+      toast({ title: "Erro", description: e.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card className="border-destructive/30 bg-destructive/5">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-destructive">
+          <Code2 className="h-5 w-5" />
+          Modo Desenvolvedor
+        </CardTitle>
+        <CardDescription>
+          Simule planos para testar restrições. Plano atual: <strong>{plan}</strong>
+          {isSimulating && <span className="ml-2 text-xs text-destructive font-bold">(SIMULANDO)</span>}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <Label className="mb-1.5 block">Simular Plano</Label>
+          <Select onValueChange={handleSimulatePlan} disabled={loading}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Selecionar plano..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="basico">Básico</SelectItem>
+              <SelectItem value="pro">Pro</SelectItem>
+              <SelectItem value="liga">Liga</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button variant="outline" onClick={handleReset} disabled={loading} className="border-destructive/30 text-destructive hover:bg-destructive/10">
+          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Resetar para plano real
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

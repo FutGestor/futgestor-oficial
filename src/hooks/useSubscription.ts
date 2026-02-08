@@ -23,13 +23,14 @@ export function useSubscription(teamId?: string | null) {
   const { profile, user } = useAuth();
   const effectiveTeamId = teamId || profile?.team_id;
   const isGodMode = GOD_MODE_EMAILS.includes(user?.email?.toLowerCase() ?? "");
+  const isSimulating = typeof window !== "undefined" && localStorage.getItem("simulatingPlan") === "true";
 
   return useQuery({
-    queryKey: ["subscription", effectiveTeamId, isGodMode],
+    queryKey: ["subscription", effectiveTeamId, isGodMode, isSimulating],
     enabled: !!effectiveTeamId,
     queryFn: async () => {
-      // God mode: return fake liga subscription
-      if (isGodMode) {
+      // God mode: return fake liga subscription (unless simulating)
+      if (isGodMode && !isSimulating) {
         return {
           id: "god-mode",
           team_id: effectiveTeamId!,
