@@ -1,25 +1,24 @@
+import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
-import { useLeagues, useLeagueTeams, useLeagueMatches, computeStandings } from "@/hooks/useLeagues";
-import { LeagueStandingsTable } from "@/components/LeagueStandingsTable";
-import { LeagueRoundMatches } from "@/components/LeagueRoundMatches";
-import { Calendar, Users, MapPin, Instagram, MessageCircle, Youtube, Facebook } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Calendar, MapPin, Instagram, MessageCircle, Youtube, Facebook, Clock, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanAccess } from "@/hooks/useSubscription";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { statusLabels } from "@/lib/types";
+import { statusLabels, type Jogo, type Time } from "@/lib/types";
 import { ScheduleGameCard } from "@/components/ScheduleGameCard";
-import { useProximoJogo, useAvisos, useFinancialSummary, useProximaEscalacao, useEscalacaoJogadores, useUltimoResultado } from "@/hooks/useData";
+import { useProximoJogo, useAvisos, useFinancialSummary, useUltimoResultado, useJogos } from "@/hooks/useData";
+import { useTimeCasa } from "@/hooks/useTimes";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { Trophy, TrendingUp, Bell, ChevronRight } from "lucide-react";
 import { categoryLabels } from "@/lib/types";
-import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 function NextGameCard() {
   const { data: jogo, isLoading } = useProximoJogo();
@@ -242,97 +241,171 @@ function NoticesCard() {
   );
 }
 
-function LineupPreviewCard() {
-  const { data: escalacao, isLoading } = useProximaEscalacao();
-  const { data: jogadores } = useEscalacaoJogadores(escalacao?.id);
-  const { basePath } = useTeamSlug();
-
-  if (isLoading) {
-    return (
-      <Card className="bg-card">
-        <CardHeader><Skeleton className="h-6 w-32" /></CardHeader>
-        <CardContent><Skeleton className="h-24 w-full" /></CardContent>
-      </Card>
-    );
-  }
+function AgendaGameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
+  const gameDate = new Date(jogo.data_hora);
+  const time = jogo.time_adversario;
 
   return (
-    <Card className="bg-card">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <Users className="h-5 w-5" />
-          Escalação
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {escalacao && escalacao.jogo ? (
-          <div>
-            <p className="mb-2 text-sm text-muted-foreground">
-              {escalacao.jogo.adversario} - {format(new Date(escalacao.jogo.data_hora), "dd/MM/yyyy")}
-            </p>
-            <p className="font-medium">Formação: {escalacao.formacao}</p>
-            {jogadores && jogadores.length > 0 && (
-              <p className="mt-1 text-sm text-muted-foreground">{jogadores.length} jogadores escalados</p>
-            )}
-          </div>
-        ) : (
-          <p className="text-muted-foreground">Nenhuma escalação publicada.</p>
-        )}
-        <Link to={`${basePath}/escalacao`} className="mt-4 block">
-          <Button variant="outline" className="w-full">
-            Ver escalação
-            <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
-      </CardContent>
-    </Card>
-  );
-}
-
-function PublicLeagueCard({ leagueId, leagueName }: { leagueId: string; leagueName: string }) {
-  const { data: teams } = useLeagueTeams(leagueId);
-  const { data: matches } = useLeagueMatches(leagueId);
-  const standings = computeStandings(teams ?? [], matches ?? []);
-
-  if (!teams || teams.length === 0) return null;
-
-  return (
-    <Card className="bg-card">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <Trophy className="h-5 w-5" />
-          {leagueName}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0 sm:p-4">
-        <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
-          <div className="overflow-x-auto">
-            <LeagueStandingsTable standings={standings} compact />
-          </div>
-          {matches && matches.length > 0 && teams && (
-            <div className="min-w-[260px] lg:max-w-[320px]">
-              <LeagueRoundMatches matches={matches} teams={teams} />
+    <Card className="transition-shadow hover:shadow-md">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <div className="mb-2 flex items-center gap-2">
+              <Badge variant={jogo.status === 'confirmado' ? 'default' : 'secondary'}>
+                {statusLabels[jogo.status]}
+              </Badge>
             </div>
-          )}
+            <div className="flex items-center gap-2">
+              {timeCasa?.escudo_url && (
+                <img src={timeCasa.escudo_url} alt={timeCasa.nome} className="h-8 w-8 rounded-full object-contain" />
+              )}
+              <span className="text-sm text-muted-foreground font-medium">vs</span>
+              {time?.escudo_url && (
+                <img src={time.escudo_url} alt={time.nome} className="h-8 w-8 rounded-full object-contain" />
+              )}
+            </div>
+            <h3 className="mt-1 text-lg font-semibold">
+              {timeCasa?.nome || 'Meu Time'} vs {time?.nome || jogo.adversario}
+            </h3>
+            <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                {format(gameDate, "dd 'de' MMMM", { locale: ptBR })}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                {format(gameDate, "HH:mm")}
+              </span>
+              <span className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                {jogo.local}
+              </span>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-primary">{format(gameDate, "dd")}</div>
+            <div className="text-sm text-muted-foreground">{format(gameDate, "MMM", { locale: ptBR })}</div>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function PublicLeaguesSection({ teamId }: { teamId: string }) {
-  const { data: leagues } = useLeagues(teamId);
+function AgendaSection({ teamId }: { teamId: string }) {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const { data: jogos, isLoading } = useJogos(teamId);
+  const { data: timeCasa } = useTimeCasa(teamId);
 
-  if (!leagues || leagues.length === 0) return null;
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  const jogosDoMes = jogos?.filter((jogo) => {
+    const jogoDate = new Date(jogo.data_hora);
+    return isSameMonth(jogoDate, currentMonth);
+  }).sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()) || [];
+
+  const getDayGames = (date: Date) => {
+    return jogos?.filter((jogo) => isSameDay(new Date(jogo.data_hora), date)) || [];
+  };
 
   return (
-    <section className="py-12">
+    <section className="py-8">
       <div className="container px-4 md:px-6">
-        <h2 className="mb-6 text-2xl font-bold">Nossos Campeonatos</h2>
-        <div className="grid gap-6">
-          {leagues.map((l) => (
-            <PublicLeagueCard key={l.id} leagueId={l.id} leagueName={l.name} />
-          ))}
+        <h2 className="mb-6 text-2xl font-bold">Agenda</h2>
+        <div className="grid gap-8 lg:grid-cols-3">
+          <Card className="lg:col-span-2 self-start">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+                </CardTitle>
+                <div className="flex gap-1">
+                  <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-2 grid grid-cols-7 text-center text-sm font-medium text-muted-foreground">
+                {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => (
+                  <div key={day} className="py-2">{day}</div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {Array.from({ length: monthStart.getDay() }).map((_, i) => (
+                  <div key={`empty-${i}`} className="aspect-square" />
+                ))}
+                {monthDays.map((day) => {
+                  const dayGames = getDayGames(day);
+                  const hasGames = dayGames.length > 0;
+                  const isToday = isSameDay(day, new Date());
+                  const firstGame = dayGames[0];
+                  const time = firstGame?.time_adversario;
+
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className={cn(
+                        "aspect-square relative flex items-center justify-center rounded-lg text-sm transition-colors",
+                        isToday && "bg-primary text-primary-foreground",
+                        hasGames && !isToday && "bg-card text-card-foreground border",
+                        !hasGames && !isToday && "bg-secondary/30 hover:bg-secondary/50"
+                      )}
+                    >
+                      {(!hasGames || !time?.escudo_url) && (
+                        <span className={cn("absolute left-1 top-0.5 text-[10px] font-medium z-10", hasGames && "font-bold")}>
+                          {format(day, "d")}
+                        </span>
+                      )}
+                      {hasGames && time?.escudo_url && (
+                        <div className="absolute inset-0 flex items-center justify-center p-0.5">
+                          <img src={time.escudo_url} alt={time.nome || firstGame.adversario} className="h-full w-full rounded-full object-contain" />
+                        </div>
+                      )}
+                      {hasGames && !time?.escudo_url && (
+                        <div className="absolute inset-0 flex items-center justify-center pt-3">
+                          <span className="text-xs font-bold uppercase">
+                            {(time?.apelido || time?.nome || firstGame?.adversario || "").substring(0, 3)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">
+              Jogos em {format(currentMonth, "MMMM", { locale: ptBR })}
+            </h3>
+            {isLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+              </div>
+            ) : jogosDoMes.length > 0 ? (
+              <div className="space-y-4">
+                {jogosDoMes.map((jogo) => (
+                  <AgendaGameCard key={jogo.id} jogo={jogo} timeCasa={timeCasa} />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  Nenhum jogo agendado para este mês.
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </section>
@@ -340,7 +413,7 @@ function PublicLeaguesSection({ teamId }: { teamId: string }) {
 }
 
 export default function TeamPublicPage() {
-  const { team, basePath } = useTeamSlug();
+  const { team } = useTeamSlug();
   const { user, profile } = useAuth();
   const isMember = !!profile?.team_id && profile.team_id === team.id;
   const { hasFinanceiro, hasAvisos, hasSolicitacoes } = usePlanAccess(team.id);
@@ -350,66 +423,48 @@ export default function TeamPublicPage() {
       {/* Hero Section */}
       <section className="relative overflow-hidden min-h-[500px] md:min-h-[600px]">
         {team.banner_url && (
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${team.banner_url})` }}
-          />
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${team.banner_url})` }} />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/20" />
         <div className="container relative z-10 flex min-h-[500px] md:min-h-[600px] items-center justify-center px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
-            <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">
-              {team.nome}
-            </h1>
+            <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">{team.nome}</h1>
             <p className="mb-8 max-w-2xl text-lg text-white/80">
               {isMember
                 ? "Gerencie seu time de futebol. Agenda, escalações, resultados, finanças e muito mais em um só lugar."
                 : "Bem-vindo à página do time. Faça login para acessar todas as funcionalidades."}
             </p>
             <div className="flex flex-wrap justify-center gap-3">
-              {isMember ? (
-                <Link to={`${basePath}/agenda`}>
-                  <Button size="lg" variant="secondary" className="gap-2">
-                    <Calendar className="h-5 w-5" />
-                    Ver Agenda
-                  </Button>
-                </Link>
-              ) : !user ? (
+              {!user && (
                 <Link to="/auth">
-                  <Button size="lg" variant="secondary" className="gap-2">
-                    Entrar
-                  </Button>
+                  <Button size="lg" variant="secondary" className="gap-2">Entrar</Button>
                 </Link>
-              ) : null}
+              )}
               {team.redes_sociais?.instagram && (
                 <a href={team.redes_sociais.instagram} target="_blank" rel="noopener noreferrer">
                   <Button size="lg" variant="outline" className="gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20">
-                    <Instagram className="h-5 w-5" />
-                    Instagram
+                    <Instagram className="h-5 w-5" /> Instagram
                   </Button>
                 </a>
               )}
               {team.redes_sociais?.whatsapp && (
                 <a href={team.redes_sociais.whatsapp.startsWith('http') ? team.redes_sociais.whatsapp : `https://${team.redes_sociais.whatsapp}`} target="_blank" rel="noopener noreferrer">
                   <Button size="lg" className="gap-2 bg-green-600 text-white hover:bg-green-700">
-                    <MessageCircle className="h-5 w-5" />
-                    WhatsApp
+                    <MessageCircle className="h-5 w-5" /> WhatsApp
                   </Button>
                 </a>
               )}
               {team.redes_sociais?.youtube && (
                 <a href={team.redes_sociais.youtube} target="_blank" rel="noopener noreferrer">
                   <Button size="lg" variant="outline" className="gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20">
-                    <Youtube className="h-5 w-5" />
-                    YouTube
+                    <Youtube className="h-5 w-5" /> YouTube
                   </Button>
                 </a>
               )}
               {team.redes_sociais?.facebook && (
                 <a href={team.redes_sociais.facebook} target="_blank" rel="noopener noreferrer">
                   <Button size="lg" variant="outline" className="gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20">
-                    <Facebook className="h-5 w-5" />
-                    Facebook
+                    <Facebook className="h-5 w-5" /> Facebook
                   </Button>
                 </a>
               )}
@@ -418,7 +473,7 @@ export default function TeamPublicPage() {
         </div>
       </section>
 
-      {/* Agendamento - apenas para planos com solicitações */}
+      {/* Agendamento */}
       {hasSolicitacoes && (
         <section className="py-8 bg-gradient-to-b from-background to-muted/30">
           <div className="container px-4 md:px-6">
@@ -427,9 +482,10 @@ export default function TeamPublicPage() {
         </section>
       )}
 
-      {/* Campeonatos públicos */}
-      <PublicLeaguesSection teamId={team.id} />
+      {/* Agenda pública - sempre visível */}
+      <AgendaSection teamId={team.id} />
 
+      {/* Cards de membros */}
       {isMember && (
         <section className="py-12">
           <div className="container px-4 md:px-6">
@@ -438,7 +494,6 @@ export default function TeamPublicPage() {
               <LastResultCard />
               {hasFinanceiro && <FinancialCard />}
               {hasAvisos && <NoticesCard />}
-              <LineupPreviewCard />
             </div>
           </div>
         </section>

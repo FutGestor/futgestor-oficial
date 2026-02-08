@@ -21,16 +21,16 @@ export function Header() {
   const teamEscudo = teamSlug?.team.escudo_url || null;
   const redesSociais = teamSlug?.team.redes_sociais || {};
   const teamId = teamSlug?.team.id || null;
-  const { hasRanking, hasResultados, hasPresenca } = usePlanAccess(teamId);
+  const { hasRanking, hasResultados, hasCampeonatos } = usePlanAccess(teamId);
 
   // Nav items visíveis para todos (incluindo visitantes) - condicionados ao plano
   const visitorNavItems = teamSlug
     ? [
         { href: basePath, label: "Início" },
-        ...(hasPresenca ? [{ href: `${basePath}/agenda`, label: "Agenda" }] : []),
         ...(hasResultados ? [{ href: `${basePath}/resultados`, label: "Resultados" }] : []),
         { href: `${basePath}/escalacao`, label: "Escalação" },
         ...(hasRanking ? [{ href: `${basePath}/ranking`, label: "Ranking" }] : []),
+        ...(hasCampeonatos ? [{ href: `${basePath}/ligas`, label: "Ligas" }] : []),
       ]
     : [{ href: "/", label: "Início" }];
 
