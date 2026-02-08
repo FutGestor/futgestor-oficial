@@ -208,9 +208,10 @@ export function useUltimoResultado() {
 }
 
 // Jogos futuros (para agendamento de visitantes)
-export function useJogosFuturos() {
+export function useJogosFuturos(teamId?: string) {
   return useQuery({
-    queryKey: ["jogos-futuros"],
+    queryKey: ["jogos-futuros", teamId],
+    enabled: !!teamId,
     queryFn: async () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -223,6 +224,7 @@ export function useJogosFuturos() {
           time_adversario:times(id, nome, apelido, escudo_url)
         `)
         .gte("data_hora", today.toISOString())
+        .eq("team_id", teamId!)
         .in("status", ["agendado", "confirmado"]);
       
       if (error) throw error;
