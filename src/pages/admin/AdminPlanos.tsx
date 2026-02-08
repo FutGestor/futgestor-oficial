@@ -24,8 +24,7 @@ const PLANS: PlanCard[] = [
       "Dashboard do time",
       "Gerenciamento de Jogos",
       "Escalações",
-      "Resultados e Estatísticas",
-      "Ranking de jogadores",
+      "Portal Público do Time",
     ],
   },
   {
@@ -35,10 +34,13 @@ const PLANS: PlanCard[] = [
     highlight: true,
     features: [
       "Tudo do Básico",
-      "Dashboard Financeiro completo",
-      "Gestão de Avisos",
-      "Receber Solicitações de Jogo",
-      "Relatórios avançados",
+      "Ranking de Jogadores",
+      "Resultados e Estatísticas",
+      "Confirmação de Presença",
+      "Controle Financeiro completo",
+      "Avisos e Comunicados",
+      "Solicitações de Amistosos",
+      "Estatísticas Avançadas por Jogador",
     ],
   },
   {
@@ -47,10 +49,10 @@ const PLANS: PlanCard[] = [
     price: 39.9,
     features: [
       "Tudo do Pro",
+      "Campeonatos e Torneios",
       "Login para Jogadores",
       "Convidar Jogadores (acesso externo)",
-      "Módulo de Campeonatos",
-      "Suporte prioritário",
+      "Suporte Prioritário",
     ],
   },
 ];

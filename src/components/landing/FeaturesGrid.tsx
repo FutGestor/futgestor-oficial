@@ -3,16 +3,16 @@ import { useInView } from "@/hooks/useInView";
 const features = [
   { emoji: "📅", title: "Agenda de Jogos", desc: "Marque jogos com data, horário e local. Seus jogadores veem tudo pelo celular.", plan: "Básico" },
   { emoji: "⚽", title: "Escalação Visual", desc: "Monte a escalação no campinho interativo. Escolha formação e posição de cada jogador.", plan: "Básico" },
-  { emoji: "👥", title: "Elenco Completo", desc: "Perfil de cada jogador com foto, posição e apelido. Ranking atualizado automaticamente.", plan: "Básico" },
-  { emoji: "📊", title: "Resultados e Estatísticas", desc: "Registre placares e veja o histórico de vitórias, derrotas e empates por temporada.", plan: "Básico" },
-  { emoji: "✅", title: "Confirmação de Presença", desc: "Gere um link único por jogo. Jogadores confirmam presença sem precisar de login.", plan: "Básico" },
+  { emoji: "👥", title: "Elenco Completo", desc: "Perfil de cada jogador com foto, posição e apelido. Ranking atualizado automaticamente.", plan: "Pro" },
+  { emoji: "📊", title: "Resultados e Estatísticas", desc: "Registre placares e veja o histórico de vitórias, derrotas e empates por temporada.", plan: "Pro" },
+  { emoji: "✅", title: "Confirmação de Presença", desc: "Gere um link único por jogo. Jogadores confirmam presença sem precisar de login.", plan: "Pro" },
   { emoji: "🌐", title: "Portal Exclusivo do Time", desc: "Site próprio com link compartilhável, escudo, cores e informações do time.", plan: "Básico" },
   { emoji: "💰", title: "Controle Financeiro", desc: "Registre mensalidades, despesas e receitas. Saldo sempre visível com transparência total.", plan: "Pro" },
   { emoji: "📢", title: "Avisos e Comunicados", desc: "Publique avisos importantes que ficam fixos no portal. Sem se perder em 200 mensagens.", plan: "Pro" },
   { emoji: "🤝", title: "Solicitações de Amistosos", desc: "Outros times pedem partidas diretamente pelo portal público do seu time.", plan: "Pro" },
   { emoji: "🏆", title: "Campeonatos e Ligas", desc: "Crie torneios com tabela de classificação automática, rodadas e resultados em tempo real.", plan: "Liga" },
   { emoji: "⭐", title: "Votação de Destaque", desc: "Após cada partida, jogadores votam no craque do jogo. MVP escolhido pelo time.", plan: "Liga" },
-  { emoji: "🥇", title: "Ranking com Pódio", desc: "Artilharia, assistências, participações e destaques com visualização em pódio.", plan: "Liga" },
+  { emoji: "🥇", title: "Ranking com Pódio", desc: "Artilharia, assistências, participações e destaques com visualização em pódio.", plan: "Pro" },
 ];
 
 const planColors: Record<string, string> = {
