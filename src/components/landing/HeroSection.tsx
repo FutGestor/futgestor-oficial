@@ -43,7 +43,7 @@ export function HeroSection() {
             onClick={() => scrollTo("precos")}
             className="px-8 py-4 rounded-xl font-bold text-base bg-gradient-to-r from-gold to-[#F0CC6B] text-[#0A1628] shadow-[0_4px_20px_rgba(212,168,75,0.3)] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(212,168,75,0.4)] transition-all"
           >
-            Começar agora
+            Conhecer planos
           </button>
           <button
             onClick={() => scrollTo("funcionalidades")}
@@ -54,16 +54,16 @@ export function HeroSection() {
         </div>
 
         {/* Pricing note */}
-        <p className="text-sm text-gray-500 mt-4 mb-12">
-          Planos a partir de R$ 9,90/mês — Sem fidelidade, cancele quando quiser
+        <p className="text-sm text-gray-400 mt-4 mb-12">
+          A partir de R$ 9,90/mês — Cancele quando quiser
         </p>
 
         {/* Stats */}
         <div className="flex gap-8 md:gap-12 justify-center flex-wrap">
           {[
-            { num: "R$ 9,90", label: "A partir de / mês" },
             { num: "2min", label: "Pra configurar" },
             { num: "24/7", label: "Acesso pelo celular" },
+            { num: "100%", label: "Online e seguro" },
           ].map((s) => (
             <div key={s.label} className="text-center">
               <p className="font-display text-3xl md:text-4xl text-gold">{s.num}</p>
