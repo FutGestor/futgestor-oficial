@@ -10,6 +10,7 @@ import { positionLabels, modalityLabels, type GameModality } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { SocietyField } from "@/components/SocietyField";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 
 function EscalacaoCard({ escalacao, isSelected, onClick }: { 
   escalacao: { id: string; jogo: { adversario: string; data_hora: string } | null; formacao: string }; 
@@ -44,8 +45,10 @@ function EscalacaoCard({ escalacao, isSelected, onClick }: {
 }
 
 function EscalacaoContent() {
-  const { data: escalacoes, isLoading: loadingEscalacoes } = useEscalacoes();
-  const { data: proximaEscalacao } = useProximaEscalacao();
+  const { team } = useTeamConfig();
+  const teamId = team.id || undefined;
+  const { data: escalacoes, isLoading: loadingEscalacoes } = useEscalacoes(teamId);
+  const { data: proximaEscalacao } = useProximaEscalacao(teamId);
   const [selectedId, setSelectedId] = useState<string | undefined>();
 
   const currentId = selectedId || proximaEscalacao?.id;

@@ -130,9 +130,10 @@ export function useFinancialSummary() {
 }
 
 // Escalações
-export function useEscalacoes() {
+export function useEscalacoes(teamId?: string) {
   return useQuery({
-    queryKey: ["escalacoes"],
+    queryKey: ["escalacoes", teamId],
+    enabled: !!teamId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("escalacoes")
@@ -140,6 +141,7 @@ export function useEscalacoes() {
           *,
           jogo:jogos(*)
         `)
+        .eq("team_id", teamId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as (Escalacao & { jogo: Jogo })[];
@@ -166,9 +168,10 @@ export function useEscalacaoJogadores(escalacaoId: string | undefined) {
   });
 }
 
-export function useProximaEscalacao() {
+export function useProximaEscalacao(teamId?: string) {
   return useQuery({
-    queryKey: ["proxima-escalacao"],
+    queryKey: ["proxima-escalacao", teamId],
+    enabled: !!teamId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("escalacoes")
@@ -176,6 +179,7 @@ export function useProximaEscalacao() {
           *,
           jogo:jogos(*)
         `)
+        .eq("team_id", teamId!)
         .eq("publicada", true)
         .order("created_at", { ascending: false })
         .limit(1)

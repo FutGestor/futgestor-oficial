@@ -50,10 +50,11 @@ export default function AdminEscalacoes() {
   const [formData, setFormData] = useState<EscalacaoFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { data: escalacoes, isLoading } = useEscalacoes();
+  const { profile } = useAuth();
+  const teamId = profile?.team_id || undefined;
+  const { data: escalacoes, isLoading } = useEscalacoes(teamId);
   const { data: jogos } = useJogos();
   const { data: jogadores } = useJogadores();
-  const { profile } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
