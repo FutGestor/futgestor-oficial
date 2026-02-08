@@ -104,7 +104,7 @@ export default {
         "hero-glow": "hero-glow 8s ease-in-out infinite alternate",
       },
       fontFamily: {
-        display: ['Bebas Neue', 'sans-serif'],
+        display: ['Outfit', 'sans-serif'],
         sans: ['DM Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
     },
