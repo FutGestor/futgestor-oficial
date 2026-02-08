@@ -221,7 +221,7 @@ export default function Admin() {
       title: "Desconectado",
       description: "Você foi desconectado com sucesso.",
     });
-    navigate("/");
+    navigate(basePath);
   };
 
   if (isLoading) {

@@ -7,8 +7,14 @@ const Index = () => {
   const { user, profile, isLoading } = useAuth();
   const { team, isLoading: teamLoading } = useTeamConfig();
 
+  const lastSlug = localStorage.getItem("lastTeamSlug");
+
   if (!isLoading && !teamLoading && user && profile?.team_id && team.slug) {
     return <Navigate to={`/time/${team.slug}`} replace />;
+  }
+
+  if (!isLoading && !teamLoading && !user && lastSlug) {
+    return <Navigate to={`/time/${lastSlug}`} replace />;
   }
 
   return <LandingPage />;
