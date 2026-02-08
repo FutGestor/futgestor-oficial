@@ -1,68 +1,42 @@
 
 
-# Jogos da Rodada + Emblemas Publicos + Link Super Admin
+# Corrigir Listagem e Exclusao de Times no Admin
 
-## Problema Identificado
+## Problema
 
-A rota `/super-admin/vendas` foi criada mas nao existe nenhum link ou botao no site para acessa-la. O super admin so consegue chegar digitando a URL manualmente. Isso sera corrigido junto com as melhorias visuais solicitadas.
+A consulta `useTimes()` busca TODOS os times do banco de dados sem filtrar pelo `team_id` do usuario logado. Com a politica publica de leitura adicionada recentemente, agora o admin ve times de todas as contas. Alem disso, ao tentar excluir times de outras contas, o RLS bloqueia a operacao (pois so permite deletar times do proprio team), gerando erro silencioso.
 
----
+## Solucao
 
-## 1. Link do Dashboard de Vendas no Sidebar Admin
+### 1. Filtrar por `team_id` em todas as consultas de times no Admin
 
-### Arquivo: `src/pages/Admin.tsx`
+**Arquivo: `src/hooks/useTimes.ts`**
 
-Adicionar um item condicional no final do sidebar, visivel apenas para o super admin. A verificacao sera feita pelo email do usuario logado (`futgestor@gmail.com`).
+Todas as funcoes de consulta (`useTimes`, `useTimesAtivos`, `useTimeCasa`) precisam receber o `team_id` do usuario logado e aplicar `.eq("team_id", teamId)` na query. Isso garante que cada admin so veja os times da sua organizacao.
 
-- Icone: `TrendingUp` ou `DollarSign`
-- Label: "Vendas SaaS"
-- Link direto para `/super-admin/vendas`
-- Aparece somente quando `user.email === "futgestor@gmail.com"`
-- Visualmente separado dos demais itens (acima do email do usuario, na area inferior do sidebar)
+- `useTimes(teamId)` - adicionar filtro `.eq("team_id", teamId)` e `enabled: !!teamId`
+- `useTimesAtivos(teamId)` - idem
+- `useTimeCasa(teamId)` - idem
 
----
+### 2. Atualizar os componentes que usam esses hooks
 
-## 2. Jogos da Rodada na Pagina Publica
+**Arquivo: `src/pages/admin/AdminTimes.tsx`**
 
-### Novo componente: `src/components/LeagueRoundMatches.tsx`
+Passar o `team_id` do perfil do usuario (ja disponivel via `useAuth()`) para o hook `useTimes(profile?.team_id)`.
 
-Exibe os jogos agrupados por rodada com:
-- Escudo + nome do time casa
-- Placar centralizado (bold) ou badge "vs" se agendado
-- Escudo + nome do time visitante
-- Seletor de rodada (Select ou tabs)
+Outros arquivos que importam `useTimes`, `useTimesAtivos` ou `useTimeCasa` tambem precisarao ser atualizados para passar o `team_id`.
 
-### Arquivo modificado: `src/pages/TeamPublicPage.tsx`
+### 3. Limpeza de dados orfaos (opcional)
 
-Atualizar o card de cada campeonato para layout responsivo:
-
-**Desktop (lg+)**: Grid com classificacao a esquerda e jogos da rodada a direita (lado a lado, conforme o print de referencia)
-
-**Mobile/Tablet**: Classificacao em cima, jogos da rodada empilhados abaixo
+Existem times no banco com `team_id = null` (criados antes do sistema multi-tenant). Esses registros podem ser ignorados pelo filtro ou removidos manualmente via SQL se desejado.
 
 ---
 
-## 3. Emblemas Publicos na Agenda
+## Arquivos a Modificar
 
-### Migracao SQL
-
-Adicionar politica de leitura publica na tabela `times` para que visitantes vejam os escudos dos times adversarios:
-
-```sql
-CREATE POLICY "Public can view times" ON public.times
-  FOR SELECT USING (true);
-```
-
-O codigo frontend da Agenda (`src/pages/Agenda.tsx`) ja faz o join com `time_adversario:times(*)` e ja renderiza o escudo. A unica barreira e o RLS, que sera resolvido com essa politica.
-
----
-
-## Arquivos a Criar/Modificar
-
-| Arquivo | Acao |
-|---------|------|
-| Migracao SQL | Politica publica em `times` |
-| `src/components/LeagueRoundMatches.tsx` | Novo componente |
-| `src/pages/TeamPublicPage.tsx` | Layout lado-a-lado com jogos |
-| `src/pages/Admin.tsx` | Link condicional para Super Admin |
+| Arquivo | Alteracao |
+|---------|-----------|
+| `src/hooks/useTimes.ts` | Adicionar parametro `teamId` e filtro `.eq("team_id", teamId)` em todas as queries |
+| `src/pages/admin/AdminTimes.tsx` | Passar `profile?.team_id` para `useTimes()` |
+| Outros consumidores de `useTimes` | Atualizar chamadas para incluir `teamId` |
 
