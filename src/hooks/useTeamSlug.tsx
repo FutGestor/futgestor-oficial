@@ -41,6 +41,12 @@ export function TeamSlugLayout() {
     },
   });
 
+  useEffect(() => {
+    if (slug) {
+      localStorage.setItem("lastTeamSlug", slug);
+    }
+  }, [slug]);
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -78,12 +84,6 @@ export function TeamSlugLayout() {
     },
     basePath: `/time/${slug}`,
   };
-
-  useEffect(() => {
-    if (slug) {
-      localStorage.setItem("lastTeamSlug", slug);
-    }
-  }, [slug]);
 
   return (
     <TeamSlugContext.Provider value={value}>
