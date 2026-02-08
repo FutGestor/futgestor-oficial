@@ -67,7 +67,7 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
   const [submitted, setSubmitted] = useState(false);
   const [captcha, setCaptcha] = useState(() => generateCaptcha());
   const createSolicitacao = useCreateSolicitacao();
-  const { data: jogosFuturos } = useJogosFuturos();
+  const { data: jogosFuturos } = useJogosFuturos(teamId);
 
   const refreshCaptcha = useCallback(() => setCaptcha(generateCaptcha()), []);
 
