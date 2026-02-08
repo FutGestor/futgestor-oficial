@@ -24,6 +24,7 @@ import PresencaPublica from "./pages/PresencaPublica";
 import PlayerDashboard from "./pages/PlayerDashboard";
 import SuperAdminVendas from "./pages/SuperAdminVendas";
 import LandingPage from "./pages/LandingPage";
+import Ligas from "./pages/Ligas";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
               <Route path="meu-perfil" element={<MeuPerfil />} />
               <Route path="ranking" element={<Ranking />} />
               <Route path="resultados" element={<Resultados />} />
+              <Route path="ligas" element={<Ligas />} />
               <Route path="avisos" element={<Avisos />} />
               <Route path="admin/*" element={<Admin />} />
             </Route>

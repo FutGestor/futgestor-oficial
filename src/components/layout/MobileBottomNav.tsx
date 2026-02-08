@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Trophy, Medal, Bell } from "lucide-react";
+import { Trophy, Medal, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAvisos } from "@/hooks/useData";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
@@ -12,7 +12,6 @@ export function MobileBottomNav() {
   const { user } = useAuth();
 
   const publicItems = [
-    { href: `${basePath}/agenda`, label: "Agenda", icon: Calendar },
     { href: `${basePath}/resultados`, label: "Resultados", icon: Trophy },
   ];
 
