@@ -240,7 +240,7 @@ function FinanceiroContent() {
           </Card>
         </div>
 
-        {/* Transactions Table */}
+        {/* Transactions */}
         <Card>
           <CardHeader>
             <CardTitle>Histórico de Transações</CardTitle>
@@ -253,51 +253,58 @@ function FinanceiroContent() {
                 <Skeleton className="h-10 w-full" />
               </div>
             ) : transacoes && transacoes.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Mobile cards */}
+                <div className="space-y-3 md:hidden">
                   {transacoes.map((t) => (
-                    <TableRow key={t.id}>
-                      <TableCell>
-                        {format(new Date(t.data), "dd/MM/yyyy")}
-                      </TableCell>
-                      <TableCell>{t.descricao}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{t.categoria}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        {t.tipo === "entrada" ? (
-                          <span className="flex items-center gap-1 text-green-600">
-                            <ArrowUpRight className="h-4 w-4" />
-                            Entrada
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1 text-destructive">
-                            <ArrowDownRight className="h-4 w-4" />
-                            Saída
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell
-                        className={`text-right font-medium ${
-                          t.tipo === "entrada" ? "text-green-600" : "text-destructive"
-                        }`}
-                      >
-                        {t.tipo === "entrada" ? "+" : "-"} R${" "}
-                        {Number(t.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                      </TableCell>
-                    </TableRow>
+                    <div key={t.id} className="rounded-lg border p-3 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{t.descricao}</span>
+                        <span className={`text-sm font-bold ${t.tipo === "entrada" ? "text-green-600" : "text-destructive"}`}>
+                          {t.tipo === "entrada" ? "+" : "-"} R$ {Number(t.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{format(new Date(t.data), "dd/MM/yyyy")}</span>
+                        <Badge variant="outline" className="text-[10px]">{t.categoria}</Badge>
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+                {/* Desktop table */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Categoria</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead className="text-right">Valor</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {transacoes.map((t) => (
+                        <TableRow key={t.id}>
+                          <TableCell>{format(new Date(t.data), "dd/MM/yyyy")}</TableCell>
+                          <TableCell>{t.descricao}</TableCell>
+                          <TableCell><Badge variant="outline">{t.categoria}</Badge></TableCell>
+                          <TableCell>
+                            {t.tipo === "entrada" ? (
+                              <span className="flex items-center gap-1 text-green-600"><ArrowUpRight className="h-4 w-4" />Entrada</span>
+                            ) : (
+                              <span className="flex items-center gap-1 text-destructive"><ArrowDownRight className="h-4 w-4" />Saída</span>
+                            )}
+                          </TableCell>
+                          <TableCell className={`text-right font-medium ${t.tipo === "entrada" ? "text-green-600" : "text-destructive"}`}>
+                            {t.tipo === "entrada" ? "+" : "-"} R$ {Number(t.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             ) : (
               <p className="py-8 text-center text-muted-foreground">
                 Nenhuma transação registrada.
