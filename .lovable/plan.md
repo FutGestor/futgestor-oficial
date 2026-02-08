@@ -1,83 +1,94 @@
 
+# Plano: Correcoes de Bugs e Restricoes de Plano
 
-# Plano: Corrigir Features dos Planos (Codigo + Landing Page + Admin)
+## Problemas Identificados e Solucoes
 
-## O que muda
+### 1. Presenca e Link de Presenca acessiveis no plano Basico
 
-Hoje o Ranking esta acessivel no Basico. Voce quer que ele seja **Pro+**. E as listas de features na landing page e admin precisam refletir isso.
+**Problema:** No `AdminJogos.tsx`, o botao "Presencas" e o componente `PresencaLinkDialog` aparecem para todos os planos, sem verificar `hasPresenca`.
 
-## Resumo dos planos corretos
+**Solucao:** Importar `usePlanAccess` no `AdminJogos.tsx` e condicionar a exibicao dos botoes de presenca (`<Button>Presencas</Button>` e `<PresencaLinkDialog>`) ao flag `hasPresenca`. Quando o plano nao tiver acesso, mostrar cadeado ou nao renderizar os botoes.
 
-| Feature | Basico | Pro | Liga |
-|---------|--------|-----|------|
-| Dashboard do time | Sim | Sim | Sim |
-| Gerenciamento de Jogos | Sim | Sim | Sim |
-| Escalacoes | Sim | Sim | Sim |
-| Portal Publico do Time | Sim | Sim | Sim |
-| Ranking de jogadores | Nao | Sim | Sim |
-| Resultados e Estatisticas | Nao | Sim | Sim |
-| Confirmacao de Presenca | Nao | Sim | Sim |
-| Controle Financeiro | Nao | Sim | Sim |
-| Avisos e Comunicados | Nao | Sim | Sim |
-| Solicitacoes de Amistosos | Nao | Sim | Sim |
-| Estatisticas Avancadas | Nao | Sim | Sim |
-| Campeonatos e Torneios | Nao | Nao | Sim |
-| Login para Jogadores | Nao | Nao | Sim |
-| Suporte Prioritario | Nao | Nao | Sim |
+**Arquivo:** `src/pages/admin/AdminJogos.tsx` (linhas 585-593 no componente JogoCard)
 
-## Alteracoes por arquivo
+---
 
-### 1. `src/hooks/useSubscription.ts`
-- Mover `hasResultados` de `planLevel >= 1` para `planLevel >= 2` (Pro+)
-- Adicionar `hasRanking: planLevel >= 2` (Pro+)
-- Adicionar `hasPresenca: planLevel >= 2` (Pro+)
-- Adicionar `hasSolicitacoes: planLevel >= 2` (Pro+)
-- Adicionar `hasEstatisticasAvancadas: planLevel >= 2` (Pro+)
+### 2. Escalacao que nao pode ser apagada
 
-### 2. `src/components/landing/PricingSection.tsx`
-Corrigir as listas de features:
+**Problema:** Na tela de Escalacoes do admin, existe uma escalacao cujo jogo provavelmente foi deletado (jogo_id aponta para registro inexistente), fazendo com que `escalacao.jogo` seja `null/undefined`. O botao de delete funciona normalmente no codigo (linha 237-253), mas o "vs" aparece sem adversario.
 
-**Basico:**
-- Dashboard do time
-- Gerenciamento de Jogos
-- Escalacao Tatica (Campo Virtual)
-- Portal Publico do Time
+**Solucao:** Verificar se ha escalacoes orfas no banco de dados. Tambem adicionar tratamento no componente para escalacoes sem jogo vinculado (mostrar "Jogo removido" em vez de "vs undefined"). O delete ja funciona pelo codigo - o problema pode ser de RLS ou FK. Vou verificar e adicionar um fallback visual.
 
-**Pro:**
-- Tudo do Basico +
-- Ranking de Jogadores
-- Resultados e Estatisticas
-- Confirmacao de Presenca
-- Controle Financeiro completo
-- Avisos e Comunicados
-- Solicitacoes de Amistosos
-- Estatisticas Avancadas por Jogador
+**Arquivo:** `src/pages/admin/AdminEscalacoes.tsx` (linhas 531-569)
 
-**Liga:**
-- Tudo do Pro +
-- Campeonatos e Torneios
-- Login para Jogadores
-- Convidar Jogadores (acesso externo)
-- Suporte Prioritario
+---
 
-Remover todos os limites falsos (15 jogadores, 5 jogos, jogadores ilimitados, 3 times).
+### 3. Solicitacao de Amistosos visivel na pagina publica do Basico
 
-### 3. `src/pages/admin/AdminPlanos.tsx`
-Mesma correcao nas listas de features para ficar alinhado.
+**Problema:** No `TeamPublicPage.tsx`, o componente `ScheduleGameCard` (que permite enviar solicitacoes de amistoso) e exibido para TODOS os times, sem verificar o plano. Na imagem, o time "Basico FC" mostra o card "Quer jogar contra a gente?" mesmo sem ter acesso a Solicitacoes.
 
-### 4. `src/components/landing/FeaturesGrid.tsx`
-Corrigir badges dos cards:
-- "Confirmacao de Presenca" -> badge **Pro** (era Basico)
-- "Resultados e Estatisticas" -> badge **Pro** (era Basico)
-- "Elenco Completo" (que inclui Ranking) -> badge **Pro** (era Basico)
-- "Ranking com Podio" -> badge **Pro** (era Liga)
-- "Votacao de Destaque" -> manter **Liga**
+**Solucao:** Importar `usePlanAccess` no `TeamPublicPage.tsx` e condicionar a exibicao do `ScheduleGameCard` ao flag `hasSolicitacoes`.
 
-### 5. `src/pages/Admin.tsx`
-Travar na sidebar os itens que sao Pro+:
-- Ranking -> `hasRanking`
-- Resultados -> `hasResultados`
-- Solicitacoes -> `hasSolicitacoes`
+**Arquivo:** `src/pages/TeamPublicPage.tsx` (linhas 421-426)
 
-(Presenca e estatisticas avancadas sao travadas dentro dos componentes onde sao usadas)
+---
 
+### 4. Agenda de jogos nao deveria estar ativa no plano Basico (pagina publica)
+
+**Problema:** O Header (`Header.tsx`) exibe os links "Agenda", "Resultados", "Escalacao" e "Ranking" para todos os visitantes, independentemente do plano do time. No Basico, "Resultados" e "Ranking" nao deveriam aparecer na navegacao publica, e "Agenda" tambem nao deveria segundo o usuario.
+
+**Solucao:** Ajustar o `Header.tsx` para verificar o plano do time via `usePlanAccess` e condicionar a exibicao dos itens de navegacao. Para o Basico, mostrar apenas "Inicio" e "Escalacao". "Agenda", "Resultados" e "Ranking" ficam disponiveis a partir do Pro.
+
+**Arquivo:** `src/components/layout/Header.tsx` (linhas 24-32)
+
+---
+
+### 5. Header sobrepondo nome do time quando a pagina e encurtada
+
+**Problema:** Na imagem do "galaticos", o nome do time no header e cortado ("gal...") quando a janela e reduzida. O header tem `sticky top-0 z-50` e o nome usa `hidden md:inline-block`, mas em larguras intermediarias pode haver sobreposicao.
+
+**Solucao:** Adicionar `truncate` e `max-w-[120px] lg:max-w-none` ao span do nome do time no header para garantir que ele nao sobreponha a navegacao. Tambem adicionar `overflow-hidden` no container flex do header.
+
+**Arquivo:** `src/components/layout/Header.tsx` (linha 74)
+
+---
+
+### 6. Tabela de Transacoes com scroll horizontal no mobile
+
+**Problema:** Na imagem, a tabela de transacoes no admin mobile exige scroll lateral. As colunas (Data, Descricao, Categoria, Tipo, Valor, Acoes) nao cabem na tela.
+
+**Solucao:** No `AdminTransacoes.tsx`, criar um layout responsivo que no mobile usa cards empilhados (em vez de tabela) e no desktop mantem a tabela. Cada card mostrara: data, descricao, categoria, tipo e valor em layout vertical, com botoes de acao.
+
+**Arquivo:** `src/pages/admin/AdminTransacoes.tsx` (linhas 283-332)
+
+---
+
+### 7. Agenda publica mostrando datas inexistentes como partidas
+
+**Problema:** O calendario da Agenda publica mostra marcacoes em datas que nao possuem jogos reais. Isso pode ocorrer porque a query `useJogos` esta trazendo jogos de outros times ou jogos com status que nao deveriam aparecer.
+
+**Solucao:** Verificar a query `useJogos` no `useData.ts` para garantir que filtra corretamente por `team_id` e que so mostra jogos com status valido (agendado, confirmado). Tambem verificar se o hook esta recebendo o `team_id` correto na pagina publica.
+
+**Arquivo:** `src/pages/Agenda.tsx` e `src/hooks/useData.ts`
+
+---
+
+### 8. Certificar que escalacao funciona corretamente
+
+**Problema:** Garantir que o modulo de escalacao (criar, editar, deletar, publicar) esta funcional.
+
+**Solucao:** Revisar o fluxo completo em `AdminEscalacoes.tsx` e garantir que a exclusao de escalacoes orfas funcione, que a FK constraint com `escalacao_jogadores` seja respeitada (ja esta sendo feita na linha 242), e que a publicacao/ocultacao funcione.
+
+---
+
+## Resumo de Arquivos
+
+| Arquivo | Alteracao |
+|---------|-----------|
+| `src/pages/admin/AdminJogos.tsx` | Bloquear botoes de presenca para plano Basico |
+| `src/pages/admin/AdminEscalacoes.tsx` | Tratar escalacoes orfas (sem jogo) |
+| `src/pages/TeamPublicPage.tsx` | Esconder ScheduleGameCard para plano Basico |
+| `src/components/layout/Header.tsx` | Condicionar nav items ao plano + fix truncate nome |
+| `src/pages/admin/AdminTransacoes.tsx` | Layout responsivo com cards no mobile |
+| `src/pages/Agenda.tsx` | Verificar filtro de jogos por team_id |
+| `src/hooks/useData.ts` | Verificar query useJogos |
