@@ -30,6 +30,8 @@ import AdminSolicitacoes from "./admin/AdminSolicitacoes";
 import AdminTimes from "./admin/AdminTimes";
 import AdminConfiguracoes from "./admin/AdminConfiguracoes";
 import AdminPlanos from "./admin/AdminPlanos";
+import AdminCampeonatos from "./admin/AdminCampeonatos";
+import AdminCampeonatoDetalhe from "./admin/AdminCampeonatoDetalhe";
 
 interface SidebarItem {
   href: string;
@@ -118,7 +120,7 @@ export default function Admin() {
   const location = useLocation();
   const { toast } = useToast();
   const { basePath } = useTeamSlug();
-  const { hasFinanceiro, hasAvisos, isActive, isLoading: planLoading, plan } = usePlanAccess();
+  const { hasFinanceiro, hasAvisos, hasCampeonatos, isActive, isLoading: planLoading, plan } = usePlanAccess();
 
   // Build sidebar items with lock state
   const sidebarItems: SidebarItem[] = [
@@ -134,6 +136,10 @@ export default function Admin() {
       locked: !hasFinanceiro, requiredPlan: "Pro", featureName: "Gestão Financeira"
     },
     { href: `${basePath}/admin/resultados`, label: "Resultados", icon: Trophy },
+    {
+      href: `${basePath}/admin/campeonatos`, label: "Campeonatos", icon: Trophy,
+      locked: !hasCampeonatos, requiredPlan: "Liga", featureName: "Gestor de Campeonatos"
+    },
     { href: `${basePath}/admin/escalacoes`, label: "Escalações", icon: ClipboardList },
     { 
       href: `${basePath}/admin/avisos`, label: "Avisos", icon: Bell,
@@ -342,6 +348,8 @@ export default function Admin() {
             <Route path="/resultados" element={<AdminResultados />} />
             <Route path="/escalacoes" element={<AdminEscalacoes />} />
             <Route path="/avisos" element={<AdminAvisos />} />
+            <Route path="/campeonatos" element={<AdminCampeonatos />} />
+            <Route path="/campeonatos/:leagueId" element={<AdminCampeonatoDetalhe />} />
             <Route path="/configuracoes" element={<AdminConfiguracoes />} />
           </Routes>
         </main>

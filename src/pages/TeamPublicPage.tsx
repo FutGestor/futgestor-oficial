@@ -1,5 +1,7 @@
 import { Layout } from "@/components/layout/Layout";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { useLeagues, useLeagueTeams, useLeagueMatches, computeStandings } from "@/hooks/useLeagues";
+import { LeagueStandingsTable } from "@/components/LeagueStandingsTable";
 import { Calendar, Users, MapPin, Instagram, MessageCircle, Youtube, Facebook } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
@@ -286,6 +288,47 @@ function LineupPreviewCard() {
   );
 }
 
+function PublicLeagueCard({ leagueId, leagueName }: { leagueId: string; leagueName: string }) {
+  const { data: teams } = useLeagueTeams(leagueId);
+  const { data: matches } = useLeagueMatches(leagueId);
+  const standings = computeStandings(teams ?? [], matches ?? []);
+
+  if (!teams || teams.length === 0) return null;
+
+  return (
+    <Card className="bg-card">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-primary">
+          <Trophy className="h-5 w-5" />
+          {leagueName}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0 sm:p-4">
+        <LeagueStandingsTable standings={standings} compact />
+      </CardContent>
+    </Card>
+  );
+}
+
+function PublicLeaguesSection({ teamId }: { teamId: string }) {
+  const { data: leagues } = useLeagues(teamId);
+
+  if (!leagues || leagues.length === 0) return null;
+
+  return (
+    <section className="py-12">
+      <div className="container px-4 md:px-6">
+        <h2 className="mb-6 text-2xl font-bold">Nossos Campeonatos</h2>
+        <div className="grid gap-6 md:grid-cols-2">
+          {leagues.map((l) => (
+            <PublicLeagueCard key={l.id} leagueId={l.id} leagueName={l.name} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function TeamPublicPage() {
   const { team, basePath } = useTeamSlug();
   const { user, profile } = useAuth();
@@ -371,6 +414,9 @@ export default function TeamPublicPage() {
           <ScheduleGameCard teamId={team.id} />
         </div>
       </section>
+
+      {/* Campeonatos públicos */}
+      <PublicLeaguesSection teamId={team.id} />
 
       {isMember && (
         <section className="py-12">
