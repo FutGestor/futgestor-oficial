@@ -57,8 +57,8 @@ export default function AdminJogos() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   const { data: jogos, isLoading } = useJogos();
-  const { data: times } = useTimesAtivos();
   const { profile } = useAuth();
+  const { data: times } = useTimesAtivos(profile?.team_id);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 

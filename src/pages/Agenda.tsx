@@ -86,7 +86,7 @@ function AgendaContent() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const { team } = useTeamConfig();
   const { data: jogos, isLoading } = useJogos(team.id || undefined);
-  const { data: timeCasa } = useTimeCasa();
+  const { data: timeCasa } = useTimeCasa(team.id || undefined);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
