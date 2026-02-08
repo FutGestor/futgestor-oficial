@@ -1,4 +1,5 @@
 import { Instagram, MessageCircle, Youtube, Facebook } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import logoFutgestor from "@/assets/logo-futgestor.png";
 
@@ -75,11 +76,14 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-6 border-t border-border/40 pt-4 text-center">
+        <div className="mt-6 border-t border-border/40 pt-4 flex flex-col items-center gap-2 md:flex-row md:justify-between">
           <p className="text-sm text-primary-foreground/60">
             © {new Date().getFullYear()} {team.nome}. Todos os direitos
             reservados.
           </p>
+          <Link to="/site" className="text-sm text-primary-foreground/60 hover:text-primary-foreground transition-colors">
+            Conheça o FutGestor
+          </Link>
         </div>
       </div>
     </footer>

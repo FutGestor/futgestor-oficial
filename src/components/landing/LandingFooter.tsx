@@ -12,6 +12,9 @@ export function LandingFooter() {
           </span>
         </div>
         <div className="flex gap-6 text-sm">
+          <Link to="/site" className="text-gray-500 hover:text-gold transition-colors">
+            Site
+          </Link>
           <Link to="/auth" className="text-gray-500 hover:text-gold transition-colors">
             Login
           </Link>
