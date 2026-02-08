@@ -1,132 +1,68 @@
 
 
-# Gestor de Campeonatos (League Manager)
+# Jogos da Rodada + Emblemas Publicos + Link Super Admin
 
-Funcionalidade exclusiva do plano **Liga** que permite ao Admin criar campeonatos, cadastrar times, lançar resultados e gerar automaticamente a Tabela de Classificação.
+## Problema Identificado
 
----
-
-## 1. Banco de Dados - 3 novas tabelas
-
-### `leagues`
-| Coluna | Tipo | Detalhes |
-|--------|------|----------|
-| id | uuid | PK, gen_random_uuid() |
-| team_id | uuid | FK para teams (multi-tenant) |
-| name | text | Nome do campeonato |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | default now() |
-
-### `league_teams`
-| Coluna | Tipo | Detalhes |
-|--------|------|----------|
-| id | uuid | PK |
-| league_id | uuid | FK para leagues |
-| name | text | Nome do time |
-| logo_url | text | Opcional |
-| created_at | timestamptz | default now() |
-
-### `league_matches`
-| Coluna | Tipo | Detalhes |
-|--------|------|----------|
-| id | uuid | PK |
-| league_id | uuid | FK para leagues |
-| round | integer | Numero da rodada |
-| team_home_id | uuid | FK para league_teams |
-| team_away_id | uuid | FK para league_teams |
-| score_home | integer | Nullable (null = nao jogado) |
-| score_away | integer | Nullable |
-| status | text | 'agendado' ou 'finalizado', default 'agendado' |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | default now() |
-
-### RLS (Row-Level Security)
-- **leagues**: Admins do team podem gerenciar (ALL); leitura publica (SELECT true) para exibir na pagina publica.
-- **league_teams**: Admins do team da league podem gerenciar; leitura publica via join com leagues.
-- **league_matches**: Admins do team da league podem gerenciar; leitura publica via join com leagues.
+A rota `/super-admin/vendas` foi criada mas nao existe nenhum link ou botao no site para acessa-la. O super admin so consegue chegar digitando a URL manualmente. Isso sera corrigido junto com as melhorias visuais solicitadas.
 
 ---
 
-## 2. Interface Admin - Nova aba "Campeonatos"
+## 1. Link do Dashboard de Vendas no Sidebar Admin
 
-### Sidebar (Admin.tsx)
-- Adicionar item "Campeonatos" com icone `Trophy` entre "Resultados" e "Escalacoes".
-- Protegido: `locked: !hasCampeonatos` (requiredPlan: "Liga").
-- O hook `usePlanAccess` ja possui `hasCampeonatos` (planLevel >= 3).
+### Arquivo: `src/pages/Admin.tsx`
 
-### Pagina `AdminCampeonatos.tsx`
-**Tela inicial**: Lista de campeonatos criados com botao "Criar Novo Campeonato" (dialog com input de nome).
+Adicionar um item condicional no final do sidebar, visivel apenas para o super admin. A verificacao sera feita pelo email do usuario logado (`futgestor@gmail.com`).
 
-**Dentro do Campeonato** (ao clicar): Navega para `AdminCampeonatoDetalhe.tsx` usando rota `/admin/campeonatos/:leagueId`.
-
-#### Tab 1 - Classificacao (Automatica)
-- Tabela estilo "Globo Esporte" usando componentes Table do Shadcn.
-- Colunas: Pos, Time (com logo), PTS, J, V, E, D, GP, GC, SG.
-- Logica calculada no frontend a partir dos `league_matches` finalizados:
-  - Vitoria = 3 pts, Empate = 1 pt, Derrota = 0 pts.
-  - Desempate: Pontos > Vitorias > Saldo de Gols.
-- Visual: 1o colocado com fundo verde, ultimos 25% (Z-4) com fundo vermelho.
-
-#### Tab 2 - Jogos/Rodadas
-- Lista de jogos agrupados por rodada.
-- Botao "Adicionar Jogo": dialog com selects de Time A, Time B e numero da Rodada.
-- Edicao rapida de placar: clicar no jogo abre modal com inputs numericos para score_home e score_away + botao "Finalizar".
-- Ao salvar, a aba de Classificacao recalcula automaticamente (invalidacao do query cache).
-
-#### Tab 3 - Times
-- Lista de times com nome e escudo.
-- Botao "Adicionar Time": dialog com input de Nome e upload de escudo (usando bucket `times` existente).
-- Botao de excluir time (com confirmacao).
-
-### Rotas (Admin.tsx)
-Adicionar:
-```
-<Route path="/campeonatos" element={<AdminCampeonatos />} />
-<Route path="/campeonatos/:leagueId" element={<AdminCampeonatoDetalhe />} />
-```
+- Icone: `TrendingUp` ou `DollarSign`
+- Label: "Vendas SaaS"
+- Link direto para `/super-admin/vendas`
+- Aparece somente quando `user.email === "futgestor@gmail.com"`
+- Visualmente separado dos demais itens (acima do email do usuario, na area inferior do sidebar)
 
 ---
 
-## 3. Visualizacao Publica
+## 2. Jogos da Rodada na Pagina Publica
 
-### TeamPublicPage.tsx
-- Nova secao "Nossos Campeonatos" abaixo do conteudo existente.
-- Busca leagues onde `team_id = team.id`.
-- Para cada campeonato, exibe a Tabela de Classificacao compacta (mesmo componente reutilizado).
-- Visivel para qualquer visitante (sem necessidade de login).
+### Novo componente: `src/components/LeagueRoundMatches.tsx`
+
+Exibe os jogos agrupados por rodada com:
+- Escudo + nome do time casa
+- Placar centralizado (bold) ou badge "vs" se agendado
+- Escudo + nome do time visitante
+- Seletor de rodada (Select ou tabs)
+
+### Arquivo modificado: `src/pages/TeamPublicPage.tsx`
+
+Atualizar o card de cada campeonato para layout responsivo:
+
+**Desktop (lg+)**: Grid com classificacao a esquerda e jogos da rodada a direita (lado a lado, conforme o print de referencia)
+
+**Mobile/Tablet**: Classificacao em cima, jogos da rodada empilhados abaixo
 
 ---
 
-## 4. Novos arquivos
-
-| Arquivo | Descricao |
-|---------|-----------|
-| `src/hooks/useLeagues.ts` | Hooks: useLeagues, useLeagueTeams, useLeagueMatches, useStandings |
-| `src/pages/admin/AdminCampeonatos.tsx` | Lista de campeonatos + criar novo |
-| `src/pages/admin/AdminCampeonatoDetalhe.tsx` | Detalhe com 3 tabs |
-| `src/components/LeagueStandingsTable.tsx` | Tabela de classificacao reutilizavel (admin + publico) |
-
----
-
-## 5. Detalhes Tecnicos
-
-### Calculo da Classificacao (frontend)
-```text
-Para cada league_match com status = 'finalizado':
-  - Se score_home > score_away: home ganha 3pts, away 0
-  - Se score_home < score_away: away ganha 3pts, home 0
-  - Se score_home = score_away: ambos ganham 1pt
-  
-Ordenar por: pontos DESC, vitorias DESC, saldo_gols DESC
-```
+## 3. Emblemas Publicos na Agenda
 
 ### Migracao SQL
-- Criar 3 tabelas com FKs e indexes.
-- RLS: leitura publica nas 3 tabelas; escrita restrita a team admins via `is_team_admin()` com join na league.
-- Trigger `update_updated_at_column` nas tabelas com `updated_at`.
 
-### UX
-- Cores: 1o lugar com `bg-green-100 dark:bg-green-950/30`, Z-4 com `bg-red-100 dark:bg-red-950/30`.
-- Upload de escudo usa o bucket `times` ja existente (publico).
-- Modal de edicao rapida de placar com inputs type="number" min=0.
+Adicionar politica de leitura publica na tabela `times` para que visitantes vejam os escudos dos times adversarios:
+
+```sql
+CREATE POLICY "Public can view times" ON public.times
+  FOR SELECT USING (true);
+```
+
+O codigo frontend da Agenda (`src/pages/Agenda.tsx`) ja faz o join com `time_adversario:times(*)` e ja renderiza o escudo. A unica barreira e o RLS, que sera resolvido com essa politica.
+
+---
+
+## Arquivos a Criar/Modificar
+
+| Arquivo | Acao |
+|---------|------|
+| Migracao SQL | Politica publica em `times` |
+| `src/components/LeagueRoundMatches.tsx` | Novo componente |
+| `src/pages/TeamPublicPage.tsx` | Layout lado-a-lado com jogos |
+| `src/pages/Admin.tsx` | Link condicional para Super Admin |
 
