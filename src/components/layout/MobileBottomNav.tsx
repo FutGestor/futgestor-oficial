@@ -1,18 +1,21 @@
 import { Link, useLocation } from "react-router-dom";
-import { Trophy, Medal, Bell } from "lucide-react";
+import { Trophy, Medal, Bell, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAvisos } from "@/hooks/useData";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlanAccess } from "@/hooks/useSubscription";
 
 export function MobileBottomNav() {
   const location = useLocation();
   const { data: avisos } = useAvisos();
-  const { basePath } = useTeamSlug();
+  const { basePath, team } = useTeamSlug();
   const { user } = useAuth();
+  const { hasCampeonatos } = usePlanAccess(team.id);
 
   const publicItems = [
     { href: `${basePath}/resultados`, label: "Resultados", icon: Trophy },
+    ...(hasCampeonatos ? [{ href: `${basePath}/ligas`, label: "Ligas", icon: Award }] : []),
   ];
 
   const memberItems = [
