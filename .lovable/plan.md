@@ -3,28 +3,35 @@
 # Corrigir Nome do Cliente no Dashboard de Vendas
 
 ## Problema
-A coluna "Time / Cliente" mostra "—" porque a tabela `saas_payments` nao possui uma foreign key para a tabela `teams`. Sem essa FK, o join automatico `teams(nome)` nao funciona no Supabase.
+A FK entre `saas_payments` e `teams` foi criada, porem o cache de schema do PostgREST ainda nao reconhece essa relacao. Por isso, o join `teams(nome)` retorna `null` na API, mesmo com os dados corretos no banco.
 
 ## Solucao
 
-### 1. Criar foreign key entre saas_payments e teams
-Adicionar uma migration SQL para criar a constraint de FK entre `saas_payments.team_id` e `teams.id`.
+Alterar o codigo em `SuperAdminVendas.tsx` para buscar os nomes dos times separadamente, sem depender do join automatico do PostgREST.
 
-```sql
-ALTER TABLE public.saas_payments
-  ADD CONSTRAINT saas_payments_team_id_fkey
-  FOREIGN KEY (team_id) REFERENCES public.teams(id);
+### Alteracoes em `src/pages/SuperAdminVendas.tsx`
+
+1. **Buscar pagamentos sem join** — trocar `.select("*, teams(nome)")` por `.select("*")`
+2. **Buscar nomes dos times separadamente** — apos obter os pagamentos, coletar os `team_id`s unicos e buscar os nomes na tabela `teams`
+3. **Montar um mapa de nomes** — criar um `Record<string, string>` mapeando `team_id -> nome`
+4. **Exibir o nome na tabela** — usar o mapa para mostrar o nome do time em vez de depender do campo `teams` embutido
+
+### Logica resumida
+
+```text
+1. SELECT * FROM saas_payments ORDER BY created_at DESC LIMIT 100
+2. Extrair team_ids unicos dos resultados
+3. SELECT id, nome FROM teams WHERE id IN (team_ids)
+4. Montar mapa { team_id: nome }
+5. Exibir mapa[payment.team_id] na coluna "Time / Cliente"
 ```
-
-### 2. Nenhuma alteracao no codigo
-O codigo em `SuperAdminVendas.tsx` ja faz `.select("*, teams(nome)")` corretamente. Assim que a FK existir, o Supabase vai resolver o join automaticamente e o nome do time aparecera na tabela.
 
 ---
 
 ## Resumo
 
-| Alteracao | Detalhe |
-|-----------|---------|
-| Migration SQL | Adicionar FK `saas_payments.team_id -> teams.id` |
-| Codigo | Nenhuma alteracao necessaria |
+| Arquivo | Alteracao |
+|---------|-----------|
+| `src/pages/SuperAdminVendas.tsx` | Buscar nomes dos times separadamente e exibir via mapa |
 
+Nenhuma alteracao no banco de dados e necessaria.
