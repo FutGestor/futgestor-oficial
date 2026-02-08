@@ -23,6 +23,7 @@ import Termos from "./pages/Termos";
 import PresencaPublica from "./pages/PresencaPublica";
 import PlayerDashboard from "./pages/PlayerDashboard";
 import SuperAdminVendas from "./pages/SuperAdminVendas";
+import LandingPage from "./pages/LandingPage";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/termos" element={<Termos />} />
+            <Route path="/site" element={<LandingPage />} />
             <Route path="/super-admin/vendas" element={<SuperAdminVendas />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
             <Route path="/player/dashboard" element={<PlayerDashboard />} />
