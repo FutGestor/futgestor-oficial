@@ -43,6 +43,7 @@ interface ProfileWithEmail {
     apelido: string | null;
   } | null;
   isAdmin?: boolean;
+  teamName?: string;
 }
 
 export default function AdminUsuarios() {
@@ -93,15 +94,29 @@ export default function AdminUsuarios() {
 
       if (rolesError) throw rolesError;
 
+      // Buscar nomes dos times separadamente
+      const teamIds = [...new Set((profilesData || []).map(p => p.team_id).filter(Boolean))] as string[];
+      let teamNamesMap: Record<string, string> = {};
+      if (teamIds.length > 0) {
+        const { data: teamsData } = await supabase
+          .from("teams")
+          .select("id, nome")
+          .in("id", teamIds);
+        if (teamsData) {
+          teamsData.forEach(t => { teamNamesMap[t.id] = t.nome; });
+        }
+      }
+
       const adminIds = new Set(rolesData?.filter(r => r.role === 'admin').map(r => r.user_id) || []);
       const superAdminIds = new Set(rolesData?.filter(r => r.role === 'super_admin').map(r => r.user_id) || []);
 
-      // Retornar com flag de admin, excluindo super admins da lista (a menos que seja o próprio super admin vendo)
+      // Retornar com flag de admin e nome do time
       return (profilesData || [])
         .filter(p => isSuperAdmin || !superAdminIds.has(p.id))
         .map(p => ({
           ...p,
           isAdmin: adminIds.has(p.id),
+          teamName: p.team_id ? teamNamesMap[p.team_id] : undefined,
         })) as ProfileWithEmail[];
     },
   });
@@ -323,11 +338,11 @@ export default function AdminUsuarios() {
                       <p className="mt-1 font-medium">
                         {profile.nome || "Sem nome"}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        ID: {profile.id.slice(0, 8)}...
+                      <p className="text-sm font-semibold text-muted-foreground">
+                        Time: {profile.teamName || "Sem time"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Cadastrado em {format(new Date(profile.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        ID: {profile.id.slice(0, 8)}... • Cadastrado em {format(new Date(profile.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -391,11 +406,11 @@ export default function AdminUsuarios() {
                       <p className="mt-1 font-medium">
                         {profile.nome || profile.jogador?.apelido || profile.jogador?.nome || "Sem nome"}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        ID: {profile.id.slice(0, 8)}...
+                      <p className="text-sm font-semibold text-muted-foreground">
+                        Time: {profile.teamName || "Sem time"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Desde {format(new Date(profile.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                        ID: {profile.id.slice(0, 8)}... • Desde {format(new Date(profile.created_at), "dd/MM/yyyy", { locale: ptBR })}
                       </p>
                     </div>
                     <div className="flex gap-2">
