@@ -3,7 +3,7 @@ import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom"
 import { User, Session } from "@supabase/supabase-js";
 import { 
   LayoutDashboard, Calendar, Users, DollarSign, Trophy, Bell, ClipboardList,
-  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon, Lock, Crown
+  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon, Lock, Crown, TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -302,6 +302,19 @@ export default function Admin() {
             sidebarItems={sidebarItems}
             onLockedClick={(plan, feature) => setUpgradeModal({ open: true, plan, feature })}
           />
+
+          {user.email === "futgestor@gmail.com" && (
+            <div className="border-t border-sidebar-border p-2">
+              <Link
+                to="/super-admin/vendas"
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-yellow-500 hover:bg-sidebar-accent/50"
+              >
+                <TrendingUp className="h-5 w-5" />
+                Vendas SaaS
+              </Link>
+            </div>
+          )}
 
           <div className="border-t border-sidebar-border p-4">
             <p className="truncate text-xs text-sidebar-foreground/70">

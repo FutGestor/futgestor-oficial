@@ -1,0 +1,1 @@
+CREATE POLICY "Public can view times" ON public.times FOR SELECT USING (true);
