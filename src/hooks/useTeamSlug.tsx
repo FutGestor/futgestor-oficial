@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { useParams, Outlet } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,6 +78,12 @@ export function TeamSlugLayout() {
     },
     basePath: `/time/${slug}`,
   };
+
+  useEffect(() => {
+    if (slug) {
+      localStorage.setItem("lastTeamSlug", slug);
+    }
+  }, [slug]);
 
   return (
     <TeamSlugContext.Provider value={value}>
