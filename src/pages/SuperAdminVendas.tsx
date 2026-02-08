@@ -45,50 +45,52 @@ export default function SuperAdminVendas() {
       return;
     }
     setAuthorized(true);
-    await Promise.all([fetchPayments(), fetchActiveCount()]);
+    await fetchData();
     setLoading(false);
   };
 
-  const fetchPayments = async () => {
-    const { data, error } = await supabase
+  const fetchData = async () => {
+    // Fetch payments
+    const { data: paymentsData, error: paymentsError } = await supabase
       .from("saas_payments")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(100);
 
-    if (error) {
-      console.error("Error fetching payments:", error);
-      return;
+    if (paymentsError) {
+      console.error("Error fetching payments:", paymentsError);
     }
-    const paymentsList = (data || []) as SaasPayment[];
-    setPayments(paymentsList);
+    const paymentsList = (paymentsData || []) as SaasPayment[];
 
     // Fetch team names separately
     const teamIds = [...new Set(paymentsList.map(p => p.team_id).filter(Boolean))] as string[];
+    let namesMap: Record<string, string> = {};
     if (teamIds.length > 0) {
-      const { data: teamsData } = await supabase
+      const { data: teamsData, error: teamsError } = await supabase
         .from("teams")
         .select("id, nome")
         .in("id", teamIds);
+      if (teamsError) {
+        console.error("Error fetching teams:", teamsError);
+      }
       if (teamsData) {
-        const map: Record<string, string> = {};
-        teamsData.forEach(t => { map[t.id] = t.nome; });
-        setTeamNames(map);
+        teamsData.forEach(t => { namesMap[t.id] = t.nome; });
       }
     }
-  };
 
-  const fetchActiveCount = async () => {
-    const { count, error } = await supabase
+    // Fetch active subscriptions count
+    const { count, error: countError } = await supabase
       .from("subscriptions")
       .select("*", { count: "exact", head: true })
       .eq("status", "active")
       .neq("plano", "basico");
 
-    if (error) {
-      console.error("Error fetching active count:", error);
-      return;
+    if (countError) {
+      console.error("Error fetching active count:", countError);
     }
+
+    setPayments(paymentsList);
+    setTeamNames(namesMap);
     setActiveCount(count || 0);
   };
 
