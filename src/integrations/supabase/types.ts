@@ -780,6 +780,47 @@ export type Database = {
           },
         ]
       }
+      saas_payments: {
+        Row: {
+          created_at: string
+          id: string
+          metodo: string | null
+          mp_payment_id: string | null
+          plano: string
+          status: string
+          team_id: string | null
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metodo?: string | null
+          mp_payment_id?: string | null
+          plano: string
+          status?: string
+          team_id?: string | null
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metodo?: string | null
+          mp_payment_id?: string | null
+          plano?: string
+          status?: string
+          team_id?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_payments_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       solicitacoes_jogo: {
         Row: {
           created_at: string

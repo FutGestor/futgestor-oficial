@@ -26,11 +26,9 @@ Deno.serve(async (req) => {
     const body = await req.json();
     console.log("MP webhook received:", JSON.stringify(body));
 
-    // MP sends different notification types
     const { type, data } = body;
 
     if (type === "payment" && data?.id) {
-      // Fetch payment details from MP
       const paymentResponse = await fetch(
         `https://api.mercadopago.com/v1/payments/${data.id}`,
         {
@@ -49,6 +47,8 @@ Deno.serve(async (req) => {
         id: payment.id,
         status: payment.status,
         external_reference: payment.external_reference,
+        payment_method_id: payment.payment_method_id,
+        transaction_amount: payment.transaction_amount,
       }));
 
       if (!payment.external_reference) {
@@ -66,12 +66,36 @@ Deno.serve(async (req) => {
 
       const { team_id, plano } = refData;
 
+      // Determine payment method label
+      const methodId = payment.payment_method_id || "";
+      let metodo = "outro";
+      if (methodId === "pix") metodo = "pix";
+      else if (["visa", "master", "amex", "elo", "hipercard", "debvisa", "debmaster", "debelo"].includes(methodId)) metodo = "cartao";
+      else if (methodId === "bolbradesco" || methodId === "pec") metodo = "boleto";
+
+      // Log the payment in saas_payments
+      const paymentStatus = payment.status === "approved" ? "approved" : payment.status === "pending" ? "pending" : payment.status;
+      const { error: logError } = await supabase
+        .from("saas_payments")
+        .insert({
+          team_id,
+          plano,
+          valor: payment.transaction_amount || 0,
+          status: paymentStatus,
+          metodo,
+          mp_payment_id: String(payment.id),
+        });
+
+      if (logError) {
+        console.error("Error logging saas_payment:", logError);
+      } else {
+        console.log(`SaaS payment logged: team=${team_id}, plan=${plano}, status=${paymentStatus}, amount=${payment.transaction_amount}`);
+      }
+
       if (payment.status === "approved") {
-        // Calculate expiration (30 days from now)
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 30);
 
-        // Upsert subscription
         const { error: subError } = await supabase
           .from("subscriptions")
           .upsert(
@@ -91,7 +115,6 @@ Deno.serve(async (req) => {
           return new Response("DB error", { status: 500, headers: corsHeaders });
         }
 
-        // Update team plan
         const { error: teamError } = await supabase
           .from("teams")
           .update({ plano })
