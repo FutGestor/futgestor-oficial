@@ -473,7 +473,7 @@ export default function TeamPublicPage() {
         </div>
       </section>
 
-      {/* Agendamento */}
+      {/* Agendamento - público para planos com solicitações */}
       {hasSolicitacoes && (
         <section className="py-8 bg-gradient-to-b from-background to-muted/30">
           <div className="container px-4 md:px-6">
