@@ -281,55 +281,95 @@ export default function AdminTransacoes() {
               ))}
             </div>
           ) : transacoes && transacoes.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                  <TableHead className="w-24">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead className="w-24">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {transacoes.map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell>{format(new Date(t.data), "dd/MM/yyyy")}</TableCell>
+                        <TableCell>{t.descricao}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{t.categoria}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {t.tipo === "entrada" ? (
+                            <span className="flex items-center gap-1 text-green-600">
+                              <ArrowUpRight className="h-4 w-4" />
+                              Entrada
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-destructive">
+                              <ArrowDownRight className="h-4 w-4" />
+                              Saída
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className={`text-right font-medium ${t.tipo === "entrada" ? "text-green-600" : "text-destructive"}`}>
+                          {t.tipo === "entrada" ? "+" : "-"} R$ {Number(t.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(t)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="space-y-3 p-4 md:hidden">
                 {transacoes.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell>{format(new Date(t.data), "dd/MM/yyyy")}</TableCell>
-                    <TableCell>{t.descricao}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{t.categoria}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {t.tipo === "entrada" ? (
-                        <span className="flex items-center gap-1 text-green-600">
-                          <ArrowUpRight className="h-4 w-4" />
-                          Entrada
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-destructive">
-                          <ArrowDownRight className="h-4 w-4" />
-                          Saída
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className={`text-right font-medium ${t.tipo === "entrada" ? "text-green-600" : "text-destructive"}`}>
-                      {t.tipo === "entrada" ? "+" : "-"} R$ {Number(t.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell>
+                  <div key={t.id} className="rounded-lg border p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {t.tipo === "entrada" ? (
+                          <ArrowUpRight className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <ArrowDownRight className="h-4 w-4 text-destructive" />
+                        )}
+                        <span className="text-sm font-medium">{t.descricao}</span>
+                      </div>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(t)}>
-                          <Edit className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(t)}>
+                          <Edit className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDelete(t.id)}>
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{format(new Date(t.data), "dd/MM/yyyy")}</span>
+                        <Badge variant="outline" className="text-xs">{t.categoria}</Badge>
+                      </div>
+                      <span className={`text-sm font-bold ${t.tipo === "entrada" ? "text-green-600" : "text-destructive"}`}>
+                        {t.tipo === "entrada" ? "+" : "-"} R$ {Number(t.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           ) : (
             <div className="py-8 text-center text-muted-foreground">
               Nenhuma transação registrada.

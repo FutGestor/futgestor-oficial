@@ -23,6 +23,7 @@ import { useConfirmacoesContagem } from "@/hooks/useConfirmacoes";
 import { statusLabels, type Jogo, type GameStatus } from "@/lib/types";
 import AdminPresencaManager from "@/components/AdminPresencaManager";
 import { cn } from "@/lib/utils";
+import { usePlanAccess } from "@/hooks/useSubscription";
 
 type JogoFormData = {
   data_hora: string;
@@ -545,6 +546,7 @@ function JogoCard({
   compact?: boolean;
 }) {
   const { data: contagem } = useConfirmacoesContagem(jogo.id);
+  const { hasPresenca } = usePlanAccess();
   
   return (
     <Card>
@@ -582,15 +584,19 @@ function JogoCard({
           </div>
         </div>
         <div className={cn("flex flex-wrap gap-2", compact && "flex-col")}>
-          <Button 
-            variant="outline" 
-            size={compact ? "icon" : "sm"}
-            onClick={() => onViewConfirmacoes(jogo.id)}
-          >
-            <Users className={compact ? "h-4 w-4" : "mr-1 h-4 w-4"} />
-            {!compact && "Presenças"}
-          </Button>
-          <PresencaLinkDialog jogoId={jogo.id} adversario={jogo.adversario} />
+          {hasPresenca && (
+            <>
+              <Button 
+                variant="outline" 
+                size={compact ? "icon" : "sm"}
+                onClick={() => onViewConfirmacoes(jogo.id)}
+              >
+                <Users className={compact ? "h-4 w-4" : "mr-1 h-4 w-4"} />
+                {!compact && "Presenças"}
+              </Button>
+              <PresencaLinkDialog jogoId={jogo.id} adversario={jogo.adversario} />
+            </>
+          )}
           <Button variant="outline" size="icon" onClick={() => onEdit(jogo)}>
             <Edit className="h-4 w-4" />
           </Button>

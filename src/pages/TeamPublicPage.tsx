@@ -343,7 +343,7 @@ export default function TeamPublicPage() {
   const { team, basePath } = useTeamSlug();
   const { user, profile } = useAuth();
   const isMember = !!profile?.team_id && profile.team_id === team.id;
-  const { hasFinanceiro, hasAvisos } = usePlanAccess(team.id);
+  const { hasFinanceiro, hasAvisos, hasSolicitacoes } = usePlanAccess(team.id);
 
   return (
     <Layout>
@@ -418,12 +418,14 @@ export default function TeamPublicPage() {
         </div>
       </section>
 
-      {/* Agendamento - visível para todos */}
-      <section className="py-8 bg-gradient-to-b from-background to-muted/30">
-        <div className="container px-4 md:px-6">
-          <ScheduleGameCard teamId={team.id} />
-        </div>
-      </section>
+      {/* Agendamento - apenas para planos com solicitações */}
+      {hasSolicitacoes && (
+        <section className="py-8 bg-gradient-to-b from-background to-muted/30">
+          <div className="container px-4 md:px-6">
+            <ScheduleGameCard teamId={team.id} />
+          </div>
+        </section>
+      )}
 
       {/* Campeonatos públicos */}
       <PublicLeaguesSection teamId={team.id} />
