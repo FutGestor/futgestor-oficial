@@ -22,13 +22,13 @@ interface SaasPayment {
   metodo: string | null;
   mp_payment_id: string | null;
   created_at: string;
-  teams?: { nome: string } | null;
 }
 
 export default function SuperAdminVendas() {
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [payments, setPayments] = useState<SaasPayment[]>([]);
+  const [teamNames, setTeamNames] = useState<Record<string, string>>({});
   const [activeCount, setActiveCount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -52,7 +52,7 @@ export default function SuperAdminVendas() {
   const fetchPayments = async () => {
     const { data, error } = await supabase
       .from("saas_payments")
-      .select("*, teams(nome)")
+      .select("*")
       .order("created_at", { ascending: false })
       .limit(100);
 
@@ -60,7 +60,22 @@ export default function SuperAdminVendas() {
       console.error("Error fetching payments:", error);
       return;
     }
-    setPayments((data as unknown as SaasPayment[]) || []);
+    const paymentsList = (data || []) as SaasPayment[];
+    setPayments(paymentsList);
+
+    // Fetch team names separately
+    const teamIds = [...new Set(paymentsList.map(p => p.team_id).filter(Boolean))] as string[];
+    if (teamIds.length > 0) {
+      const { data: teamsData } = await supabase
+        .from("teams")
+        .select("id, nome")
+        .in("id", teamIds);
+      if (teamsData) {
+        const map: Record<string, string> = {};
+        teamsData.forEach(t => { map[t.id] = t.nome; });
+        setTeamNames(map);
+      }
+    }
   };
 
   const fetchActiveCount = async () => {
@@ -190,7 +205,7 @@ export default function SuperAdminVendas() {
                       <TableCell className="whitespace-nowrap">
                         {format(new Date(p.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                       </TableCell>
-                      <TableCell>{(p.teams as any)?.nome || "—"}</TableCell>
+                      <TableCell>{(p.team_id && teamNames[p.team_id]) || "—"}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{planLabel(p.plano)}</Badge>
                       </TableCell>
