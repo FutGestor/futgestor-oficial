@@ -249,7 +249,7 @@ export default function AdminJogadores() {
       if (data?.error) throw new Error(data.error);
       toast({
         title: "Acesso criado!",
-        description: `E-mail: ${accessEmail} / Senha: 123456`,
+        description: data?.message || `E-mail: ${accessEmail} / Senha: 2508futgestor5515@`,
       });
       queryClient.invalidateQueries({ queryKey: ["jogadores"] });
       setAccessDialog({ open: false, jogador: null });
