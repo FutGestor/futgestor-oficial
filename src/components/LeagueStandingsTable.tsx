@@ -30,8 +30,8 @@ export function LeagueStandingsTable({ standings, compact = false }: Props) {
               <TableHead className="text-center">D</TableHead>
             </>
           )}
-          <TableHead className="text-center">GP</TableHead>
-          <TableHead className="text-center">GC</TableHead>
+          <TableHead className="hidden sm:table-cell text-center">GP</TableHead>
+          <TableHead className="hidden sm:table-cell text-center">GC</TableHead>
           <TableHead className="text-center">SG</TableHead>
         </TableRow>
       </TableHeader>
@@ -70,8 +70,8 @@ export function LeagueStandingsTable({ standings, compact = false }: Props) {
                   <TableCell className="text-center">{s.d}</TableCell>
                 </>
               )}
-              <TableCell className="text-center">{s.gp}</TableCell>
-              <TableCell className="text-center">{s.gc}</TableCell>
+              <TableCell className="hidden sm:table-cell text-center">{s.gp}</TableCell>
+              <TableCell className="hidden sm:table-cell text-center">{s.gc}</TableCell>
               <TableCell className="text-center">{s.sg}</TableCell>
             </TableRow>
           );
