@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Instagram, MessageCircle, User, LogOut } from "lucide-react";
 import logoFutgestor from "@/assets/logo-futgestor.png";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
+
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
@@ -99,7 +99,7 @@ export function Header() {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          
           {redesSociais.instagram && (
             <a
               href={redesSociais.instagram}
