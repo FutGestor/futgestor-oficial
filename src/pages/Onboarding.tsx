@@ -92,9 +92,16 @@ export default function Onboarding() {
     try {
       const { data: team, error: teamError } = await supabase
         .from("teams")
-        .insert({ nome: data.nome, slug: data.slug, cpf_responsavel: data.cpf })
+        .insert({ nome: data.nome, slug: data.slug })
         .select()
         .single();
+
+      // Store CPF in protected table
+      if (team && data.cpf) {
+        await supabase
+          .from("team_sensitive_data")
+          .insert({ team_id: team.id, cpf_responsavel: data.cpf });
+      }
 
       if (teamError) {
         if (teamError.message.includes("unique")) {

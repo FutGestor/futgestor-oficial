@@ -6,6 +6,67 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function verifyWebhookSignature(
+  req: Request,
+  bodyText: string,
+  body: any
+): Promise<boolean> {
+  const mpSecret = Deno.env.get("MP_WEBHOOK_SECRET");
+  if (!mpSecret) {
+    console.warn("MP_WEBHOOK_SECRET not configured, skipping signature verification");
+    return true; // Graceful fallback if secret not set
+  }
+
+  const xSignature = req.headers.get("x-signature");
+  const xRequestId = req.headers.get("x-request-id");
+
+  if (!xSignature || !xRequestId) {
+    console.error("Missing signature headers");
+    return false;
+  }
+
+  const parts = xSignature.split(",");
+  const tsParam = parts.find((p) => p.trim().startsWith("ts="));
+  const v1Param = parts.find((p) => p.trim().startsWith("v1="));
+
+  if (!tsParam || !v1Param) {
+    console.error("Invalid signature format");
+    return false;
+  }
+
+  const ts = tsParam.trim().replace("ts=", "");
+  const hash = v1Param.trim().replace("v1=", "");
+
+  // Build manifest per MP docs
+  const dataId = body.data?.id ?? "";
+  const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(mpSecret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(manifest)
+  );
+
+  const calculatedHash = Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  if (calculatedHash !== hash) {
+    console.error("Signature verification failed");
+    return false;
+  }
+
+  return true;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -23,7 +84,16 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    const body = await req.json();
+    // Read body as text first for signature verification
+    const bodyText = await req.text();
+    const body = JSON.parse(bodyText);
+
+    // Verify webhook signature
+    const isValid = await verifyWebhookSignature(req, bodyText, body);
+    if (!isValid) {
+      return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+    }
+
     console.log("MP webhook received:", JSON.stringify(body));
 
     const { type, data } = body;
@@ -65,6 +135,18 @@ Deno.serve(async (req) => {
       }
 
       const { team_id, plano } = refData;
+
+      // Idempotency check: skip if already processed
+      const { data: existingPayment } = await supabase
+        .from("saas_payments")
+        .select("id")
+        .eq("mp_payment_id", String(payment.id))
+        .maybeSingle();
+
+      if (existingPayment) {
+        console.log("Payment already processed:", payment.id);
+        return new Response("OK", { status: 200, headers: corsHeaders });
+      }
 
       // Determine payment method label
       const methodId = payment.payment_method_id || "";
