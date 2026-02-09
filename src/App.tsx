@@ -25,6 +25,8 @@ import PlayerDashboard from "./pages/PlayerDashboard";
 import SuperAdminVendas from "./pages/SuperAdminVendas";
 import LandingPage from "./pages/LandingPage";
 import Ligas from "./pages/Ligas";
+import Suporte from "./pages/Suporte";
+import SuperAdminSuporte from "./pages/SuperAdminSuporte";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,7 @@ const App = () => (
             <Route path="/termos" element={<Termos />} />
             <Route path="/site" element={<LandingPage />} />
             <Route path="/super-admin/vendas" element={<SuperAdminVendas />} />
+            <Route path="/super-admin/suporte" element={<SuperAdminSuporte />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
             <Route path="/player/dashboard" element={<PlayerDashboard />} />
             <Route path="/time/:slug" element={<TeamSlugLayout />}>
@@ -55,6 +58,7 @@ const App = () => (
               <Route path="resultados" element={<Resultados />} />
               <Route path="ligas" element={<Ligas />} />
               <Route path="avisos" element={<Avisos />} />
+              <Route path="suporte" element={<Suporte />} />
               <Route path="admin/*" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />

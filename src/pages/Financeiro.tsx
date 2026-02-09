@@ -4,8 +4,8 @@ import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { Layout } from "@/components/layout/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { useTransacoes, useFinancialSummary } from "@/hooks/useData";
+import { MonthlyTransactionGroup } from "@/components/financeiro/MonthlyTransactionGroup";
 import { RequireTeam } from "@/components/RequireTeam";
 import { RequireProPlan } from "@/components/RequireProPlan";
 
@@ -208,9 +208,9 @@ function FinanceiroContent() {
             )}
           </div>
 
-          {/* Transactions */}
-          <div className="bg-[#0F2440] border border-white/[0.06] rounded-xl p-5">
-            <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold mb-4">Últimas Transações</p>
+          {/* Transactions grouped by month */}
+          <div>
+            <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold mb-4">Transações por Mês</p>
             {isLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
@@ -219,23 +219,21 @@ function FinanceiroContent() {
               </div>
             ) : transacoes && transacoes.length > 0 ? (
               <div className="space-y-2">
-                {transacoes.map((t) => (
-                  <div
-                    key={t.id}
-                    className="flex items-center justify-between bg-[#0A1628] border border-white/[0.04] rounded-lg px-4 py-3"
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-sm text-gray-300">{t.descricao}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-gray-600">{format(new Date(t.data), "dd/MM/yyyy")}</span>
-                        <Badge variant="outline" className="text-[9px] border-white/10 text-gray-500">{t.categoria}</Badge>
-                      </div>
-                    </div>
-                    <span className={`text-sm font-bold ${t.tipo === "entrada" ? "text-green-400" : "text-red-400"}`}>
-                      {t.tipo === "entrada" ? "+" : "-"} R$ {Number(t.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                ))}
+                {(() => {
+                  // Group by month/year
+                  const groups: Record<string, typeof transacoes> = {};
+                  transacoes.forEach((t) => {
+                    const d = new Date(t.data);
+                    const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, "0")}`;
+                    if (!groups[key]) groups[key] = [];
+                    groups[key].push(t);
+                  });
+                  // Sort keys descending
+                  const sortedKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+                  return sortedKeys.map((key) => (
+                    <MonthlyTransactionGroup key={key} monthKey={key} transacoes={groups[key]} />
+                  ));
+                })()}
               </div>
             ) : (
               <p className="py-12 text-center text-gray-500 text-sm">Nenhuma transação registrada.</p>

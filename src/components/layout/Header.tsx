@@ -45,6 +45,7 @@ export function Header() {
     ? [
         { href: `${basePath}/financeiro`, label: "Financeiro" },
         { href: `${basePath}/avisos`, label: "Avisos" },
+        { href: `${basePath}/suporte`, label: "Suporte" },
       ]
     : [];
 

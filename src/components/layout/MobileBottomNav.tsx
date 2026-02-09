@@ -1,14 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
-import { Trophy, Medal, Bell, Award } from "lucide-react";
+import { Trophy, Medal, Bell, Award, Headphones } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAvisos } from "@/hooks/useData";
+import { useAvisosNaoLidos } from "@/hooks/useAvisoLeituras";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanAccess } from "@/hooks/useSubscription";
 
 export function MobileBottomNav() {
   const location = useLocation();
-  const { data: avisos } = useAvisos();
+  const { data: naoLidos } = useAvisosNaoLidos();
   const { basePath, team } = useTeamSlug();
   const { user } = useAuth();
   const { hasCampeonatos } = usePlanAccess(team.id);
@@ -21,19 +21,12 @@ export function MobileBottomNav() {
   const memberItems = [
     { href: `${basePath}/ranking`, label: "Ranking", icon: Medal },
     { href: `${basePath}/avisos`, label: "Avisos", icon: Bell },
+    { href: `${basePath}/suporte`, label: "Suporte", icon: Headphones },
   ];
 
   const navItems = user ? [...publicItems, ...memberItems] : publicItems;
 
-  // Contar avisos dos últimos 7 dias
-  const avisosRecentes = avisos?.filter((a) => {
-    const dataAviso = new Date(a.created_at);
-    const seteDiasAtras = new Date();
-    seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
-    return dataAviso >= seteDiasAtras;
-  });
-
-  const notificationCount = avisosRecentes?.length ?? 0;
+  const notificationCount = naoLidos ?? 0;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background md:hidden">

@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      aviso_leituras: {
+        Row: {
+          aviso_id: string
+          id: string
+          lido_em: string
+          user_id: string
+        }
+        Insert: {
+          aviso_id: string
+          id?: string
+          lido_em?: string
+          user_id: string
+        }
+        Update: {
+          aviso_id?: string
+          id?: string
+          lido_em?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aviso_leituras_aviso_id_fkey"
+            columns: ["aviso_id"]
+            isOneToOne: false
+            referencedRelation: "avisos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avisos: {
         Row: {
           categoria: Database["public"]["Enums"]["notice_category"] | null
@@ -48,6 +77,127 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "avisos_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chamado_anexos: {
+        Row: {
+          chamado_id: string
+          criado_em: string
+          id: string
+          mensagem_id: string | null
+          nome_arquivo: string
+          url: string
+        }
+        Insert: {
+          chamado_id: string
+          criado_em?: string
+          id?: string
+          mensagem_id?: string | null
+          nome_arquivo: string
+          url: string
+        }
+        Update: {
+          chamado_id?: string
+          criado_em?: string
+          id?: string
+          mensagem_id?: string | null
+          nome_arquivo?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chamado_anexos_chamado_id_fkey"
+            columns: ["chamado_id"]
+            isOneToOne: false
+            referencedRelation: "chamados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chamado_anexos_mensagem_id_fkey"
+            columns: ["mensagem_id"]
+            isOneToOne: false
+            referencedRelation: "chamado_mensagens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chamado_mensagens: {
+        Row: {
+          chamado_id: string
+          criado_em: string
+          id: string
+          is_admin: boolean | null
+          mensagem: string
+          user_id: string
+        }
+        Insert: {
+          chamado_id: string
+          criado_em?: string
+          id?: string
+          is_admin?: boolean | null
+          mensagem: string
+          user_id: string
+        }
+        Update: {
+          chamado_id?: string
+          criado_em?: string
+          id?: string
+          is_admin?: boolean | null
+          mensagem?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chamado_mensagens_chamado_id_fkey"
+            columns: ["chamado_id"]
+            isOneToOne: false
+            referencedRelation: "chamados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chamados: {
+        Row: {
+          assunto: string
+          atualizado_em: string
+          categoria: string
+          criado_em: string
+          descricao: string
+          id: string
+          status: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          assunto: string
+          atualizado_em?: string
+          categoria?: string
+          criado_em?: string
+          descricao: string
+          id?: string
+          status?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          assunto?: string
+          atualizado_em?: string
+          categoria?: string
+          criado_em?: string
+          descricao?: string
+          id?: string
+          status?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chamados_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
