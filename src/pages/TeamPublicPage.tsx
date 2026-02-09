@@ -5,14 +5,14 @@ import { Calendar, MapPin, Instagram, MessageCircle, Youtube, Facebook, Clock, C
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanAccess } from "@/hooks/useSubscription";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { statusLabels, type Jogo, type Time } from "@/lib/types";
 import { ScheduleGameCard } from "@/components/ScheduleGameCard";
-import { useProximoJogo, useAvisos, useFinancialSummary, useUltimoResultado, useJogos } from "@/hooks/useData";
+import { useAvisos, useFinancialSummary, useUltimoResultado, useJogos } from "@/hooks/useData";
 import { useTimeCasa } from "@/hooks/useTimes";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { Trophy, TrendingUp, Bell, ChevronRight } from "lucide-react";
@@ -20,64 +20,6 @@ import { categoryLabels } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-function NextGameCard() {
-  const { data: jogo, isLoading } = useProximoJogo();
-  const { team } = useTeamConfig();
-
-  if (isLoading) {
-    return (
-      <Card className="border-2 border-secondary bg-card">
-        <CardHeader><Skeleton className="h-6 w-32" /></CardHeader>
-        <CardContent><Skeleton className="h-20 w-full" /></CardContent>
-      </Card>
-    );
-  }
-
-  if (!jogo) {
-    return (
-      <Card className="border-2 border-secondary bg-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-primary">
-            <Calendar className="h-5 w-5" />
-            Próximo Jogo
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">Nenhum jogo agendado no momento.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="border-2 border-secondary bg-card">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <Calendar className="h-5 w-5" />
-          Próximo Jogo
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-xl font-bold sm:text-2xl">{team.nome} vs {jogo.adversario}</span>
-            <Badge variant="secondary" className="w-fit">{statusLabels[jogo.status]}</Badge>
-          </div>
-          <div className="flex flex-wrap gap-4 text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              {format(new Date(jogo.data_hora), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-            </span>
-            <span className="flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              {jogo.local}
-            </span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function LastResultCard() {
   const { data: resultado, isLoading } = useUltimoResultado();
@@ -301,10 +243,6 @@ function AgendaSection({ teamId }: { teamId: string }) {
   const monthEnd = endOfMonth(currentMonth);
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  const jogosDoMes = jogos?.filter((jogo) => {
-    const jogoDate = new Date(jogo.data_hora);
-    return isSameMonth(jogoDate, currentMonth);
-  }).sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()) || [];
 
   const getDayGames = (date: Date) => {
     return jogos?.filter((jogo) => isSameDay(new Date(jogo.data_hora), date)) || [];
@@ -385,26 +323,37 @@ function AgendaSection({ teamId }: { teamId: string }) {
 
           <div className="space-y-4">
             <h3 className="text-xl font-semibold">
-              Jogos em {format(currentMonth, "MMMM", { locale: ptBR })}
+              Jogos da semana
             </h3>
             {isLoading ? (
               <div className="space-y-4">
                 <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-32 w-full" />
               </div>
-            ) : jogosDoMes.length > 0 ? (
-              <div className="space-y-4">
-                {jogosDoMes.map((jogo) => (
-                  <AgendaGameCard key={jogo.id} jogo={jogo} timeCasa={timeCasa} />
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  Nenhum jogo agendado para este mês.
-                </CardContent>
-              </Card>
-            )}
+            ) : (() => {
+              const now = new Date();
+              const weekStart = startOfWeek(now, { weekStartsOn: 0 });
+              const weekEnd = endOfWeek(now, { weekStartsOn: 0 });
+              const jogosDaSemana = (jogos ?? [])
+                .filter((jogo) => {
+                  const d = new Date(jogo.data_hora);
+                  return d >= weekStart && d <= weekEnd;
+                })
+                .sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
+
+              return jogosDaSemana.length > 0 ? (
+                <div className="space-y-4">
+                  {jogosDaSemana.map((jogo) => (
+                    <AgendaGameCard key={jogo.id} jogo={jogo} timeCasa={timeCasa} />
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    Nenhum jogo nesta semana.
+                  </CardContent>
+                </Card>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -490,7 +439,6 @@ export default function TeamPublicPage() {
         <section className="py-12">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 md:grid-cols-2">
-              <NextGameCard />
               <LastResultCard />
               {hasFinanceiro && <FinancialCard />}
               {hasAvisos && <NoticesCard />}
