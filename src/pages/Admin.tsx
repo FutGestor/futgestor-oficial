@@ -3,7 +3,7 @@ import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom"
 import { User, Session } from "@supabase/supabase-js";
 import { 
   LayoutDashboard, Calendar, Users, DollarSign, Trophy, Bell, ClipboardList,
-  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon, Lock, Crown, TrendingUp
+  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon, Lock, Crown, TrendingUp, BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,6 +32,7 @@ import AdminConfiguracoes from "./admin/AdminConfiguracoes";
 import AdminPlanos from "./admin/AdminPlanos";
 import AdminCampeonatos from "./admin/AdminCampeonatos";
 import AdminCampeonatoDetalhe from "./admin/AdminCampeonatoDetalhe";
+import AdminGuia from "./admin/AdminGuia";
 
 interface SidebarItem {
   href: string;
@@ -152,6 +153,7 @@ export default function Admin() {
       locked: !hasAvisos, requiredPlan: "Pro", featureName: "Gestão de Avisos"
     },
     { href: `${basePath}/admin/configuracoes`, label: "Configurações", icon: Settings },
+    { href: `${basePath}/admin/guia`, label: "Guia", icon: BookOpen },
   ];
 
   useEffect(() => {
@@ -370,6 +372,7 @@ export default function Admin() {
             <Route path="/campeonatos" element={<AdminCampeonatos />} />
             <Route path="/campeonatos/:leagueId" element={<AdminCampeonatoDetalhe />} />
             <Route path="/configuracoes" element={<AdminConfiguracoes />} />
+            <Route path="/guia" element={<AdminGuia />} />
           </Routes>
         </main>
       </div>
