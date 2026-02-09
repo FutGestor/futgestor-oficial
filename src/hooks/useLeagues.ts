@@ -210,6 +210,23 @@ export function useCreateLeagueTeam() {
   });
 }
 
+export function useUpdateLeagueTeam() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { id: string; league_id: string; name: string; logo_url?: string | null }) => {
+      const { error } = await supabase
+        .from("league_teams")
+        .update({ name: params.name, logo_url: params.logo_url })
+        .eq("id", params.id);
+      if (error) throw error;
+    },
+    onSuccess: (_, v) => {
+      qc.invalidateQueries({ queryKey: ["league_teams", v.league_id] });
+      qc.invalidateQueries({ queryKey: ["league_matches", v.league_id] });
+    },
+  });
+}
+
 export function useDeleteLeagueTeam() {
   const qc = useQueryClient();
   return useMutation({
