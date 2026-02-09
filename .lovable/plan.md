@@ -1,21 +1,15 @@
 
 
-## Senha padrao fixa para acesso dos jogadores
+## Corrigir senha exibida no dialog de Gerar Acesso
 
-### Resumo
-Remover a geracao de senha aleatoria e usar a senha fixa `2508futgestor5515@` para todos os jogadores. Tambem corrigir o toast no frontend para exibir a senha real.
+### Problema
+Na linha 516 de `AdminJogadores.tsx`, o texto do dialog exibe a senha "123456" hardcoded. Precisa ser atualizado para a senha correta `2508futgestor5515@`.
 
-### Alteracoes
+### Alteracao
 
-**1. Backend - `supabase/functions/create-player-access/index.ts`**
-- Remover toda a funcao `generatePassword()` (linhas 101-116)
-- Substituir por senha fixa: `const defaultPassword = "2508futgestor5515@";`
-
-**2. Frontend - `src/pages/admin/AdminJogadores.tsx`**
-- Corrigir o toast (linha 252) para exibir `data.message` retornado pelo backend, que contera o email e a senha real
+**Arquivo: `src/pages/admin/AdminJogadores.tsx` (linha 516)**
+- Trocar `<strong>123456</strong>` por `<strong>2508futgestor5515@</strong>`
 
 ### Resultado
-- Todo jogador criado tera a senha `2508futgestor5515@`
-- O admin vera a senha correta no toast apos gerar o acesso
-- Sem necessidade de servico de email externo -- o admin compartilha a senha via WhatsApp
+Todos os admins (incluindo novos times) verao a senha correta no dialog antes de gerar o acesso.
 
