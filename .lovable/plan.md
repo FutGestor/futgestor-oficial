@@ -1,44 +1,20 @@
 
 
-## Redesign do Dashboard Financeiro + Forcar Tema Dark
+## Classificacao sem scroll horizontal no celular
 
-### O que sera feito
+### Problema
+A tabela de classificacao na aba Liga mostra muitas colunas mesmo no modo compacto, causando scroll horizontal no celular.
 
-**1. Forcar tema dark (remover opcao de tema claro)**
+### Solucao
+Esconder as colunas GP (Gols Pro) e GC (Gols Contra) no mobile, mantendo apenas as colunas essenciais: #, Time, PTS, J e SG. Isso faz a tabela caber na tela sem scroll lateral.
 
-- **`src/components/ThemeToggle.tsx`**: Remover o componente completamente ou transformar em componente vazio
-- **`src/components/layout/Header.tsx`**: Remover o `<ThemeToggle />` do header (linha 102)
-- **`src/main.tsx`** ou **`src/App.tsx`**: Adicionar `document.documentElement.classList.add("dark")` na inicializacao para garantir que o tema dark seja sempre aplicado
+### Detalhes tecnicos
 
-**2. Redesign do Dashboard Financeiro (`src/pages/Financeiro.tsx`)**
+**Arquivo: `src/components/LeagueStandingsTable.tsx`**
 
-Inspirado no estilo do mockup da landing page (ShowcaseFinanceiro), com visual premium dark:
+- Adicionar classes `hidden sm:table-cell` nas colunas GP e GC (tanto no `TableHead` quanto no `TableCell`)
+- Isso esconde essas colunas em telas menores que 640px e as mostra normalmente em telas maiores
+- As colunas V, E, D ja sao escondidas pelo modo `compact` -- GP e GC passam a ser escondidas tambem no mobile
+- SG (Saldo de Gols) continua visivel pois resume a informacao de GP e GC
 
-- **Cards de resumo**: Layout centralizado com valores grandes, cores vibrantes (dourado para saldo, verde para arrecadado, vermelho para gasto), fundo escuro com bordas sutis (`bg-[#0A1628] border border-white/[0.06]`)
-- **Graficos**: Barras com cores semi-transparentes (verde/vermelho com opacidade), pie chart com estilo donut moderno, tudo com fundo escuro consistente
-- **Tabela de transacoes**: Substituir a tabela tradicional por cards com layout limpo (descricao a esquerda, valor colorido a direita), similar ao mockup da landing page
-- **Tipografia**: Labels em uppercase com tracking largo, texto em cinza claro, valores em destaque
-- **Evolucao do saldo**: Manter o line chart mas com cores adaptadas ao tema dark (linha dourada, grid sutil)
-
-### Secao tecnica
-
-**Arquivos modificados:**
-1. `src/components/ThemeToggle.tsx` - Simplificar ou remover
-2. `src/components/layout/Header.tsx` - Remover referencia ao ThemeToggle
-3. `src/App.tsx` - Forcar classe "dark" no document
-4. `src/pages/Financeiro.tsx` - Redesign completo do layout visual mantendo a mesma logica de dados
-
-**Cores do novo design:**
-- Fundo principal: `bg-[#0A1628]`
-- Cards: `bg-[#0F2440] border border-white/[0.06]`
-- Texto principal: `text-white` / `text-gray-300`
-- Labels: `text-gray-500 uppercase tracking-wider`
-- Saldo: `text-[#D4A84B]` (dourado)
-- Entradas: `text-green-400`
-- Saidas: `text-red-400`
-
-**Graficos (recharts):**
-- Barras verdes/vermelhas com opacidade 60%
-- Grid com stroke branco sutil
-- Tooltip com fundo dark
-- Pie chart estilo donut com cores vibrantes
+**Resultado:** 5 colunas no mobile (#, Time, PTS, J, SG) -- cabe perfeitamente na tela sem scroll horizontal.
