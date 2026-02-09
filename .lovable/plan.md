@@ -1,54 +1,44 @@
 
 
-## Problema real
+## Redesign do Dashboard Financeiro + Forcar Tema Dark
 
-O admin `futgestor@gmail.com` acessa tudo porque tem "god mode" (lista especial no codigo). Porem, o time "Demo FC" nao tem nenhum registro de assinatura na tabela `subscriptions`. Quando o jogador `cst.empresadigital@gmail.com` loga, o sistema busca a assinatura do time e nao encontra nada -- por isso mostra o paywall.
+### O que sera feito
 
-A arquitetura ja funciona corretamente: o jogador herda o plano do time via `profile.team_id` -> `subscriptions.team_id`. O problema eh que o god mode so beneficia o email especifico, nao o time inteiro.
+**1. Forcar tema dark (remover opcao de tema claro)**
 
-## Solucao
+- **`src/components/ThemeToggle.tsx`**: Remover o componente completamente ou transformar em componente vazio
+- **`src/components/layout/Header.tsx`**: Remover o `<ThemeToggle />` do header (linha 102)
+- **`src/main.tsx`** ou **`src/App.tsx`**: Adicionar `document.documentElement.classList.add("dark")` na inicializacao para garantir que o tema dark seja sempre aplicado
 
-Estender o god mode para que todos os membros do time de um admin god mode tambem tenham acesso completo.
+**2. Redesign do Dashboard Financeiro (`src/pages/Financeiro.tsx`)**
 
-### Alteracao
+Inspirado no estilo do mockup da landing page (ShowcaseFinanceiro), com visual premium dark:
 
-**Arquivo: `src/hooks/useSubscription.ts`**
+- **Cards de resumo**: Layout centralizado com valores grandes, cores vibrantes (dourado para saldo, verde para arrecadado, vermelho para gasto), fundo escuro com bordas sutis (`bg-[#0A1628] border border-white/[0.06]`)
+- **Graficos**: Barras com cores semi-transparentes (verde/vermelho com opacidade), pie chart com estilo donut moderno, tudo com fundo escuro consistente
+- **Tabela de transacoes**: Substituir a tabela tradicional por cards com layout limpo (descricao a esquerda, valor colorido a direita), similar ao mockup da landing page
+- **Tipografia**: Labels em uppercase com tracking largo, texto em cinza claro, valores em destaque
+- **Evolucao do saldo**: Manter o line chart mas com cores adaptadas ao tema dark (linha dourada, grid sutil)
 
-Na funcao `useSubscription`, alem de verificar se o usuario atual esta na lista god mode, tambem verificar se o time do usuario pertence a um admin god mode. Para simplificar, a abordagem sera:
+### Secao tecnica
 
-1. Buscar os emails dos admins do time atual
-2. Se algum admin do time estiver na lista god mode, retornar assinatura "liga" fake (mesmo comportamento atual do god mode)
+**Arquivos modificados:**
+1. `src/components/ThemeToggle.tsx` - Simplificar ou remover
+2. `src/components/layout/Header.tsx` - Remover referencia ao ThemeToggle
+3. `src/App.tsx` - Forcar classe "dark" no document
+4. `src/pages/Financeiro.tsx` - Redesign completo do layout visual mantendo a mesma logica de dados
 
-Isso garante que:
-- Qualquer jogador de um time cujo admin eh god mode tera acesso total
-- Times com assinaturas reais continuam funcionando normalmente
-- Nenhuma mudanca no banco de dados eh necessaria
+**Cores do novo design:**
+- Fundo principal: `bg-[#0A1628]`
+- Cards: `bg-[#0F2440] border border-white/[0.06]`
+- Texto principal: `text-white` / `text-gray-300`
+- Labels: `text-gray-500 uppercase tracking-wider`
+- Saldo: `text-[#D4A84B]` (dourado)
+- Entradas: `text-green-400`
+- Saidas: `text-red-400`
 
-### Alternativa mais simples (recomendada)
-
-Criar um registro real de assinatura "liga" para o time Demo FC no banco de dados. Isso resolve o caso imediato sem mudar codigo:
-
-```sql
-INSERT INTO subscriptions (team_id, plano, status)
-VALUES ('7d8ddfcd-c688-4d25-afc9-972019fb2454', 'liga', 'active');
-```
-
-E tambem estender o god mode no codigo para abranger todo o time, para que futuros times de admins god mode nao tenham o mesmo problema.
-
-### Detalhes tecnicos
-
-**Arquivo: `src/hooks/useSubscription.ts`**
-
-Na funcao `useSubscription`:
-- Adicionar uma query secundaria que busca se algum admin do time eh god mode
-- Se sim, retornar a assinatura fake "liga" mesmo para usuarios nao-god-mode
-- Usar o `team_id` do perfil para fazer essa verificacao
-
-**Migracao SQL:**
-- Inserir assinatura "liga" ativa para o time Demo FC (resolve o caso imediato)
-
-### Resultado esperado
-- O jogador `cst.empresadigital@gmail.com` vera todas as funcionalidades do plano Liga (Financeiro, Ranking, Avisos, etc.)
-- A area Admin continua bloqueada pois o jogador tem role "user", nao "admin"
-- Qualquer novo jogador criado por um admin god mode tambem tera acesso completo
-
+**Graficos (recharts):**
+- Barras verdes/vermelhas com opacidade 60%
+- Grid com stroke branco sutil
+- Tooltip com fundo dark
+- Pie chart estilo donut com cores vibrantes
