@@ -13,8 +13,6 @@ export interface Subscription {
   team_id: string;
   plano: string;
   status: string;
-  mp_subscription_id: string | null;
-  mp_preference_id: string | null;
   created_at: string;
   expires_at: string | null;
 }
@@ -36,8 +34,6 @@ export function useSubscription(teamId?: string | null) {
           team_id: effectiveTeamId!,
           plano: "liga",
           status: "active",
-          mp_subscription_id: null,
-          mp_preference_id: null,
           created_at: new Date().toISOString(),
           expires_at: null,
         } as Subscription;
@@ -45,7 +41,7 @@ export function useSubscription(teamId?: string | null) {
 
       const { data, error } = await supabase
         .from("subscriptions")
-        .select("*")
+        .select("id, team_id, plano, status, created_at, expires_at")
         .eq("team_id", effectiveTeamId!)
         .maybeSingle();
       if (error) throw error;

@@ -921,11 +921,36 @@ export type Database = {
           },
         ]
       }
+      team_sensitive_data: {
+        Row: {
+          cpf_responsavel: string | null
+          created_at: string
+          team_id: string
+        }
+        Insert: {
+          cpf_responsavel?: string | null
+          created_at?: string
+          team_id: string
+        }
+        Update: {
+          cpf_responsavel?: string | null
+          created_at?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_sensitive_data_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: true
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           banner_url: string | null
           cores: Json | null
-          cpf_responsavel: string | null
           created_at: string
           escudo_url: string | null
           id: string
@@ -938,7 +963,6 @@ export type Database = {
         Insert: {
           banner_url?: string | null
           cores?: Json | null
-          cpf_responsavel?: string | null
           created_at?: string
           escudo_url?: string | null
           id?: string
@@ -951,7 +975,6 @@ export type Database = {
         Update: {
           banner_url?: string | null
           cores?: Json | null
-          cpf_responsavel?: string | null
           created_at?: string
           escudo_url?: string | null
           id?: string
@@ -1189,6 +1212,35 @@ export type Database = {
             foreignKeyName: "jogadores_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions_public: {
+        Row: {
+          expires_at: string | null
+          plano: string | null
+          status: string | null
+          team_id: string | null
+        }
+        Insert: {
+          expires_at?: string | null
+          plano?: string | null
+          status?: string | null
+          team_id?: string | null
+        }
+        Update: {
+          expires_at?: string | null
+          plano?: string | null
+          status?: string | null
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: true
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },

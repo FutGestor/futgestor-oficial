@@ -61,14 +61,14 @@ export default function Auth() {
     },
   });
 
-  // Carregar credenciais salvas
+  // Carregar email salvo (nunca salvar senha)
   useEffect(() => {
     const savedEmail = localStorage.getItem("savedEmail");
-    const savedPassword = localStorage.getItem("savedPassword");
+    // Clean up any previously stored passwords
+    localStorage.removeItem("savedPassword");
     
-    if (savedEmail && savedPassword) {
+    if (savedEmail) {
       loginForm.setValue("email", savedEmail);
-      loginForm.setValue("password", savedPassword);
     }
   }, [loginForm]);
 
@@ -139,16 +139,15 @@ export default function Auth() {
         teamSlug = teamData?.slug || "";
       }
 
-      // Salvar ou remover credenciais baseado no checkbox
+      // Salvar apenas email (nunca senha) baseado no checkbox
       if (rememberMe) {
         localStorage.setItem("savedEmail", data.email);
-        localStorage.setItem("savedPassword", data.password);
         localStorage.setItem("rememberMe", "true");
       } else {
         localStorage.removeItem("savedEmail");
-        localStorage.removeItem("savedPassword");
         localStorage.removeItem("rememberMe");
       }
+      localStorage.removeItem("savedPassword"); // Always clean up
 
       // No team yet → redirect to onboarding to create one (only for admins/new users)
       if (!profile?.team_id && !profile?.jogador_id) {
