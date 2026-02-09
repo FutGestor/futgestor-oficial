@@ -351,36 +351,43 @@ function JogosTab({ leagueId }: { leagueId: string }) {
                 return (
                   <div
                     key={m.id}
-                    className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer"
+                    className="flex items-center gap-2 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer"
                     onClick={() => openEdit(m)}
                   >
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
+                    {/* Home */}
+                    <div className="flex flex-1 items-center justify-end gap-1.5 min-w-0">
+                      <span className="truncate text-sm font-medium text-right">{home?.name ?? "?"}</span>
+                      <Avatar className="h-6 w-6 shrink-0">
                         <AvatarImage src={home?.logo_url ?? undefined} />
-                        <AvatarFallback className="text-[10px]">{home?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback className="text-[10px]">{home?.name?.substring(0, 2).toUpperCase() ?? "?"}</AvatarFallback>
                       </Avatar>
-                      <span className="font-medium">{home?.name ?? "?"}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+
+                    {/* Score */}
+                    <div className="shrink-0 px-1 text-center min-w-[50px]">
                       {m.status === "finalizado" ? (
-                        <span className="text-lg font-bold">{m.score_home} × {m.score_away}</span>
+                        <span className="text-base font-bold whitespace-nowrap">{m.score_home} × {m.score_away}</span>
                       ) : (
-                        <Badge variant="secondary">Agendado</Badge>
+                        <Badge variant="secondary" className="text-xs">vs</Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{away?.name ?? "?"}</span>
-                      <Avatar className="h-6 w-6">
+
+                    {/* Away */}
+                    <div className="flex flex-1 items-center gap-1.5 min-w-0">
+                      <Avatar className="h-6 w-6 shrink-0">
                         <AvatarImage src={away?.logo_url ?? undefined} />
-                        <AvatarFallback className="text-[10px]">{away?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback className="text-[10px]">{away?.name?.substring(0, 2).toUpperCase() ?? "?"}</AvatarFallback>
                       </Avatar>
+                      <span className="truncate text-sm font-medium">{away?.name ?? "?"}</span>
                     </div>
+
+                    {/* Delete */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="ml-2 h-7 w-7 text-muted-foreground hover:text-destructive"
+                          className="shrink-0 h-7 w-7 text-muted-foreground hover:text-destructive"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
