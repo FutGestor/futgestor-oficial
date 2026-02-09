@@ -74,20 +74,20 @@ export function LeagueRoundMatches({ matches, teams }: Props) {
               className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2"
             >
               {/* Home team */}
-              <div className="flex flex-1 items-center justify-end gap-2 text-right">
-                <span className="truncate text-sm font-medium">{home?.name ?? "?"}</span>
-                <Avatar className="h-6 w-6 shrink-0">
+              <div className="flex flex-1 items-center justify-end gap-1.5 min-w-0">
+                <span className="truncate text-xs sm:text-sm font-medium text-right">{home?.name ?? "?"}</span>
+                <Avatar className="h-5 w-5 sm:h-6 sm:w-6 shrink-0">
                   <AvatarImage src={home?.logo_url ?? undefined} />
-                  <AvatarFallback className="text-[10px]">
+                  <AvatarFallback className="text-[8px] sm:text-[10px]">
                     {home?.name?.substring(0, 2).toUpperCase() ?? "?"}
                   </AvatarFallback>
                 </Avatar>
               </div>
 
               {/* Score */}
-              <div className="shrink-0 px-2 text-center">
+              <div className="shrink-0 px-1 sm:px-2 text-center min-w-[44px]">
                 {isPlayed ? (
-                  <span className="text-base font-bold">
+                  <span className="text-sm sm:text-base font-bold whitespace-nowrap">
                     {match.score_home} x {match.score_away}
                   </span>
                 ) : (
@@ -96,14 +96,14 @@ export function LeagueRoundMatches({ matches, teams }: Props) {
               </div>
 
               {/* Away team */}
-              <div className="flex flex-1 items-center gap-2">
-                <Avatar className="h-6 w-6 shrink-0">
+              <div className="flex flex-1 items-center gap-1.5 min-w-0">
+                <Avatar className="h-5 w-5 sm:h-6 sm:w-6 shrink-0">
                   <AvatarImage src={away?.logo_url ?? undefined} />
-                  <AvatarFallback className="text-[10px]">
+                  <AvatarFallback className="text-[8px] sm:text-[10px]">
                     {away?.name?.substring(0, 2).toUpperCase() ?? "?"}
                   </AvatarFallback>
                 </Avatar>
-                <span className="truncate text-sm font-medium">{away?.name ?? "?"}</span>
+                <span className="truncate text-xs sm:text-sm font-medium">{away?.name ?? "?"}</span>
               </div>
             </div>
           );
