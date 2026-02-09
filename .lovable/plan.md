@@ -1,52 +1,21 @@
 
 
-## Enviar senha por email ao gerar acesso do jogador
+## Senha padrao fixa para acesso dos jogadores
 
-### Problema identificado
-O codigo frontend (linha 252 de `AdminJogadores.tsx`) exibe a senha fixa `123456` no toast, ignorando a senha real gerada pela funcao backend. A funcao backend gera uma senha aleatoria de 8 caracteres com letras, numeros e caracteres especiais, mas essa informacao nao chega ao admin corretamente.
+### Resumo
+Remover a geracao de senha aleatoria e usar a senha fixa `2508futgestor5515@` para todos os jogadores. Tambem corrigir o toast no frontend para exibir a senha real.
 
-### Solucao proposta
-Duas correcoes:
+### Alteracoes
 
-**1. Corrigir o toast para mostrar a senha real (correcao imediata)**
-- Atualizar linha 252 de `AdminJogadores.tsx` para usar `data.message` (que ja contem email e senha reais retornados pelo backend)
+**1. Backend - `supabase/functions/create-player-access/index.ts`**
+- Remover toda a funcao `generatePassword()` (linhas 101-116)
+- Substituir por senha fixa: `const defaultPassword = "2508futgestor5515@";`
 
-**2. Enviar a senha por email ao jogador**
-- Sera necessario configurar o servico Resend para envio de emails
-- Voce precisara:
-  1. Criar uma conta em https://resend.com (se ainda nao tiver)
-  2. Validar seu dominio em https://resend.com/domains
-  3. Criar uma API key em https://resend.com/api-keys
-  4. Fornecer a chave `RESEND_API_KEY` quando solicitado
+**2. Frontend - `src/pages/admin/AdminJogadores.tsx`**
+- Corrigir o toast (linha 252) para exibir `data.message` retornado pelo backend, que contera o email e a senha real
 
-- A funcao backend `create-player-access` sera atualizada para enviar um email ao jogador com suas credenciais (email e senha) apos criar o acesso
-- O email tera um template simples informando o jogador sobre seu acesso ao FutGestor
-
-### Detalhes tecnicos
-
-**Arquivo: `src/pages/admin/AdminJogadores.tsx`**
-- Linha 252: trocar `Senha: 123456` por exibir `data.message` que ja contem as credenciais reais
-
-**Arquivo: `supabase/functions/create-player-access/index.ts`**
-- Adicionar integracao com Resend para enviar email ao jogador apos criacao do acesso
-- O email contera: nome do time, email de login e senha gerada
-- Manter o retorno da senha no response para o admin tambem visualizar no toast
-
-### Fluxo apos implementacao
-
-```text
-Admin clica "Gerar Acesso"
-       |
-       v
-Backend cria usuario com senha aleatoria
-       |
-       v
-Backend envia email ao jogador com credenciais
-       |
-       v
-Frontend exibe toast com email e senha reais
-```
-
-### Prerequisito
-Configuracao da chave `RESEND_API_KEY` como secret do projeto.
+### Resultado
+- Todo jogador criado tera a senha `2508futgestor5515@`
+- O admin vera a senha correta no toast apos gerar o acesso
+- Sem necessidade de servico de email externo -- o admin compartilha a senha via WhatsApp
 
