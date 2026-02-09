@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,41 +20,74 @@ import {
   useLeagueTeams,
   useLeagueMatches,
   useCreateLeagueTeam,
+  useUpdateLeagueTeam,
   useDeleteLeagueTeam,
   useCreateLeagueMatch,
   useUpdateLeagueMatch,
   useDeleteLeagueMatch,
   computeStandings,
   type LeagueMatch,
+  type LeagueTeam,
 } from "@/hooks/useLeagues";
 
 // ─── Tab: Times ───
 function TimesTab({ leagueId }: { leagueId: string }) {
   const { data: teams, isLoading } = useLeagueTeams(leagueId);
   const createTeam = useCreateLeagueTeam();
+  const updateTeam = useUpdateLeagueTeam();
   const deleteTeam = useDeleteLeagueTeam();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
 
+  // Edit state
+  const [editTeam, setEditTeam] = useState<LeagueTeam | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editLogoFile, setEditLogoFile] = useState<File | null>(null);
+
+  const uploadLogo = async (file: File) => {
+    const ext = file.name.split(".").pop();
+    const path = `league-teams/${leagueId}/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("times").upload(path, file);
+    if (upErr) throw upErr;
+    const { data: pub } = supabase.storage.from("times").getPublicUrl(path);
+    return pub.publicUrl;
+  };
+
   const handleCreate = async () => {
     if (!name.trim()) return;
     try {
       let logo_url: string | undefined;
       if (logoFile) {
-        const ext = logoFile.name.split(".").pop();
-        const path = `league-teams/${leagueId}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("times").upload(path, logoFile);
-        if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("times").getPublicUrl(path);
-        logo_url = pub.publicUrl;
+        logo_url = await uploadLogo(logoFile);
       }
       await createTeam.mutateAsync({ league_id: leagueId, name: name.trim(), logo_url });
       toast({ title: "Time adicionado!" });
       setName(""); setLogoFile(null); setDialogOpen(false);
     } catch {
       toast({ variant: "destructive", title: "Erro ao adicionar time" });
+    }
+  };
+
+  const openEdit = (t: LeagueTeam) => {
+    setEditTeam(t);
+    setEditName(t.name);
+    setEditLogoFile(null);
+  };
+
+  const handleEdit = async () => {
+    if (!editTeam || !editName.trim()) return;
+    try {
+      let logo_url: string | null | undefined = editTeam.logo_url;
+      if (editLogoFile) {
+        logo_url = await uploadLogo(editLogoFile);
+      }
+      await updateTeam.mutateAsync({ id: editTeam.id, league_id: leagueId, name: editName.trim(), logo_url });
+      toast({ title: "Time atualizado!" });
+      setEditTeam(null);
+    } catch {
+      toast({ variant: "destructive", title: "Erro ao atualizar time" });
     }
   };
 
@@ -87,6 +120,35 @@ function TimesTab({ leagueId }: { leagueId: string }) {
         </DialogContent>
       </Dialog>
 
+      {/* Edit team dialog */}
+      <Dialog open={!!editTeam} onOpenChange={(o) => !o && setEditTeam(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Time</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <Input placeholder="Nome do time" value={editName} onChange={(e) => setEditName(e.target.value)} />
+            <div>
+              <label className="mb-1 block text-sm font-medium">Escudo (trocar)</label>
+              <Input type="file" accept="image/*" onChange={(e) => setEditLogoFile(e.target.files?.[0] ?? null)} />
+              {editTeam?.logo_url && !editLogoFile && (
+                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={editTeam.logo_url} />
+                    <AvatarFallback>{editTeam.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <span>Escudo atual</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">Cancelar</Button></DialogClose>
+            <Button onClick={handleEdit} disabled={!editName.trim() || updateTeam.isPending}>
+              {updateTeam.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {teams && teams.length === 0 && (
         <p className="py-8 text-center text-muted-foreground">Nenhum time cadastrado. Adicione times para começar.</p>
       )}
@@ -102,23 +164,33 @@ function TimesTab({ leagueId }: { leagueId: string }) {
                 </Avatar>
                 <span className="font-medium">{t.name}</span>
               </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir "{t.name}"?</AlertDialogTitle>
-                    <AlertDialogDescription>Jogos deste time também serão removidos.</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => deleteTeam.mutate({ id: t.id, league_id: leagueId })}>Excluir</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-primary"
+                  onClick={() => openEdit(t)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir "{t.name}"?</AlertDialogTitle>
+                      <AlertDialogDescription>Jogos deste time também serão removidos.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deleteTeam.mutate({ id: t.id, league_id: leagueId })}>Excluir</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </CardContent>
           </Card>
         ))}
