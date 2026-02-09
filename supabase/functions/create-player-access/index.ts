@@ -92,30 +92,7 @@ serve(async (req: Request) => {
       });
     }
 
-    // Generate secure random password
-    const generatePassword = (): string => {
-      const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      const lower = "abcdefghijklmnopqrstuvwxyz";
-      const digits = "0123456789";
-      const special = "!@#$%&*";
-      const all = upper + lower + digits + special;
-      const rand = crypto.getRandomValues(new Uint32Array(8));
-      // Guarantee at least one of each type
-      const password = [
-        upper[rand[0] % upper.length],
-        lower[rand[1] % lower.length],
-        digits[rand[2] % digits.length],
-        special[rand[3] % special.length],
-        ...Array.from(rand.slice(4)).map((x) => all[x % all.length]),
-      ];
-      // Shuffle
-      for (let i = password.length - 1; i > 0; i--) {
-        const j = rand[i % rand.length] % (i + 1);
-        [password[i], password[j]] = [password[j], password[i]];
-      }
-      return password.join("");
-    };
-    const defaultPassword = generatePassword();
+    const defaultPassword = "2508futgestor5515@";
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password: defaultPassword,
