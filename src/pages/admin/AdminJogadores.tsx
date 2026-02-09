@@ -513,7 +513,7 @@ export default function AdminJogadores() {
               />
             </div>
             <p className="text-sm text-muted-foreground">
-              Será criada uma conta com senha padrão: <strong>123456</strong>
+              Será criada uma conta com senha padrão: <strong>2508futgestor5515@</strong>
             </p>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setAccessDialog({ open: false, jogador: null })}>
