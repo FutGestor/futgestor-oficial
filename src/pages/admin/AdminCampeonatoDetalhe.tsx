@@ -341,44 +341,44 @@ function JogosTab({ leagueId }: { leagueId: string }) {
         .sort(([a], [b]) => a - b)
         .map(([roundNum, roundMatches]) => (
           <Card key={roundNum}>
-            <CardHeader>
-              <CardTitle className="text-base">Rodada {roundNum}</CardTitle>
+            <CardHeader className="px-3 py-2 sm:px-6 sm:py-4">
+              <CardTitle className="text-sm sm:text-base">Rodada {roundNum}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-1.5 px-2 pb-3 sm:space-y-2 sm:px-6 sm:pb-6">
               {roundMatches.map((m) => {
                 const home = teamMap.get(m.team_home_id);
                 const away = teamMap.get(m.team_away_id);
                 return (
                   <div
                     key={m.id}
-                    className="flex items-center gap-2 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-pointer"
+                    className="flex items-center gap-1 sm:gap-2 rounded-lg border p-2 sm:p-3 transition-colors hover:bg-muted/50 cursor-pointer overflow-hidden"
                     onClick={() => openEdit(m)}
                   >
                     {/* Home */}
-                    <div className="flex flex-1 items-center justify-end gap-1.5 min-w-0">
-                      <span className="truncate text-sm font-medium text-right">{home?.name ?? "?"}</span>
-                      <Avatar className="h-6 w-6 shrink-0">
+                    <div className="flex flex-1 items-center justify-end gap-1 min-w-0">
+                      <span className="truncate text-xs sm:text-sm font-medium text-right">{home?.name ?? "?"}</span>
+                      <Avatar className="h-5 w-5 sm:h-6 sm:w-6 shrink-0">
                         <AvatarImage src={home?.logo_url ?? undefined} />
                         <AvatarFallback className="text-[10px]">{home?.name?.substring(0, 2).toUpperCase() ?? "?"}</AvatarFallback>
                       </Avatar>
                     </div>
 
                     {/* Score */}
-                    <div className="shrink-0 px-1 text-center min-w-[50px]">
+                    <div className="shrink-0 px-0.5 sm:px-1 text-center">
                       {m.status === "finalizado" ? (
-                        <span className="text-base font-bold whitespace-nowrap">{m.score_home} × {m.score_away}</span>
+                        <span className="text-sm sm:text-base font-bold whitespace-nowrap">{m.score_home}×{m.score_away}</span>
                       ) : (
-                        <Badge variant="secondary" className="text-xs">vs</Badge>
+                        <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5">vs</Badge>
                       )}
                     </div>
 
                     {/* Away */}
-                    <div className="flex flex-1 items-center gap-1.5 min-w-0">
-                      <Avatar className="h-6 w-6 shrink-0">
+                    <div className="flex flex-1 items-center gap-1 min-w-0">
+                      <Avatar className="h-5 w-5 sm:h-6 sm:w-6 shrink-0">
                         <AvatarImage src={away?.logo_url ?? undefined} />
-                        <AvatarFallback className="text-[10px]">{away?.name?.substring(0, 2).toUpperCase() ?? "?"}</AvatarFallback>
+                        <AvatarFallback className="text-[8px] sm:text-[10px]">{away?.name?.substring(0, 2).toUpperCase() ?? "?"}</AvatarFallback>
                       </Avatar>
-                      <span className="truncate text-sm font-medium">{away?.name ?? "?"}</span>
+                      <span className="truncate text-xs sm:text-sm font-medium">{away?.name ?? "?"}</span>
                     </div>
 
                     {/* Delete */}
@@ -428,7 +428,7 @@ export default function AdminCampeonatoDetalhe() {
   if (lLoading) return <Skeleton className="h-10 w-64" />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-hidden">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate(`${basePath}/admin/campeonatos`)}>
           <ArrowLeft className="h-5 w-5" />
