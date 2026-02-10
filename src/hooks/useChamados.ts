@@ -176,6 +176,27 @@ export function useEnviarMensagem() {
   });
 }
 
+// Hook para contar chamados abertos (badge no header)
+export function useOpenChamadosCount() {
+  const { isSuperAdmin } = useAuth();
+
+  const { data } = useQuery({
+    queryKey: ["open-chamados-count"],
+    enabled: isSuperAdmin,
+    refetchInterval: 30000,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("chamados")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "aberto");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  return data ?? 0;
+}
+
 // Hooks para super admin
 export function useTodosChamados() {
   const { isSuperAdmin } = useAuth();

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Instagram, MessageCircle, User, LogOut, Sun, Moon, Headphones } from "lucide-react";
 import logoFutgestor from "@/assets/logo-futgestor.png";
@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 import { usePlanAccess } from "@/hooks/useSubscription";
-
+import { useOpenChamadosCount } from "@/hooks/useChamados";
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
@@ -16,6 +16,7 @@ export function Header() {
   const { user, profile, isAdmin, isSuperAdmin, isApproved, signOut } = useAuth();
   const isPlayer = !!profile?.jogador_id && !isAdmin;
   const teamSlug = useOptionalTeamSlug();
+  const openChamadosCount = useOpenChamadosCount();
 
   const toggleTheme = () => {
     const next = !isDark;
@@ -83,9 +84,6 @@ export function Header() {
           ) : (
             <img src={logoFutgestor} alt="FutGestor" className="h-12 w-12 object-contain" />
           )}
-          <span className="hidden truncate max-w-[120px] lg:max-w-[200px] xl:max-w-none text-lg font-bold text-primary-foreground md:inline-block">
-            {teamName}
-          </span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -120,7 +118,7 @@ export function Header() {
 
           {/* Super Admin Suporte Link */}
           {isSuperAdmin && (
-            <Link to="/super-admin/suporte">
+            <Link to="/super-admin/suporte" className="relative">
               <Button
                 variant="ghost"
                 size="sm"
@@ -129,6 +127,11 @@ export function Header() {
                 <Headphones className="mr-1 h-4 w-4" />
                 Suporte Global
               </Button>
+              {openChamadosCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                  {openChamadosCount}
+                </span>
+              )}
             </Link>
           )}
           
@@ -278,11 +281,16 @@ export function Header() {
                     </Link>
                   )}
                   {isSuperAdmin && (
-                    <Link to="/super-admin/suporte" onClick={() => setMobileMenuOpen(false)}>
+                    <Link to="/super-admin/suporte" onClick={() => setMobileMenuOpen(false)} className="relative">
                       <Button variant="secondary" size="sm">
                         <Headphones className="mr-1 h-4 w-4" />
                         Suporte Global
                       </Button>
+                      {openChamadosCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                          {openChamadosCount}
+                        </span>
+                      )}
                     </Link>
                   )}
                   <Button variant="secondary" size="sm" onClick={handleSignOut}>
