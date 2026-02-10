@@ -1,83 +1,49 @@
 
-# Guia Completo do FutGestor - Pagina de Documentacao no Admin
 
-## Objetivo
-Criar uma nova pagina "Guia" dentro do painel administrativo que funciona como um manual completo e explicativo de todas as funcionalidades do FutGestor, tanto da area publica do time quanto da area administrativa. No final, uma tabela comparativa dos planos e um botao para baixar o guia em PDF.
+# Plano de Correções - FutGestor
 
----
+## Problemas Identificados
 
-## O que sera criado
+### 1. Erro ao atualizar status do chamado (Super Admin)
+O super admin nao consegue mudar o status dos chamados. A politica de UPDATE no banco exige `is_super_admin(auth.uid())` como USING, mas pode estar faltando um WITH CHECK explicito. Sera criada uma migracao para garantir que a politica de UPDATE funcione corretamente, adicionando WITH CHECK.
 
-### 1. Nova pagina `src/pages/admin/AdminGuia.tsx`
-Uma pagina longa e organizada com secoes colapsaveis (accordion) cobrindo:
+### 2. Sem notificacao visual de novos chamados para o Super Admin
+O botao "Suporte Global" no Header nao mostra nenhum badge indicando chamados abertos. Sera adicionado um badge com a contagem de chamados com status "aberto" no botao do header (desktop e mobile).
 
-**Area Publica do Time (Portal do Jogador)**
-- Pagina Inicial: hero do time, agenda com calendario, jogos da semana, ultimo resultado, saldo, avisos
-- Agenda: como visualizar jogos futuros, calendario mensal, confirmar presenca
-- Jogadores: lista do elenco com foto, posicao e numero
-- Ranking: classificacao por desempenho (gols, assistencias, presenca)
-- Resultados: historico de partidas e placares
-- Escalacao: formacao tatica visual do time
-- Financeiro: extrato da caixinha do time
-- Avisos: comunicados publicados pelo admin
-- Ligas: campeonatos e tabela de classificacao
-- Meu Perfil: dados pessoais do jogador logado
+### 3. Nome do time truncado no Header ("g...")
+O nome do time aparece cortado no header. Como o nome ja aparece grande na secao hero abaixo, o nome do time sera removido do header, mantendo apenas o escudo/logo.
 
-**Area Administrativa (Painel Admin)**
-- Dashboard: visao geral com cards de resumo (saldo, jogadores, jogos, resultados finalizados)
-- Planos: escolha e assinatura de planos (Basico, Pro, Liga)
-- Jogos: criar, editar, excluir partidas; gerenciar presenca; link de confirmacao publica
-- Solicitacoes: receber e responder pedidos de amistosos
-- Times: cadastrar e gerenciar times adversarios com escudo
-- Jogadores: cadastrar elenco, foto, posicao, numero, ativar/desativar, criar acesso de login
-- Usuarios: gerenciar usuarios vinculados ao time
-- Transacoes: registrar receitas e despesas da caixinha
-- Resultados: registrar placares e estatisticas individuais (gols, assistencias, cartoes)
-- Campeonatos: criar ligas, adicionar equipes, gerenciar rodadas e resultados
-- Escalacoes: montar formacao tatica arrastando jogadores no campo
-- Avisos: criar e publicar comunicados com categorias (info, urgente, etc)
-- Configuracoes: escudo, banner, redes sociais, dados do time
+### 4. Logo do PWA com fundo preto
+A logo do app instalado no celular ainda aparece com fundo preto. Sera substituida pela nova imagem transparente enviada (FutGestor.png), copiando para `public/logo-futgestor.png` e `src/assets/logo-futgestor.png`.
 
-**Secao Final: Comparativo de Planos**
-- Tabela mostrando o que cada plano (Basico, Pro, Liga) desbloqueia
-
-**Botao Baixar PDF**
-- Usa a API nativa `window.print()` com CSS de impressao para gerar PDF limpo
-
-### 2. Registro da rota e sidebar
-- Adicionar item "Guia" na sidebar do Admin (`src/pages/Admin.tsx`) com icone `BookOpen`
-- Adicionar rota `/guia` nas Routes do Admin
+### 5. Logos dos clubes no calendario em formato quadrado
+Os escudos dos times adversarios no calendario da agenda aparecem em quadrados. Serao alterados para exibicao circular com `rounded-full` e `overflow-hidden`, melhorando a aparencia visual.
 
 ---
 
 ## Detalhes Tecnicos
 
-### Estrutura do componente `AdminGuia.tsx`
-- Utiliza `Accordion` do shadcn/ui para organizar cada secao
-- Cada item do accordion contem descricao detalhada, passo-a-passo e dicas
-- Secao de planos usa cards com listas de features
-- Botao "Baixar em PDF" no topo e no final da pagina
+### Migracao SQL (Status do Chamado)
+- Dropar a politica de UPDATE existente "Super admin atualiza chamados"
+- Recriar com USING e WITH CHECK usando `is_super_admin(auth.uid())`
+- Dropar e recriar "Usuário pode atualizar seus chamados" com WITH CHECK
 
-### Funcao de download PDF
-```text
-Usa window.print() com media query @media print para:
-- Expandir todos os accordions antes de imprimir
-- Esconder sidebar, header e botoes de acao
-- Formatar para papel A4 com margens adequadas
-```
+### Header.tsx
+- Remover o `<span>` com `teamName` da area do logo
+- Adicionar hook `useTodosChamados` ou query simples para contar chamados abertos
+- Exibir badge numerico no botao "Suporte Global" (desktop e mobile)
 
-### Alteracoes em `Admin.tsx`
-- Import de `BookOpen` do lucide-react
-- Novo item na array `sidebarItems` (sem trava de plano - disponivel para todos)
-- Nova `<Route path="/guia">` apontando para `AdminGuia`
+### TeamPublicPage.tsx
+- Nas linhas 305-308, alterar a renderizacao do escudo no calendario para usar um container circular (`rounded-full overflow-hidden`) em vez de quadrado
 
-### Arquivos modificados
-| Arquivo | Alteracao |
-|---|---|
-| `src/pages/admin/AdminGuia.tsx` | Novo arquivo - pagina completa do guia |
-| `src/pages/Admin.tsx` | Adicionar rota + item no sidebar |
+### Logo PWA
+- Copiar `user-uploads://FutGestor.png` para `public/logo-futgestor.png` e `src/assets/logo-futgestor.png`
 
-### Nenhuma dependencia nova necessaria
-- Accordion ja existe em `@radix-ui/react-accordion`
-- Todos os componentes UI ja estao disponiveis (Card, Badge, Button, Table)
-- PDF via `window.print()` nao requer biblioteca externa
+### Arquivos Modificados
+1. `supabase/migrations/` - Nova migracao para corrigir politicas UPDATE
+2. `src/components/layout/Header.tsx` - Remover nome do time, adicionar badge chamados
+3. `src/pages/TeamPublicPage.tsx` - Escudos circulares no calendario
+4. `public/logo-futgestor.png` - Nova logo transparente
+5. `src/assets/logo-futgestor.png` - Nova logo transparente
+6. `src/hooks/useChamados.ts` - Adicionar hook para contar chamados abertos (para badge)
+
