@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Instagram, MessageCircle, User, LogOut } from "lucide-react";
+import { Menu, X, Instagram, MessageCircle, User, LogOut, Sun, Moon, Headphones } from "lucide-react";
 import logoFutgestor from "@/assets/logo-futgestor.png";
 import { Button } from "@/components/ui/button";
 
@@ -11,10 +11,18 @@ import { usePlanAccess } from "@/hooks/useSubscription";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
   const location = useLocation();
-  const { user, profile, isAdmin, isApproved, signOut } = useAuth();
+  const { user, profile, isAdmin, isSuperAdmin, isApproved, signOut } = useAuth();
   const isPlayer = !!profile?.jogador_id && !isAdmin;
   const teamSlug = useOptionalTeamSlug();
+
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("theme", next ? "dark" : "light");
+  };
 
   const basePath = teamSlug?.basePath || "";
   const teamName = teamSlug?.team.nome || "FutGestor";
@@ -100,6 +108,29 @@ export function Header() {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+          >
+            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+
+          {/* Super Admin Suporte Link */}
+          {isSuperAdmin && (
+            <Link to="/super-admin/suporte">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden text-primary-foreground hover:bg-primary-foreground/10 md:inline-flex"
+              >
+                <Headphones className="mr-1 h-4 w-4" />
+                Suporte Global
+              </Button>
+            </Link>
+          )}
           
           {redesSociais.instagram && (
             <a
@@ -244,6 +275,14 @@ export function Header() {
                   {isAdmin && teamSlug && (
                     <Link to={`${basePath}/admin`} onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="secondary" size="sm">Admin</Button>
+                    </Link>
+                  )}
+                  {isSuperAdmin && (
+                    <Link to="/super-admin/suporte" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="secondary" size="sm">
+                        <Headphones className="mr-1 h-4 w-4" />
+                        Suporte Global
+                      </Button>
                     </Link>
                   )}
                   <Button variant="secondary" size="sm" onClick={handleSignOut}>
