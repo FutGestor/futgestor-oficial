@@ -2,9 +2,13 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// Force dark theme
-document.documentElement.classList.add("dark");
-localStorage.setItem("theme", "dark");
+// Apply saved theme (default to dark)
+const savedTheme = localStorage.getItem("theme") || "dark";
+if (savedTheme === "dark") {
+  document.documentElement.classList.add("dark");
+} else {
+  document.documentElement.classList.remove("dark");
+}
 
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
