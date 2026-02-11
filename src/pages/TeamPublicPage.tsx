@@ -303,10 +303,8 @@ function AgendaSection({ teamId }: { teamId: string }) {
                         </span>
                       )}
                       {hasGames && time?.escudo_url && (
-                        <div className="absolute inset-0 flex items-center justify-center p-1">
-                          <div className="h-full w-full rounded-full overflow-hidden bg-white flex items-center justify-center">
-                            <img src={time.escudo_url} alt={time.nome || firstGame.adversario} className="h-[85%] w-[85%] object-contain" />
-                          </div>
+                        <div className="absolute inset-0 flex items-center justify-center p-0.5">
+                          <img src={time.escudo_url} alt={time.nome || firstGame.adversario} className="h-full w-full rounded-full object-contain" />
                         </div>
                       )}
                       {hasGames && !time?.escudo_url && (
