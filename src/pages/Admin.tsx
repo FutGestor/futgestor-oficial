@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 import { User, Session } from "@supabase/supabase-js";
-import { 
+import {
   LayoutDashboard, Calendar, Users, DollarSign, Trophy, Bell, ClipboardList,
   LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon, Lock, Crown, TrendingUp, BookOpen
 } from "lucide-react";
@@ -44,24 +44,27 @@ interface SidebarItem {
   featureName?: string;
 }
 
-function NavMenu({ 
-  setSidebarOpen, 
-  currentPath, 
-  sidebarItems, 
-  onLockedClick 
-}: { 
-  setSidebarOpen: (open: boolean) => void; 
-  currentPath: string; 
+import { useTeamConfig } from "@/hooks/useTeamConfig";
+
+function NavMenu({
+  setSidebarOpen,
+  currentPath,
+  sidebarItems,
+  onLockedClick
+}: {
+  setSidebarOpen: (open: boolean) => void;
+  currentPath: string;
   sidebarItems: SidebarItem[];
   onLockedClick: (requiredPlan: string, featureName: string) => void;
 }) {
-  const { data: pendingCount } = useSolicitacoesPendentesCount();
+  const { team } = useTeamConfig();
+  const { data: pendingCount } = useSolicitacoesPendentesCount(team.id);
 
   return (
     <nav className="flex-1 space-y-1 p-4">
       {sidebarItems.map((item) => {
         const isActive = currentPath === item.href;
-        
+
         if (item.locked) {
           return (
             <button
@@ -81,7 +84,7 @@ function NavMenu({
             </button>
           );
         }
-        
+
         return (
           <Link
             key={item.href}
@@ -122,24 +125,26 @@ export default function Admin() {
   const { toast } = useToast();
   const { basePath } = useTeamSlug();
   const { hasFinanceiro, hasAvisos, hasCampeonatos, hasResultados, hasSolicitacoes, isActive, isLoading: planLoading } = usePlanAccess();
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   // Build sidebar items with lock state
   const sidebarItems: SidebarItem[] = [
     { href: `${basePath}/admin`, label: "Dashboard", icon: LayoutDashboard },
     { href: `${basePath}/admin/planos`, label: "Planos", icon: Crown },
     { href: `${basePath}/admin/jogos`, label: "Jogos", icon: Calendar },
-    { 
+    {
       href: `${basePath}/admin/solicitacoes`, label: "Solicitações", icon: CalendarPlus, hasBadge: true,
       locked: !hasSolicitacoes, requiredPlan: "Pro", featureName: "Solicitações de Amistosos"
     },
     { href: `${basePath}/admin/times`, label: "Times", icon: Shield },
     { href: `${basePath}/admin/jogadores`, label: "Jogadores", icon: Users },
-    { href: `${basePath}/admin/usuarios`, label: "Usuários", icon: UserCog },
-    { 
+    // Apenas Super Admin vê o menu de Usuários (leads do SaaS)
+    ...(user?.email === "futgestor@gmail.com" || isAdmin ? [{ href: `${basePath}/admin/usuarios`, label: "Usuários", icon: UserCog }] : []),
+    {
       href: `${basePath}/admin/transacoes`, label: "Transações", icon: DollarSign,
       locked: !hasFinanceiro, requiredPlan: "Pro", featureName: "Gestão Financeira"
     },
-    { 
+    {
       href: `${basePath}/admin/resultados`, label: "Resultados", icon: Trophy,
       locked: !hasResultados, requiredPlan: "Pro", featureName: "Resultados e Estatísticas"
     },
@@ -148,26 +153,33 @@ export default function Admin() {
       locked: !hasCampeonatos, requiredPlan: "Liga", featureName: "Gestor de Campeonatos"
     },
     { href: `${basePath}/admin/escalacoes`, label: "Escalações", icon: ClipboardList },
-    { 
+    {
       href: `${basePath}/admin/avisos`, label: "Avisos", icon: Bell,
       locked: !hasAvisos, requiredPlan: "Pro", featureName: "Gestão de Avisos"
     },
     { href: `${basePath}/admin/configuracoes`, label: "Configurações", icon: Settings },
     { href: `${basePath}/admin/guia`, label: "Guia", icon: BookOpen },
-  ];
+  ].filter(item => {
+    // Menu Usuários é restrito ao Super Admin (email ou role)
+    if (item.label === "Usuários") {
+      return user?.email === "futgestor@gmail.com" || isSuperAdmin;
+    }
+    return true;
+  });
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           setTimeout(() => {
             checkAdminRole(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsSuperAdmin(false);
           setIsLoading(false);
         }
       }
@@ -176,7 +188,7 @@ export default function Admin() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         checkAdminRole(session.user.id);
       } else {
@@ -194,24 +206,27 @@ export default function Admin() {
     }
   }, [planLoading, isActive, user, isAdmin, location.pathname, basePath, navigate]);
 
+
   const checkAdminRole = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
+        .eq("user_id", userId);
 
       if (error) {
         console.error("Error checking admin role:", error);
         setIsAdmin(false);
+        setIsSuperAdmin(false);
       } else {
-        setIsAdmin(!!data);
+        const roles = data.map(r => r.role);
+        setIsAdmin(roles.includes("admin") || roles.includes("super_admin"));
+        setIsSuperAdmin(roles.includes("super_admin"));
       }
     } catch (err) {
       console.error("Error checking admin role:", err);
       setIsAdmin(false);
+      setIsSuperAdmin(false);
     } finally {
       setIsLoading(false);
     }
@@ -304,9 +319,9 @@ export default function Admin() {
             </div>
           </div>
 
-          <NavMenu 
-            setSidebarOpen={setSidebarOpen} 
-            currentPath={location.pathname} 
+          <NavMenu
+            setSidebarOpen={setSidebarOpen}
+            currentPath={location.pathname}
             sidebarItems={sidebarItems}
             onLockedClick={(plan, feature) => setUpgradeModal({ open: true, plan, feature })}
           />

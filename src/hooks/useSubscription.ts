@@ -39,13 +39,12 @@ export function useSubscription(teamId?: string | null) {
         } as Subscription;
       }
 
+      // Use RPC to bypass RLS for public pages
       const { data, error } = await supabase
-        .from("subscriptions")
-        .select("id, team_id, plano, status, created_at, expires_at")
-        .eq("team_id", effectiveTeamId!)
-        .maybeSingle();
+        .rpc("get_public_subscription", { _team_id: effectiveTeamId });
+
       if (error) throw error;
-      return data as Subscription | null;
+      return data as unknown as Subscription | null;
     },
   });
 }

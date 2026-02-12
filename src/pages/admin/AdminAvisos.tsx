@@ -45,14 +45,17 @@ function getCategoryIcon(categoria: NoticeCategory) {
   }
 }
 
+import { useTeamConfig } from "@/hooks/useTeamConfig";
+
 export default function AdminAvisos() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAviso, setEditingAviso] = useState<Aviso | null>(null);
   const [formData, setFormData] = useState<AvisoFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Get all notices including unpublished for admin
-  const { data: avisos, isLoading } = useAvisos();
+  const { team } = useTeamConfig();
+  const { data: avisos, isLoading } = useAvisos(undefined, team.id);
   const { profile } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();

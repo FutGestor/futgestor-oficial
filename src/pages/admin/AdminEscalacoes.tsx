@@ -15,14 +15,14 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEscalacoes, useJogos, useJogadores } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
-import { 
-  modalityLabels, 
-  formacoesPorModalidade, 
+import {
+  modalityLabels,
+  formacoesPorModalidade,
   positionSlotsByFormation,
   positionSlotLabels,
-  type Escalacao, 
-  type Jogo, 
-  type GameModality 
+  type Escalacao,
+  type Jogo,
+  type GameModality
 } from "@/lib/types";
 import { SocietyField } from "@/components/SocietyField";
 
@@ -44,17 +44,19 @@ const initialFormData: EscalacaoFormData = {
   banco: [],
 };
 
+import { useTeamConfig } from "@/hooks/useTeamConfig";
+
 export default function AdminEscalacoes() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEscalacao, setEditingEscalacao] = useState<(Escalacao & { jogo: Jogo }) | null>(null);
   const [formData, setFormData] = useState<EscalacaoFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
+  const { team } = useTeamConfig();
+  const { data: escalacoes, isLoading } = useEscalacoes(team.id);
+  const { data: jogos } = useJogos(team.id);
+  const { data: jogadores } = useJogadores(true, team.id);
   const { profile } = useAuth();
-  const teamId = profile?.team_id || undefined;
-  const { data: escalacoes, isLoading } = useEscalacoes(teamId);
-  const { data: jogos } = useJogos();
-  const { data: jogadores } = useJogadores();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -65,7 +67,7 @@ export default function AdminEscalacoes() {
 
   // Formações disponíveis para a modalidade selecionada
   const formacoesDisponiveis = formacoesPorModalidade[formData.modalidade];
-  
+
   // Slots de posição disponíveis para a formação selecionada
   const positionSlots = positionSlotsByFormation[formData.formacao] || [];
 
@@ -80,16 +82,16 @@ export default function AdminEscalacoes() {
 
   const openEditDialog = async (escalacao: Escalacao & { jogo: Jogo }) => {
     setEditingEscalacao(escalacao);
-    
+
     // Get current players in this lineup
     const { data: players } = await supabase
       .from("escalacao_jogadores")
       .select("jogador_id, posicao_campo")
       .eq("escalacao_id", escalacao.id);
-    
+
     const jogadoresPorPosicao: Record<string, string> = {};
     const bancoJogadores: string[] = [];
-    
+
     players?.forEach(p => {
       if (p.posicao_campo === 'banco') {
         bancoJogadores.push(p.jogador_id);
@@ -97,7 +99,7 @@ export default function AdminEscalacoes() {
         jogadoresPorPosicao[p.posicao_campo] = p.jogador_id;
       }
     });
-    
+
     setFormData({
       jogo_id: escalacao.jogo_id,
       formacao: escalacao.formacao || "2-2-2",
@@ -328,7 +330,7 @@ export default function AdminEscalacoes() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="modalidade">Modalidade</Label>
                   <Select
@@ -352,8 +354,8 @@ export default function AdminEscalacoes() {
                   <Label htmlFor="formacao">Formação</Label>
                   <Select
                     value={formData.formacao}
-                    onValueChange={(value) => setFormData({ 
-                      ...formData, 
+                    onValueChange={(value) => setFormData({
+                      ...formData,
                       formacao: value,
                       jogadores_por_posicao: {}, // Reset jogadores ao mudar formação
                     })}
@@ -418,8 +420,8 @@ export default function AdminEscalacoes() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="__none__">Nenhum</SelectItem>
-                            {jogadores?.filter(j => 
-                              !jogadoresAlocados.includes(j.id) || 
+                            {jogadores?.filter(j =>
+                              !jogadoresAlocados.includes(j.id) ||
                               formData.jogadores_por_posicao[posicao] === j.id
                             ).map((jogador) => (
                               <SelectItem key={jogador.id} value={jogador.id}>
@@ -440,7 +442,7 @@ export default function AdminEscalacoes() {
                 <div className="flex items-center justify-between">
                   <Label className="text-base font-semibold">🪑 Banco de Reservas ({formData.banco.length} jogadores)</Label>
                 </div>
-                
+
                 {/* Adicionar jogador ao banco */}
                 <div className="flex gap-2">
                   <Select
@@ -459,7 +461,7 @@ export default function AdminEscalacoes() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__add__" disabled>Selecione um jogador...</SelectItem>
-                      {jogadores?.filter(j => 
+                      {jogadores?.filter(j =>
                         !jogadoresAlocados.includes(j.id)
                       ).map((jogador) => (
                         <SelectItem key={jogador.id} value={jogador.id}>
@@ -501,7 +503,7 @@ export default function AdminEscalacoes() {
                     })}
                   </div>
                 )}
-                
+
                 {formData.banco.length === 0 && (
                   <p className="text-sm text-muted-foreground">Nenhum jogador no banco. Adicione jogadores usando o seletor acima.</p>
                 )}

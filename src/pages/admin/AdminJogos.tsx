@@ -43,6 +43,8 @@ const initialFormData: JogoFormData = {
   observacoes: "",
 };
 
+import { useTeamConfig } from "@/hooks/useTeamConfig";
+
 export default function AdminJogos() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -50,14 +52,15 @@ export default function AdminJogos() {
   const [editingJogo, setEditingJogo] = useState<Jogo | null>(null);
   const [formData, setFormData] = useState<JogoFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Estados para visualização de calendário
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  
-  const { data: jogos, isLoading } = useJogos();
+
+  const { team } = useTeamConfig();
+  const { data: jogos, isLoading } = useJogos(team.id);
   const { profile } = useAuth();
   const { data: times } = useTimesAtivos(profile?.team_id);
   const queryClient = useQueryClient();
@@ -239,7 +242,7 @@ export default function AdminJogos() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 {!formData.time_adversario_id && (
                   <div className="space-y-2">
                     <Label htmlFor="adversario">Nome do Adversário</Label>
@@ -312,9 +315,9 @@ export default function AdminJogos() {
 
         {/* Linha 2: Controles de visualização */}
         <div className="flex flex-wrap items-center gap-3">
-          <ToggleGroup 
-            type="single" 
-            value={viewMode} 
+          <ToggleGroup
+            type="single"
+            value={viewMode}
             onValueChange={(value) => value && setViewMode(value as "list" | "calendar")}
           >
             <ToggleGroupItem value="list" aria-label="Visualização em lista">
@@ -326,7 +329,7 @@ export default function AdminJogos() {
               <span className="hidden sm:inline">Calendário</span>
             </ToggleGroupItem>
           </ToggleGroup>
-          
+
           {viewMode === "list" && (
             <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "asc" | "desc")}>
               <SelectTrigger className="w-[140px] sm:w-[160px]">
@@ -353,9 +356,9 @@ export default function AdminJogos() {
         jogosSorted.length > 0 ? (
           <div className="space-y-4">
             {jogosSorted.map((jogo) => (
-              <JogoCard 
-                key={jogo.id} 
-                jogo={jogo} 
+              <JogoCard
+                key={jogo.id}
+                jogo={jogo}
                 onEdit={openEditDialog}
                 onDelete={handleDelete}
                 onViewConfirmacoes={(id) => {
@@ -415,13 +418,13 @@ export default function AdminJogos() {
                 {Array.from({ length: monthStart.getDay() }).map((_, i) => (
                   <div key={`empty-${i}`} className="aspect-square" />
                 ))}
-                
+
                 {monthDays.map((day) => {
                   const dayGames = getDayGames(day);
                   const hasGames = dayGames.length > 0;
                   const isToday = isSameDay(day, new Date());
                   const isSelected = selectedDate && isSameDay(day, selectedDate);
-                  
+
                   // Pegar o primeiro jogo do dia para exibir o escudo
                   const firstGame = dayGames[0];
                   const time = firstGame?.time_adversario;
@@ -447,18 +450,18 @@ export default function AdminJogos() {
                           {format(day, "d")}
                         </span>
                       )}
-                      
+
                       {/* Escudo ocupando todo o quadrado */}
                       {hasGames && time?.escudo_url && (
                         <div className="absolute inset-0 flex items-center justify-center p-0.5">
-                          <img 
-                            src={time.escudo_url} 
+                          <img
+                            src={time.escudo_url}
                             alt={time.nome || firstGame.adversario}
                             className="h-full w-full rounded-full object-contain"
                           />
                         </div>
                       )}
-                      
+
                       {/* Abreviação do time (posicionada abaixo do número) */}
                       {hasGames && !time?.escudo_url && (
                         <div className="absolute inset-0 flex items-center justify-center pt-3">
@@ -477,19 +480,19 @@ export default function AdminJogos() {
           {/* Lista de jogos do dia selecionado */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">
-              {selectedDate 
+              {selectedDate
                 ? `Jogos em ${format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}`
                 : "Selecione um dia"
               }
             </h3>
-            
+
             {selectedDate ? (
               jogosDoDia.length > 0 ? (
                 <div className="space-y-4">
                   {jogosDoDia.map((jogo) => (
-                    <JogoCard 
-                      key={jogo.id} 
-                      jogo={jogo} 
+                    <JogoCard
+                      key={jogo.id}
+                      jogo={jogo}
                       onEdit={openEditDialog}
                       onDelete={handleDelete}
                       onViewConfirmacoes={(id) => {
@@ -532,22 +535,22 @@ export default function AdminJogos() {
 }
 
 // Componente separado para o card do jogo com contador de confirmações
-function JogoCard({ 
-  jogo, 
-  onEdit, 
-  onDelete, 
+function JogoCard({
+  jogo,
+  onEdit,
+  onDelete,
   onViewConfirmacoes,
   compact = false
-}: { 
-  jogo: Jogo; 
-  onEdit: (jogo: Jogo) => void; 
-  onDelete: (id: string) => void; 
+}: {
+  jogo: Jogo;
+  onEdit: (jogo: Jogo) => void;
+  onDelete: (id: string) => void;
   onViewConfirmacoes: (id: string) => void;
   compact?: boolean;
 }) {
   const { data: contagem } = useConfirmacoesContagem(jogo.id);
   const { hasPresenca } = usePlanAccess();
-  
+
   return (
     <Card>
       <CardContent className={cn("flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between", compact ? "p-3" : "p-4")}>
@@ -586,8 +589,8 @@ function JogoCard({
         <div className={cn("flex flex-wrap gap-2", compact && "flex-col")}>
           {hasPresenca && (
             <>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size={compact ? "icon" : "sm"}
                 onClick={() => onViewConfirmacoes(jogo.id)}
               >

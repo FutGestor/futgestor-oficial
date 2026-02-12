@@ -59,8 +59,8 @@ function ChamadoAdminDetalhe({ chamado, onVoltar }: { chamado: Chamado; onVoltar
     try {
       await atualizarStatus.mutateAsync({ chamadoId: chamado.id, status });
       toast.success("Status atualizado");
-    } catch {
-      toast.error("Erro ao atualizar status");
+    } catch (error: any) {
+      toast.error(`Erro ao atualizar status: ${error.message || "Erro desconhecido"}`);
     }
   };
 
@@ -105,11 +105,10 @@ function ChamadoAdminDetalhe({ chamado, onVoltar }: { chamado: Chamado; onVoltar
           return (
             <div key={msg.id} className={`flex ${msg.is_admin ? "justify-end" : "justify-start"}`}>
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-3 ${
-                  msg.is_admin
+                className={`max-w-[80%] rounded-lg px-4 py-3 ${msg.is_admin
                     ? "bg-primary/20 border border-primary/30 text-gray-200"
                     : "bg-[#0F2440] border border-white/[0.06] text-gray-300"
-                }`}
+                  }`}
               >
                 <p className="text-[10px] font-semibold mb-1 text-gray-500">
                   {msg.is_admin ? "Suporte FutGestor" : "Usuário"} •{" "}

@@ -8,12 +8,14 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 import { usePlanAccess } from "@/hooks/useSubscription";
+import { useTodosChamados } from "@/hooks/useChamados";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
   const location = useLocation();
   const { user, profile, isAdmin, isSuperAdmin, isApproved, signOut } = useAuth();
+  const { data: chamados } = useTodosChamados();
   const isPlayer = !!profile?.jogador_id && !isAdmin;
   const teamSlug = useOptionalTeamSlug();
 
@@ -34,27 +36,27 @@ export function Header() {
   // Nav items visíveis para todos (incluindo visitantes) - condicionados ao plano
   const visitorNavItems = teamSlug
     ? [
-        { href: basePath, label: "Início" },
-        ...(hasResultados ? [{ href: `${basePath}/resultados`, label: "Resultados" }] : []),
-        ...(hasRanking ? [{ href: `${basePath}/ranking`, label: "Ranking" }] : []),
-        ...(hasCampeonatos ? [{ href: `${basePath}/ligas`, label: "Ligas" }] : []),
-      ]
+      { href: basePath, label: "Início" },
+      ...(hasResultados ? [{ href: `${basePath}/resultados`, label: "Resultados" }] : []),
+      ...(hasRanking ? [{ href: `${basePath}/ranking`, label: "Ranking" }] : []),
+      ...(hasCampeonatos ? [{ href: `${basePath}/ligas`, label: "Ligas" }] : []),
+    ]
     : [{ href: "/", label: "Início" }];
 
   // Nav items apenas para membros logados
   const memberNavItems = teamSlug
     ? [
-        { href: `${basePath}/escalacao`, label: "Escalação" },
-        { href: `${basePath}/jogadores`, label: "Jogadores" },
-      ]
+      { href: `${basePath}/escalacao`, label: "Escalação" },
+      { href: `${basePath}/jogadores`, label: "Jogadores" },
+    ]
     : [];
 
   const privateNavItems = teamSlug
     ? [
-        { href: `${basePath}/financeiro`, label: "Financeiro" },
-        { href: `${basePath}/avisos`, label: "Avisos" },
-        { href: `${basePath}/suporte`, label: "Suporte" },
-      ]
+      { href: `${basePath}/financeiro`, label: "Financeiro" },
+      { href: `${basePath}/avisos`, label: "Avisos" },
+      { href: `${basePath}/suporte`, label: "Suporte" },
+    ]
     : [];
 
   const navItems = user
@@ -124,14 +126,19 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="hidden text-primary-foreground hover:bg-primary-foreground/10 md:inline-flex"
+                className="hidden text-primary-foreground hover:bg-primary-foreground/10 md:inline-flex relative"
               >
                 <Headphones className="mr-1 h-4 w-4" />
                 Suporte Global
+                {chamados?.filter(c => c.status === "aberto").length ? (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
+                    {chamados.filter(c => c.status === "aberto").length}
+                  </span>
+                ) : null}
               </Button>
             </Link>
           )}
-          
+
           {redesSociais.instagram && (
             <a
               href={redesSociais.instagram}
@@ -152,7 +159,7 @@ export function Header() {
               <MessageCircle className="h-5 w-5" />
             </a>
           )}
-          
+
           {user ? (
             <>
               {isApproved && teamSlug && !isPlayer && (
@@ -279,9 +286,14 @@ export function Header() {
                   )}
                   {isSuperAdmin && (
                     <Link to="/super-admin/suporte" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="secondary" size="sm">
+                      <Button variant="secondary" size="sm" className="relative">
                         <Headphones className="mr-1 h-4 w-4" />
                         Suporte Global
+                        {chamados?.filter(c => c.status === "aberto").length ? (
+                          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20">
+                            {chamados.filter(c => c.status === "aberto").length}
+                          </span>
+                        ) : null}
                       </Button>
                     </Link>
                   )}

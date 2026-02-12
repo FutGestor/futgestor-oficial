@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Check, X, Clock, UserCheck, UserX, Shield, ShieldOff, Trash2, Pencil } from "lucide-react";
+import { Check, X, Clock, UserCheck, UserX, Shield, ShieldOff, Trash2, Pencil, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,6 +45,9 @@ interface ProfileWithEmail {
   aprovado: boolean;
   created_at: string;
   team_id: string | null;
+  email: string | null;
+  plano: string | null;
+  status_plano: string | null;
   jogador?: {
     nome: string;
     apelido: string | null;
@@ -54,37 +64,46 @@ export default function AdminUsuarios() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<ProfileWithEmail | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   // Estado para dialog de editar nome
   const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
   const [userToEditName, setUserToEditName] = useState<ProfileWithEmail | null>(null);
   const [newName, setNewName] = useState("");
 
+  // Estado para dialog de alterar plano
+  const [planDialogOpen, setPlanDialogOpen] = useState(false);
+  const [userToUpdatePlan, setUserToUpdatePlan] = useState<ProfileWithEmail | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<string>("");
+
   // Buscar profiles com dados relacionados
   const { data: profiles, isLoading } = useQuery({
     queryKey: ["admin-profiles", authProfile?.team_id, isSuperAdmin],
     queryFn: async () => {
-      // Buscar profiles - super admin ve todos, admin normal ve so do seu time
-      let query = supabase
-        .from("profiles")
-        .select(`
-          id,
-          nome,
-          jogador_id,
-          aprovado,
-          created_at,
-          team_id,
-          jogador:jogadores(nome, apelido)
-        `)
-        .order("created_at", { ascending: false });
+      // Usar NOVA RPC segura para buscar dados com email e plano
+      const { data: profilesData, error: profilesError } = await supabase
+        .rpc("get_admin_users_full" as any);
 
-      if (!isSuperAdmin && authProfile?.team_id) {
-        query = query.or(`team_id.eq.${authProfile.team_id},team_id.is.null`);
+      if (profilesError) {
+        console.error("RPC Error:", profilesError);
+        throw profilesError;
       }
 
-      const { data: profilesData, error: profilesError } = await query;
+      // Buscar info adicional de jogadores
+      const jogadorIds = (profilesData || []).filter(p => p.jogador_id).map(p => p.jogador_id);
+      let jogadoresMap: Record<string, { nome: string, apelido: string | null }> = {};
 
-      if (profilesError) throw profilesError;
+      if (jogadorIds.length > 0) {
+        const { data: jogadoresData } = await supabase
+          .from("jogadores")
+          .select("id, nome, apelido")
+          .in("id", jogadorIds);
+
+        if (jogadoresData) {
+          jogadoresData.forEach(j => {
+            jogadoresMap[j.id] = { nome: j.nome, apelido: j.apelido };
+          });
+        }
+      }
 
       // Buscar roles de admin
       const { data: rolesData, error: rolesError } = await supabase
@@ -110,13 +129,13 @@ export default function AdminUsuarios() {
       const adminIds = new Set(rolesData?.filter(r => r.role === 'admin').map(r => r.user_id) || []);
       const superAdminIds = new Set(rolesData?.filter(r => r.role === 'super_admin').map(r => r.user_id) || []);
 
-      // Retornar com flag de admin e nome do time
+      // Retornar dados enriquecidos
       return (profilesData || [])
-        .filter(p => isSuperAdmin || !superAdminIds.has(p.id))
         .map(p => ({
           ...p,
           isAdmin: adminIds.has(p.id),
           teamName: p.team_id ? teamNamesMap[p.team_id] : undefined,
+          jogador: p.jogador_id ? jogadoresMap[p.jogador_id] : null
         })) as ProfileWithEmail[];
     },
   });
@@ -213,20 +232,16 @@ export default function AdminUsuarios() {
 
   const handleDeleteComplete = async () => {
     if (!userToDelete) return;
-    
+
     setIsDeleting(true);
     try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session?.access_token) {
-        throw new Error("Sessão não encontrada");
-      }
-
-      const response = await supabase.functions.invoke("delete-user", {
-        body: { userId: userToDelete.id },
+      // Usar NOVA RPC de segurança em vez de Edge Function (evita erro de CORS)
+      const { error } = await supabase.rpc("admin_delete_user" as any, {
+        _user_id: userToDelete.id
       });
 
-      if (response.error) {
-        throw new Error(response.error.message || "Erro ao excluir usuário");
+      if (error) {
+        throw new Error(error.message || "Erro ao excluir usuário no banco de dados");
       }
 
       queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
@@ -246,7 +261,7 @@ export default function AdminUsuarios() {
 
   const handleUpdateName = async () => {
     if (!userToEditName || !newName.trim()) return;
-    
+
     setIsUpdating(userToEditName.id);
     try {
       const { error } = await supabase
@@ -271,6 +286,45 @@ export default function AdminUsuarios() {
       setIsUpdating(null);
     }
   };
+
+  const handleUpdatePlan = async () => {
+    if (!userToUpdatePlan || !selectedPlan || !userToUpdatePlan.team_id) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Selecione um plano e certifique-se que o usuário tem um time.",
+      });
+      return;
+    }
+
+    setIsUpdating(userToUpdatePlan.id);
+    try {
+      const { error } = await supabase
+        .rpc("admin_set_plan", {
+          _team_id: userToUpdatePlan.team_id,
+          _plan_type: selectedPlan
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Plano atualizado com sucesso!",
+        description: `O time agora é ${selectedPlan.toUpperCase()}.`
+      });
+      setPlanDialogOpen(false);
+      setUserToUpdatePlan(null);
+      setSelectedPlan("");
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar plano",
+        description: error instanceof Error ? error.message : "Ocorreu um erro",
+      });
+    } finally {
+      setIsUpdating(null);
+    }
+  };
+
 
   const pendentes = profiles?.filter(p => !p.aprovado) || [];
   const aprovados = profiles?.filter(p => p.aprovado) || [];
@@ -338,10 +392,20 @@ export default function AdminUsuarios() {
                       <p className="mt-1 font-medium">
                         {profile.nome || "Sem nome"}
                       </p>
+                      {profile.email && (
+                        <p className="text-sm text-muted-foreground">
+                          {profile.email}
+                        </p>
+                      )}
                       <p className="text-sm font-semibold text-muted-foreground">
                         Time: {profile.teamName || "Sem time"}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      {profile.plano && (
+                        <Badge variant="outline" className={`mt-1 ${profile.status_plano === 'active' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>
+                          Plano {profile.plano.toUpperCase()} • {profile.status_plano === 'active' ? 'Ativo' : 'Pendente'}
+                        </Badge>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
                         ID: {profile.id.slice(0, 8)}... • Cadastrado em {format(new Date(profile.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                       </p>
                     </div>
@@ -406,14 +470,42 @@ export default function AdminUsuarios() {
                       <p className="mt-1 font-medium">
                         {profile.nome || profile.jogador?.apelido || profile.jogador?.nome || "Sem nome"}
                       </p>
+                      {profile.email && (
+                        <p className="text-sm text-muted-foreground">
+                          {profile.email}
+                        </p>
+                      )}
                       <p className="text-sm font-semibold text-muted-foreground">
                         Time: {profile.teamName || "Sem time"}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      {profile.plano && (
+                        <Badge variant="outline" className={`mt-1 ${profile.status_plano === 'active' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>
+                          Plano {profile.plano.toUpperCase()} • {profile.status_plano === 'active' ? 'Ativo' : 'Pendente'}
+                        </Badge>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
                         ID: {profile.id.slice(0, 8)}... • Desde {format(new Date(profile.created_at), "dd/MM/yyyy", { locale: ptBR })}
                       </p>
                     </div>
                     <div className="flex gap-2">
+
+                      {/* Botão de Gerenciar Plano (APENAS Super Admin) */}
+                      {profile.team_id && isSuperAdmin && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-yellow-500 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-500/10"
+                          onClick={() => {
+                            setUserToUpdatePlan(profile);
+                            setSelectedPlan("");
+                            setPlanDialogOpen(true);
+                          }}
+                        >
+                          <CreditCard className="mr-1 h-4 w-4" />
+                          Plano
+                        </Button>
+                      )}
+
                       {!profile.nome && (
                         <Button
                           size="sm"
@@ -426,48 +518,50 @@ export default function AdminUsuarios() {
                           disabled={isUpdating === profile.id}
                         >
                           <Pencil className="mr-1 h-4 w-4" />
-                          Definir nome
+                          Nome
                         </Button>
                       )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleToggleAdmin(profile.id, !!profile.isAdmin)}
-                        disabled={isUpdating === profile.id}
-                      >
-                        {profile.isAdmin ? (
-                          <>
-                            <ShieldOff className="mr-1 h-4 w-4" />
-                            Remover Admin
-                          </>
-                        ) : (
-                          <>
-                            <Shield className="mr-1 h-4 w-4" />
-                            Tornar Admin
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleReject(profile.id)}
-                        disabled={isUpdating === profile.id}
-                      >
-                        <X className="mr-1 h-4 w-4" />
-                        Revogar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => {
-                          setUserToDelete(profile);
-                          setDeleteDialogOpen(true);
-                        }}
-                        disabled={isUpdating === profile.id}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+
+                      {/* Botões Administrativos (APENAS Super Admin) */}
+                      {isSuperAdmin && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleToggleAdmin(profile.id, !!profile.isAdmin)}
+                            disabled={isUpdating === profile.id}
+                            title={profile.isAdmin ? "Remover Admin" : "Tornar Admin"}
+                          >
+                            {profile.isAdmin ? (
+                              <ShieldOff className="h-4 w-4" />
+                            ) : (
+                              <Shield className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleReject(profile.id)}
+                            disabled={isUpdating === profile.id}
+                            title="Rejeitar/Remover Acesso"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              setUserToDelete(profile);
+                              setDeleteDialogOpen(true);
+                            }}
+                            disabled={isUpdating === profile.id}
+                            title="Excluir Permanentemente"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -532,6 +626,54 @@ export default function AdminUsuarios() {
               disabled={!newName.trim() || isUpdating === userToEditName?.id}
             >
               Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Alterar Plano */}
+      <Dialog open={planDialogOpen} onOpenChange={setPlanDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mudar Plano do Time</DialogTitle>
+            <DialogDescription>
+              Escolha o novo plano para o time <strong>{userToUpdatePlan?.teamName}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <Select value={selectedPlan} onValueChange={setSelectedPlan}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um plano" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="free">Free (Gratuito)</SelectItem>
+                <SelectItem value="pro">Pro (Intermediário)</SelectItem>
+                <SelectItem value="liga">Liga (Completo)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-2">
+              ⚠️ Isso vai alterar a assinatura imediatamente e definir validade de 100 anos.
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPlanDialogOpen(false);
+                setUserToUpdatePlan(null);
+                setSelectedPlan("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleUpdatePlan}
+              disabled={!selectedPlan || isUpdating === userToUpdatePlan?.id}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+            >
+              Atualizar Plano
             </Button>
           </DialogFooter>
         </DialogContent>

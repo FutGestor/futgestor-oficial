@@ -58,7 +58,7 @@ export function useCriarChamado() {
   return useMutation({
     mutationFn: async (input: { assunto: string; descricao: string; categoria: string }) => {
       if (!user || !profile?.team_id) throw new Error("Usuário não autenticado");
-      
+
       const { data, error } = await supabase
         .from("chamados")
         .insert({

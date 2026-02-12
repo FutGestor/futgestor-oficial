@@ -43,14 +43,17 @@ const initialFormData: TransacaoFormData = {
   valor: "",
 };
 
+import { useTeamConfig } from "@/hooks/useTeamConfig";
+
 export default function AdminTransacoes() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTransacao, setEditingTransacao] = useState<Transacao | null>(null);
   const [formData, setFormData] = useState<TransacaoFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { data: transacoes, isLoading } = useTransacoes();
-  const { data: summary } = useFinancialSummary();
+
+  const { team } = useTeamConfig();
+  const { data: transacoes, isLoading } = useTransacoes(team.id);
+  const { data: summary } = useFinancialSummary(team.id);
   const { profile } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();

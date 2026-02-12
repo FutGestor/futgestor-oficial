@@ -21,9 +21,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 
-function LastResultCard() {
-  const { data: resultado, isLoading } = useUltimoResultado();
-  const { team } = useTeamConfig();
+function LastResultCard({ teamId }: { teamId: string }) {
+  const { data: resultado, isLoading } = useUltimoResultado(teamId);
+  const { team } = useTeamConfig(); // Still need this for team name? Actually result has names.
+  // Wait, the card uses `team.nome`.
+  // If we pass teamId, we might want to pass team name too or rely on the result/hook.
+  // Let's keep `useTeamConfig` for now as it handles the slug logic too, OR better: use the data from the hook if possible.
+  // actually `useTeamConfig` is fine IF it works correctly. But passing `teamId` to `useUltimoResultado` is CRITICAL.
   const { basePath } = useTeamSlug();
 
   if (isLoading) {
@@ -90,8 +94,8 @@ function LastResultCard() {
   );
 }
 
-function FinancialCard() {
-  const { data: summary, isLoading } = useFinancialSummary();
+function FinancialCard({ teamId }: { teamId: string }) {
+  const { data: summary, isLoading } = useFinancialSummary(teamId);
   const { basePath } = useTeamSlug();
 
   if (isLoading) {
@@ -131,8 +135,8 @@ function FinancialCard() {
   );
 }
 
-function NoticesCard() {
-  const { data: avisos, isLoading } = useAvisos(3);
+function NoticesCard({ teamId }: { teamId: string }) {
+  const { data: avisos, isLoading } = useAvisos(3, teamId);
   const { basePath } = useTeamSlug();
 
   if (isLoading) {
@@ -365,7 +369,7 @@ export default function TeamPublicPage() {
   const { team } = useTeamSlug();
   const { user, profile } = useAuth();
   const isMember = !!profile?.team_id && profile.team_id === team.id;
-  const { hasFinanceiro, hasAvisos, hasSolicitacoes } = usePlanAccess(team.id);
+  const { plan, hasSolicitacoes, hasFinanceiro, hasAvisos } = usePlanAccess(team.id);
 
   return (
     <Layout>
@@ -439,13 +443,14 @@ export default function TeamPublicPage() {
         <section className="py-12">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 md:grid-cols-2">
-              <LastResultCard />
-              {hasFinanceiro && <FinancialCard />}
-              {hasAvisos && <NoticesCard />}
+              <LastResultCard teamId={team.id} />
+              {hasFinanceiro && <FinancialCard teamId={team.id} />}
+              {hasAvisos && <NoticesCard teamId={team.id} />}
             </div>
           </div>
         </section>
       )}
+
     </Layout>
   );
 }

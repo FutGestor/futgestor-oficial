@@ -18,13 +18,15 @@ export interface SolicitacaoJogo {
   updated_at: string;
 }
 
-export function useSolicitacoes(status?: RequestStatus) {
+export function useSolicitacoes(status?: RequestStatus, teamId?: string) {
   return useQuery({
-    queryKey: ["solicitacoes", status],
+    queryKey: ["solicitacoes", status, teamId],
+    enabled: !!teamId,
     queryFn: async () => {
       let query = supabase
         .from("solicitacoes_jogo")
         .select("*")
+        .eq("team_id", teamId!)
         .order("created_at", { ascending: false });
 
       if (status) {
@@ -39,13 +41,15 @@ export function useSolicitacoes(status?: RequestStatus) {
   });
 }
 
-export function useSolicitacoesPendentesCount() {
+export function useSolicitacoesPendentesCount(teamId?: string) {
   return useQuery({
-    queryKey: ["solicitacoes", "pendentes", "count"],
+    queryKey: ["solicitacoes", "pendentes", "count", teamId],
+    enabled: !!teamId,
     queryFn: async () => {
       const { count, error } = await supabase
         .from("solicitacoes_jogo")
         .select("*", { count: "exact", head: true })
+        .eq("team_id", teamId!)
         .eq("status", "pendente");
 
       if (error) throw error;

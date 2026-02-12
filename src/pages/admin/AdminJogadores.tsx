@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Edit, Trash2, User, Upload, X, KeyRound, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -48,13 +49,14 @@ export default function AdminJogadores() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Gerar Acesso state
   const [accessDialog, setAccessDialog] = useState<{ open: boolean; jogador: Jogador | null }>({ open: false, jogador: null });
   const [accessEmail, setAccessEmail] = useState("");
   const [isCreatingAccess, setIsCreatingAccess] = useState(false);
-  
-  const { data: jogadores, isLoading } = useJogadores(false);
+
+  const { team } = useTeamConfig();
+  const { data: jogadores, isLoading } = useJogadores(false, team.id);
   const { profile } = useAuth();
   const { hasLoginJogadores } = usePlanAccess();
   const queryClient = useQueryClient();

@@ -67,6 +67,8 @@ const statusColors: Record<RequestStatus, string> = {
   recusada: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
 };
 
+import { useTeamConfig } from "@/hooks/useTeamConfig";
+
 export default function AdminSolicitacoes() {
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -78,8 +80,10 @@ export default function AdminSolicitacoes() {
     dataHora: "",
   });
 
+  const { team } = useTeamConfig();
   const { data: solicitacoes, isLoading } = useSolicitacoes(
-    statusFilter === "all" ? undefined : statusFilter
+    statusFilter === "all" ? undefined : statusFilter,
+    team.id
   );
   const updateStatus = useUpdateSolicitacaoStatus();
   const deleteSolicitacao = useDeleteSolicitacao();

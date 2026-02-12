@@ -83,6 +83,8 @@ Deno.serve(async (req) => {
     }
 
     console.log(`Creating MP preference for team ${team_id}, plan ${plano}`);
+    console.log(`Debug URLs - Success: ${success_url}, Failure: ${failure_url}`);
+
 
     // Create MP preference
     const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
@@ -101,9 +103,9 @@ Deno.serve(async (req) => {
           },
         ],
         back_urls: {
-          success: success_url || `${req.headers.get("origin")}/`,
-          failure: failure_url || `${req.headers.get("origin")}/`,
-          pending: success_url || `${req.headers.get("origin")}/`,
+          success: "https://futgestor.com.br",
+          failure: "https://futgestor.com.br",
+          pending: "https://futgestor.com.br",
         },
         auto_return: "approved",
         external_reference: JSON.stringify({ team_id, plano, user_id: user.id }),

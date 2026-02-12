@@ -8,11 +8,11 @@ import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { usePlanAccess } from "@/hooks/useSubscription";
 
 export default function AdminDashboard() {
-  const { data: jogos, isLoading: loadingJogos } = useJogos();
-  const { data: jogadores, isLoading: loadingJogadores } = useJogadores(false);
-  const { data: summary, isLoading: loadingSummary } = useFinancialSummary();
-  const { data: resultados, isLoading: loadingResultados } = useResultados();
   const { team } = useTeamConfig();
+  const { data: jogos, isLoading: loadingJogos } = useJogos(team.id);
+  const { data: jogadores, isLoading: loadingJogadores } = useJogadores(false, team.id);
+  const { data: summary, isLoading: loadingSummary } = useFinancialSummary(team.id);
+  const { data: resultados, isLoading: loadingResultados } = useResultados(team.id);
   const { basePath } = useTeamSlug();
   const { hasSaldoCard } = usePlanAccess();
 
@@ -29,19 +29,19 @@ export default function AdminDashboard() {
       {/* Quick Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {hasSaldoCard && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Atual</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {loadingSummary ? <Skeleton className="h-8 w-24" /> : (
-              <div className={`text-2xl font-bold ${(summary?.saldoAtual ?? 0) >= 0 ? "text-green-600" : "text-destructive"}`}>
-                R$ {(summary?.saldoAtual ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Atual</CardTitle>
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {loadingSummary ? <Skeleton className="h-8 w-24" /> : (
+                <div className={`text-2xl font-bold ${(summary?.saldoAtual ?? 0) >= 0 ? "text-green-600" : "text-destructive"}`}>
+                  R$ {(summary?.saldoAtual ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">

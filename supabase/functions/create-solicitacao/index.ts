@@ -1,12 +1,12 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.93.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -17,8 +17,8 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     // Get client IP
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
-      || req.headers.get("cf-connecting-ip") 
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      || req.headers.get("cf-connecting-ip")
       || "unknown";
 
     // Check rate limit
@@ -42,7 +42,7 @@ serve(async (req) => {
     }
 
     // Validate required fields
-    const { nome_time, telefone_contato, data_preferida, horario_preferido, local_sugerido } = body;
+    const { nome_time, email_contato, telefone_contato, data_preferida, horario_preferido, local_sugerido, observacoes, team_id } = body;
     if (!nome_time || !telefone_contato || !data_preferida || !horario_preferido || !local_sugerido) {
       return new Response(
         JSON.stringify({ error: "Campos obrigatórios não preenchidos." }),
@@ -52,13 +52,13 @@ serve(async (req) => {
 
     const { error } = await supabase.from("solicitacoes_jogo").insert({
       nome_time: String(nome_time).slice(0, 100),
-      email_contato: body.email_contato ? String(body.email_contato).slice(0, 255) : null,
+      email_contato: email_contato ? String(email_contato).slice(0, 255) : null,
       telefone_contato: String(telefone_contato).slice(0, 20),
       data_preferida,
       horario_preferido,
       local_sugerido: String(local_sugerido).slice(0, 200),
-      observacoes: body.observacoes ? String(body.observacoes).slice(0, 500) : null,
-      team_id: body.team_id || null,
+      observacoes: observacoes ? String(observacoes).slice(0, 500) : null,
+      team_id: team_id || null,
       ip_address: ip,
     });
 
