@@ -174,8 +174,8 @@ export function SocietyField({
             onMouseDown={(e) => handleMouseDown(e, jogador.id)}
             onTouchStart={(e) => handleMouseDown(e, jogador.id)}
             className={cn(
-              "absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center cursor-move transition-transform",
-              isDragging && "scale-110 z-50",
+              "absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center cursor-move transition-transform touch-none",
+              isDragging && "scale-125 z-50 drop-shadow-2xl",
               !isDragging && "z-10"
             )}
             style={{ top, left }}

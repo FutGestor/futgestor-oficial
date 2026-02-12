@@ -56,6 +56,8 @@ export function useTeamConfig() {
       if (error) throw error;
       return data;
     },
+    staleTime: 1000 * 60 * 30, // 30 minutes
+    gcTime: 1000 * 60 * 60, // 1 hour
   });
 
   if (teamSlug?.team) {
