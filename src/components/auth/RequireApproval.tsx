@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 export function RequireApproval() {
-    const { user, isApproved, isLoading } = useAuth();
+    const { user, isApproved, isAdmin, isSuperAdmin, isLoading } = useAuth();
     const navigate = useNavigate();
 
     const handleSignOut = async () => {
@@ -27,7 +27,8 @@ export function RequireApproval() {
         return <Navigate to="/auth" replace />;
     }
 
-    if (!isApproved) {
+    // Admins and Super Admins bypass the approval check
+    if (!isApproved && !isAdmin && !isSuperAdmin) {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
                 <div className="mb-6 rounded-full bg-yellow-100 p-6 dark:bg-yellow-900/30">
