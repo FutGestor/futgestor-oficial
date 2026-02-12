@@ -10,7 +10,8 @@ import {
     BarChart3,
     Users,
     ShieldAlert,
-    ArrowRight
+    ArrowRight,
+    ArrowLeft
 } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -62,13 +63,24 @@ export default function SuperAdminDashboard() {
         <Layout>
             <div className="min-h-screen bg-[#0A1628]">
                 <div className="container py-8 px-4 md:px-6">
-                    <div className="mb-10 text-center md:text-left">
-                        <div className="flex items-center gap-2 mb-2 justify-center md:justify-start">
-                            <ShieldAlert className="h-5 w-5 text-[#D4A84B]" />
-                            <p className="text-xs font-semibold text-[#D4A84B] uppercase tracking-[3px]">Painel Master</p>
+                    <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div className="text-center md:text-left">
+                            <div className="flex items-center gap-2 mb-2 justify-center md:justify-start">
+                                <ShieldAlert className="h-5 w-5 text-[#D4A84B]" />
+                                <p className="text-xs font-semibold text-[#D4A84B] uppercase tracking-[3px]">Painel Master</p>
+                            </div>
+                            <h1 className="text-4xl font-bold text-white tracking-tight">Área do SuperAdmin</h1>
+                            <p className="text-gray-400 mt-2">Visão geral e ferramentas de gestão da plataforma FutGestor.</p>
                         </div>
-                        <h1 className="text-4xl font-bold text-white tracking-tight">Área do SuperAdmin</h1>
-                        <p className="text-gray-400 mt-2">Visão geral e ferramentas de gestão da plataforma FutGestor.</p>
+
+                        <Button
+                            variant="outline"
+                            onClick={() => navigate("/")}
+                            className="bg-white/5 border-white/10 text-white hover:bg-white/10 w-fit self-center md:self-auto"
+                        >
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Voltar ao Site
+                        </Button>
                     </div>
 
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

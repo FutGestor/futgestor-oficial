@@ -43,6 +43,19 @@ const MOCK_DATA = [
     { name: "Dom", visitantes: 349, views: 4300 },
 ];
 
+const INSTRUCTIONS = `
+### Como configurar o Vercel Analytics:
+
+1. **Gere um Token na Vercel**: Vá em [vercel.com/account/tokens](https://vercel.com/account/tokens) e crie um novo token.
+2. **Pegue o Project ID**: Nas configurações do seu projeto na Vercel, o ID está na aba 'General'.
+3. **Configure no Supabase**:
+   Execute no terminal local:
+   \`\`\`bash
+   supabase secrets set VERCEL_TOKEN=seu_token VERCEL_PROJECT_ID=seu_id
+   \`\`\`
+   Ou adicione via Dashboard do Supabase em 'Settings' -> 'Edge Functions'.
+`;
+
 export default function SuperAdminStatus() {
     const { isSuperAdmin, isLoading: authLoading } = useAuth();
     const navigate = useNavigate();
@@ -164,11 +177,41 @@ export default function SuperAdminStatus() {
                                     <Button
                                         variant="link"
                                         className="text-yellow-500 p-0 h-auto font-bold"
-                                        onClick={() => toast.info("Instruções enviadas no chat")}
+                                        onClick={() => {
+                                            toast.info("As instruções estão logo abaixo na página", {
+                                                duration: 5000
+                                            });
+                                            const element = document.getElementById('setup-instructions');
+                                            element?.scrollIntoView({ behavior: 'smooth' });
+                                        }}
                                     >
                                         Ver Instruções
                                     </Button>
                                 </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {!hasConfig && (
+                        <Card id="setup-instructions" className="mb-8 border-white/10 bg-[#0F2440]">
+                            <CardHeader>
+                                <CardTitle className="text-white text-lg flex items-center gap-2">
+                                    <Settings className="h-5 w-5 text-primary" />
+                                    Passo a Passo da Configuração
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-gray-300 space-y-4 text-sm">
+                                <div className="p-4 rounded-lg bg-black/20 font-mono text-xs overflow-x-auto border border-white/5">
+                                    <p className="text-primary mb-2"># Execute estes comandos se tiver a CLI do Supabase:</p>
+                                    <p>supabase secrets set VERCEL_TOKEN=seu_token</p>
+                                    <p>supabase secrets set VERCEL_PROJECT_ID=seu_projeto_id</p>
+                                </div>
+                                <ul className="list-disc pl-5 space-y-2">
+                                    <li>Crie um Access Token em: <a href="https://vercel.com/account/tokens" target="_blank" className="text-primary underline">vercel.com/account/tokens</a></li>
+                                    <li>O Project ID está em: <span className="text-white bg-white/10 px-1 rounded">Vercel {"->"} Project Settings {"->"} General</span></li>
+                                    <li>Se o projeto estiver em um Time, adicione também o <code className="text-primary">VERCEL_TEAM_ID</code></li>
+                                </ul>
+                                <p className="text-xs text-gray-500 italic">Após salvar os segredos no Supabase, clique no botão "Atualizar" no topo desta página.</p>
                             </CardContent>
                         </Card>
                     )}
