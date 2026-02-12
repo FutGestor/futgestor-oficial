@@ -25,6 +25,8 @@ export interface TeamConfig {
     fontSize: string;
     fontWeight: string;
     textAlign: string;
+    fontFamily: string;
+    titleColor?: string;
   };
 }
 

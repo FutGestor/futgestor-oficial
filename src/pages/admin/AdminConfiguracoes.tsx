@@ -33,6 +33,7 @@ export default function AdminConfiguracoes() {
   const [bioFontWeight, setBioFontWeight] = useState("font-normal");
   const [bioTextAlign, setBioTextAlign] = useState("text-center");
   const [bioFontFamily, setBioFontFamily] = useState("font-sans");
+  const [titleColor, setTitleColor] = useState("#FFFFFF");
   const [saving, setSaving] = useState(false);
   const [uploadingEscudo, setUploadingEscudo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
@@ -58,6 +59,7 @@ export default function AdminConfiguracoes() {
     setBioFontWeight(bioConfig?.fontWeight || "font-normal");
     setBioTextAlign(bioConfig?.textAlign || "text-center");
     setBioFontFamily(bioConfig?.fontFamily || "font-sans");
+    setTitleColor(bioConfig?.titleColor || "#FFFFFF");
 
     setInitialized(true);
   }
@@ -136,7 +138,8 @@ export default function AdminConfiguracoes() {
             fontSize: bioFontSize,
             fontWeight: bioFontWeight,
             textAlign: bioTextAlign,
-            fontFamily: bioFontFamily
+            fontFamily: bioFontFamily,
+            titleColor: titleColor
           }
         })
         .eq("id", teamId);
@@ -299,13 +302,41 @@ export default function AdminConfiguracoes() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Type className="h-5 w-5" />
-            Bio / Descrição da Capa
+            Personalização da Capa (Hero)
           </CardTitle>
-          <CardDescription>Configure o texto e o estilo que aparece sobre a foto de capa</CardDescription>
+          <CardDescription>Configure as cores e o estilo do nome e da descrição sobre a foto de capa</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Cor do Nome do Time */}
+          <div className="rounded-lg bg-primary/5 p-4 border border-primary/20">
+            <Label htmlFor="titleColor" className="text-primary font-semibold">Cor do Nome do Time (Título)</Label>
+            <div className="mt-2 flex items-center gap-3">
+              <div
+                className="h-10 w-10 rounded-full border border-border shadow-sm"
+                style={{ backgroundColor: titleColor }}
+              />
+              <Input
+                id="titleColor"
+                type="color"
+                value={titleColor}
+                onChange={(e) => setTitleColor(e.target.value)}
+                className="h-10 w-20 p-1 cursor-pointer"
+              />
+              <Input
+                value={titleColor}
+                onChange={(e) => setTitleColor(e.target.value)}
+                placeholder="#FFFFFF"
+                className="w-32 font-mono uppercase"
+                maxLength={7}
+              />
+            </div>
+            <p className="mt-1.5 text-[10px] text-muted-foreground">
+              Ajuste para garantir leitura sobre o fundo do banner.
+            </p>
+          </div>
+
           <div>
-            <Label htmlFor="bio">Texto da Bio</Label>
+            <Label htmlFor="bio">Texto da Bio / Descrição</Label>
             <Textarea
               id="bio"
               value={bio}
@@ -435,12 +466,17 @@ export default function AdminConfiguracoes() {
               }}
             >
               <div className="absolute inset-0 bg-black/40" />
-              <p
-                className={cn("relative z-10 w-full max-w-2xl shadow-sm drop-shadow-md", bioFontSize, bioFontWeight, bioTextAlign, bioFontFamily)}
-                style={{ color: bioColor }}
-              >
-                {bio || "Bem-vindo à página do time. Gerencie seu time de futebol em um só lugar."}
-              </p>
+              <div className="relative z-10 w-full flex flex-col items-center">
+                <h2 className="mb-2 text-3xl font-bold drop-shadow-lg" style={{ color: titleColor }}>
+                  {nome || "NOME DO TIME"}
+                </h2>
+                <p
+                  className={cn("w-full max-w-2xl shadow-sm drop-shadow-md", bioFontSize, bioFontWeight, bioTextAlign, bioFontFamily)}
+                  style={{ color: bioColor }}
+                >
+                  {bio || "Bem-vindo à página do time. Gerencie seu time de futebol em um só lugar."}
+                </p>
+              </div>
             </div>
             <p className="mt-2 text-[10px] text-muted-foreground italic text-center">
               * O fundo escurecido (overlay) da foto de capa ajuda na leitura mas você também pode ajustar a cor do texto acima.

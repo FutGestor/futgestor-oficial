@@ -20,6 +20,7 @@ export interface TeamSlugData {
     fontWeight: string;
     textAlign: string;
     fontFamily: string;
+    titleColor?: string;
   };
 }
 
