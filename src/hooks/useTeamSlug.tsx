@@ -13,6 +13,13 @@ export interface TeamSlugData {
   banner_url: string | null;
   cores: any;
   redes_sociais: Record<string, string>;
+  bio_config?: {
+    text: string | null;
+    color: string;
+    fontSize: string;
+    fontWeight: string;
+    textAlign: string;
+  };
 }
 
 interface TeamSlugContextType {
@@ -145,6 +152,7 @@ export function TeamSlugLayout() {
       banner_url: (teamData as any).banner_url || null,
       cores: teamData.cores,
       redes_sociais: (teamData.redes_sociais as Record<string, string>) || {},
+      bio_config: (teamData as any).bio_config || null,
     },
     basePath: `/time/${slug}`,
   };

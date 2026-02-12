@@ -381,11 +381,19 @@ export default function TeamPublicPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/20" />
         <div className="container relative z-10 flex min-h-[500px] md:min-h-[600px] items-center justify-center px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
-            <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">{team.nome}</h1>
-            <p className="mb-8 max-w-2xl text-lg text-white/80">
-              {isMember
+            <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl drop-shadow-lg">{team.nome}</h1>
+            <p
+              className={cn(
+                "mb-8 max-w-2xl drop-shadow-md",
+                team.bio_config?.fontSize || "text-lg",
+                team.bio_config?.fontWeight || "font-normal",
+                team.bio_config?.textAlign || "text-center"
+              )}
+              style={{ color: team.bio_config?.color || "rgba(255, 255, 255, 0.8)" }}
+            >
+              {team.bio_config?.text || (isMember
                 ? "Gerencie seu time de futebol. Agenda, escalações, resultados, finanças e muito mais em um só lugar."
-                : "Bem-vindo à página do time. Faça login para acessar todas as funcionalidades."}
+                : "Bem-vindo à página do time. Faça login para acessar todas as funcionalidades.")}
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               {!user && (

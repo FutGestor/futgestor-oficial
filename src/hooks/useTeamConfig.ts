@@ -19,6 +19,13 @@ export interface TeamConfig {
   cores?: {
     primary?: string;
   };
+  bio_config?: {
+    text: string | null;
+    color: string;
+    fontSize: string;
+    fontWeight: string;
+    textAlign: string;
+  };
 }
 
 const DEFAULT_TEAM: TeamConfig = {
@@ -59,6 +66,7 @@ export function useTeamConfig() {
         banner_url: teamSlug.team.banner_url,
         redes_sociais: teamSlug.team.redes_sociais || {},
         cores: (teamSlug.team.cores as any),
+        bio_config: teamSlug.team.bio_config,
       } as TeamConfig,
       isLoading: false,
     };
@@ -73,6 +81,7 @@ export function useTeamConfig() {
       banner_url: (teamData as any).banner_url || null,
       redes_sociais: (teamData.redes_sociais as any) || {},
       cores: (teamData.cores as any),
+      bio_config: (teamData as any).bio_config || null,
     }
     : DEFAULT_TEAM;
 

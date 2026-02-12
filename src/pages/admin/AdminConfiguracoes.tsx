@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
-import { Camera, Upload, Save, Loader2, Instagram, MessageCircle, Youtube, Facebook, Settings, Code2 } from "lucide-react";
+import { Camera, Upload, Save, Loader2, Instagram, MessageCircle, Youtube, Facebook, Settings, Code2, AlignLeft, AlignCenter, AlignRight, Type } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
@@ -12,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { MeuPlanoSection } from "@/components/MeuPlanoSection";
 import { useCurrentPlan } from "@/hooks/useSubscription";
+import { cn } from "@/lib/utils";
 
 export default function AdminConfiguracoes() {
   const { profile, user } = useAuth();
@@ -25,6 +27,11 @@ export default function AdminConfiguracoes() {
   const [facebook, setFacebook] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [corPrincipal, setCorPrincipal] = useState("#000000");
+  const [bio, setBio] = useState("");
+  const [bioColor, setBioColor] = useState("#FFFFFF");
+  const [bioFontSize, setBioFontSize] = useState("text-lg");
+  const [bioFontWeight, setBioFontWeight] = useState("font-normal");
+  const [bioTextAlign, setBioTextAlign] = useState("text-center");
   const [saving, setSaving] = useState(false);
   const [uploadingEscudo, setUploadingEscudo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
@@ -41,6 +48,15 @@ export default function AdminConfiguracoes() {
     setFacebook(team.redes_sociais?.facebook || "");
     setWhatsapp(team.redes_sociais?.whatsapp || "");
     setCorPrincipal(team.cores?.primary || "#222222"); // Default dark gray if not set
+
+    // Bio settings
+    const bioConfig = team.bio_config as any;
+    setBio(bioConfig?.text || "");
+    setBioColor(bioConfig?.color || "#FFFFFF");
+    setBioFontSize(bioConfig?.fontSize || "text-lg");
+    setBioFontWeight(bioConfig?.fontWeight || "font-normal");
+    setBioTextAlign(bioConfig?.textAlign || "text-center");
+
     setInitialized(true);
   }
 
@@ -111,7 +127,14 @@ export default function AdminConfiguracoes() {
         .update({
           nome: nome.trim(),
           redes_sociais,
-          cores: { primary: corPrincipal }
+          cores: { primary: corPrincipal },
+          bio_config: {
+            text: bio.trim() || null,
+            color: bioColor,
+            fontSize: bioFontSize,
+            fontWeight: bioFontWeight,
+            textAlign: bioTextAlign
+          }
         })
         .eq("id", teamId);
 
@@ -263,6 +286,142 @@ export default function AdminConfiguracoes() {
             </div>
             <p className="mt-1.5 text-xs text-muted-foreground">
               Esta cor será usada no cabeçalho e em botões principais do seu site.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Personalização da Bio */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Type className="h-5 w-5" />
+            Bio / Descrição da Capa
+          </CardTitle>
+          <CardDescription>Configure o texto e o estilo que aparece sobre a foto de capa</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <Label htmlFor="bio">Texto da Bio</Label>
+            <Textarea
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Ex: Gerencie seu time de futebol. Agenda, escalações, resultados..."
+              className="mt-1.5 min-h-[100px]"
+            />
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2">
+            {/* Cor da Bio */}
+            <div>
+              <Label htmlFor="bioColor">Cor do Texto</Label>
+              <div className="mt-1.5 flex items-center gap-3">
+                <div
+                  className="h-10 w-10 rounded-full border border-border shadow-sm"
+                  style={{ backgroundColor: bioColor }}
+                />
+                <Input
+                  id="bioColor"
+                  type="color"
+                  value={bioColor}
+                  onChange={(e) => setBioColor(e.target.value)}
+                  className="h-10 w-20 p-1 cursor-pointer"
+                />
+                <Input
+                  value={bioColor}
+                  onChange={(e) => setBioColor(e.target.value)}
+                  placeholder="#FFFFFF"
+                  className="w-32 font-mono uppercase"
+                  maxLength={7}
+                />
+              </div>
+            </div>
+
+            {/* Tamanho da Fonte */}
+            <div>
+              <Label>Tamanho da Fonte</Label>
+              <Select value={bioFontSize} onValueChange={setBioFontSize}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text-sm">Pequena</SelectItem>
+                  <SelectItem value="text-base">Média</SelectItem>
+                  <SelectItem value="text-lg">Grande (Padrão)</SelectItem>
+                  <SelectItem value="text-xl">Extra Grande</SelectItem>
+                  <SelectItem value="text-2xl">Gigante</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Peso da Fonte */}
+            <div>
+              <Label>Estilo / Peso</Label>
+              <Select value={bioFontWeight} onValueChange={setBioFontWeight}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="font-light">Fina</SelectItem>
+                  <SelectItem value="font-normal">Normal</SelectItem>
+                  <SelectItem value="font-medium">Média</SelectItem>
+                  <SelectItem value="font-semibold">Semi-negrito</SelectItem>
+                  <SelectItem value="font-bold">Negrito</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Alinhamento */}
+            <div>
+              <Label>Alinhamento</Label>
+              <div className="mt-1.5 flex gap-2">
+                <Button
+                  variant={bioTextAlign === "text-left" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setBioTextAlign("text-left")}
+                >
+                  <AlignLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={bioTextAlign === "text-center" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setBioTextAlign("text-center")}
+                >
+                  <AlignCenter className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={bioTextAlign === "text-right" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setBioTextAlign("text-right")}
+                >
+                  <AlignRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Preview */}
+          <div className="rounded-lg border bg-muted p-4">
+            <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground font-semibold">Preview na Capa</Label>
+            <div
+              className="relative aspect-[3/1] w-full rounded-md bg-zinc-800 flex items-center justify-center p-4 overflow-hidden"
+              style={{
+                backgroundImage: team.banner_url ? `url(${team.banner_url})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            >
+              <div className="absolute inset-0 bg-black/40" />
+              <p
+                className={cn("relative z-10 w-full max-w-lg shadow-sm drop-shadow-md", bioFontSize, bioFontWeight, bioTextAlign)}
+                style={{ color: bioColor }}
+              >
+                {bio || "Bem-vindo à página do time. Gerencie seu time de futebol em um só lugar."}
+              </p>
+            </div>
+            <p className="mt-2 text-[10px] text-muted-foreground italic text-center">
+              * O fundo escurecido (overlay) da foto de capa ajuda na leitura mas você também pode ajustar a cor do texto acima.
             </p>
           </div>
         </CardContent>
