@@ -18,7 +18,7 @@ import {
 import type { Chamado } from "@/hooks/useChamados";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const STATUS_COLORS: Record<string, string> = {
   aberto: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
@@ -106,8 +106,8 @@ function ChamadoAdminDetalhe({ chamado, onVoltar }: { chamado: Chamado; onVoltar
             <div key={msg.id} className={`flex ${msg.is_admin ? "justify-end" : "justify-start"}`}>
               <div
                 className={`max-w-[80%] rounded-lg px-4 py-3 ${msg.is_admin
-                    ? "bg-primary/20 border border-primary/30 text-gray-200"
-                    : "bg-[#0F2440] border border-white/[0.06] text-gray-300"
+                  ? "bg-primary/20 border border-primary/30 text-gray-200"
+                  : "bg-[#0F2440] border border-white/[0.06] text-gray-300"
                   }`}
               >
                 <p className="text-[10px] font-semibold mb-1 text-gray-500">
@@ -153,6 +153,7 @@ function ChamadoAdminDetalhe({ chamado, onVoltar }: { chamado: Chamado; onVoltar
 
 export default function SuperAdminSuporte() {
   const { isSuperAdmin, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const { data: chamados, isLoading } = useTodosChamados();
   const [chamadoSelecionado, setChamadoSelecionado] = useState<Chamado | null>(null);
   const [filtroStatus, setFiltroStatus] = useState("todos");
@@ -190,9 +191,19 @@ export default function SuperAdminSuporte() {
     <Layout>
       <div className="min-h-screen bg-[#0A1628]">
         <div className="container py-8 px-4 md:px-6">
-          <div className="mb-8">
-            <p className="text-xs font-semibold text-[#D4A84B] uppercase tracking-[3px] mb-2">🎧 Admin</p>
-            <h1 className="text-3xl font-bold text-white">Suporte Global</h1>
+          <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold text-[#D4A84B] uppercase tracking-[3px] mb-2">🎧 Admin</p>
+              <h1 className="text-3xl font-bold text-white">Suporte Global</h1>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/super-admin")}
+              className="bg-white/5 border-white/10 text-white hover:bg-white/10 w-fit"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar ao Painel Master
+            </Button>
           </div>
 
           {/* Contadores */}

@@ -139,11 +139,12 @@ export default function SuperAdminStatus() {
                         <div className="flex items-center gap-3">
                             <Button
                                 variant="ghost"
-                                size="icon"
-                                onClick={() => navigate(-1)}
-                                className="text-gray-400 hover:text-white"
+                                size="sm"
+                                onClick={() => navigate("/super-admin")}
+                                className="text-gray-400 hover:text-white border border-white/10"
                             >
-                                <ArrowLeft className="h-5 w-5" />
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Voltar ao Painel Master
                             </Button>
                             <div>
                                 <p className="text-xs font-semibold text-[#D4A84B] uppercase tracking-[3px] mb-1">🔍 Infraestrutura</p>
@@ -161,60 +162,7 @@ export default function SuperAdminStatus() {
                         </Button>
                     </div>
 
-                    {!hasConfig && (
-                        <Card className="mb-8 border-yellow-500/20 bg-yellow-500/5">
-                            <CardContent className="pt-6">
-                                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                                    <div className="rounded-full bg-yellow-500/20 p-3">
-                                        <Settings className="h-6 w-6 text-yellow-500" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-white">Configuração Pendente</h3>
-                                        <p className="text-sm text-gray-400">
-                                            Para visualizar os dados reais da Vercel, você precisa configurar as variáveis de ambiente <code className="text-yellow-500">VERCEL_TOKEN</code> e <code className="text-yellow-500">VERCEL_PROJECT_ID</code>.
-                                        </p>
-                                    </div>
-                                    <Button
-                                        variant="link"
-                                        className="text-yellow-500 p-0 h-auto font-bold"
-                                        onClick={() => {
-                                            toast.info("As instruções estão logo abaixo na página", {
-                                                duration: 5000
-                                            });
-                                            const element = document.getElementById('setup-instructions');
-                                            element?.scrollIntoView({ behavior: 'smooth' });
-                                        }}
-                                    >
-                                        Ver Instruções
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
 
-                    {!hasConfig && (
-                        <Card id="setup-instructions" className="mb-8 border-white/10 bg-[#0F2440]">
-                            <CardHeader>
-                                <CardTitle className="text-white text-lg flex items-center gap-2">
-                                    <Settings className="h-5 w-5 text-primary" />
-                                    Passo a Passo da Configuração
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-gray-300 space-y-4 text-sm">
-                                <div className="p-4 rounded-lg bg-black/20 font-mono text-xs overflow-x-auto border border-white/5">
-                                    <p className="text-primary mb-2"># Execute estes comandos se tiver a CLI do Supabase:</p>
-                                    <p>supabase secrets set VERCEL_TOKEN=seu_token</p>
-                                    <p>supabase secrets set VERCEL_PROJECT_ID=seu_projeto_id</p>
-                                </div>
-                                <ul className="list-disc pl-5 space-y-2">
-                                    <li>Crie um Access Token em: <a href="https://vercel.com/account/tokens" target="_blank" className="text-primary underline">vercel.com/account/tokens</a></li>
-                                    <li>O Project ID está em: <span className="text-white bg-white/10 px-1 rounded">Vercel {"->"} Project Settings {"->"} General</span></li>
-                                    <li>Se o projeto estiver em um Time, adicione também o <code className="text-primary">VERCEL_TEAM_ID</code></li>
-                                </ul>
-                                <p className="text-xs text-gray-500 italic">Após salvar os segredos no Supabase, clique no botão "Atualizar" no topo desta página.</p>
-                            </CardContent>
-                        </Card>
-                    )}
 
                     {/* KPI Grid */}
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -372,8 +320,32 @@ export default function SuperAdminStatus() {
                             ))}
                         </div>
                     </div>
+
+                    {!hasConfig && (
+                        <Card id="setup-instructions" className="mt-12 border-white/10 bg-[#0F2440]">
+                            <CardHeader>
+                                <CardTitle className="text-white text-lg flex items-center gap-2">
+                                    <Settings className="h-5 w-5 text-primary" />
+                                    Passo a Passo da Configuração
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-gray-300 space-y-4 text-sm">
+                                <div className="p-4 rounded-lg bg-black/20 font-mono text-xs overflow-x-auto border border-white/5">
+                                    <p className="text-primary mb-2"># Execute estes comandos se tiver a CLI do Supabase:</p>
+                                    <p>supabase secrets set VERCEL_TOKEN=seu_token</p>
+                                    <p>supabase secrets set VERCEL_PROJECT_ID=seu_projeto_id</p>
+                                </div>
+                                <ul className="list-disc pl-5 space-y-2">
+                                    <li>Crie um Access Token em: <a href="https://vercel.com/account/tokens" target="_blank" className="text-primary underline">vercel.com/account/tokens</a></li>
+                                    <li>O Project ID está em: <span className="text-white bg-white/10 px-1 rounded">Vercel {"->"} Project Settings {"->"} General</span></li>
+                                    <li>Se o projeto estiver em um Time, adicione também o <code className="text-primary">VERCEL_TEAM_ID</code></li>
+                                </ul>
+                                <p className="text-xs text-gray-500 italic">Após salvar os segredos no Supabase, clique no botão "Atualizar" no topo desta página.</p>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
-        </Layout>
+        </Layout >
     );
 }

@@ -148,14 +148,19 @@ export default function SuperAdminVendas() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl p-4 lg:p-8">
-        <div className="mb-6 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+        <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Dashboard de Vendas</h1>
             <p className="text-sm text-muted-foreground">Métricas SaaS — FutGestor</p>
           </div>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/super-admin")}
+            className="bg-white/5 border-white/10 text-white hover:bg-white/10 w-fit"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar ao Painel Master
+          </Button>
         </div>
 
         {/* KPI Cards */}
