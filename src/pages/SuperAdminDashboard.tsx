@@ -10,6 +10,7 @@ import {
     BarChart3,
     Users,
     ShieldAlert,
+    Megaphone,
     ArrowRight,
     ArrowLeft
 } from "lucide-react";
@@ -56,6 +57,14 @@ export default function SuperAdminDashboard() {
             color: "text-amber-500",
             bg: "bg-amber-500/10",
             disabled: false
+        },
+        {
+            title: "Avisos Globais",
+            description: "Envie comunicados e avisos que aparecem para todos os usuários da plataforma.",
+            icon: Megaphone,
+            path: "/super-admin/avisos",
+            color: "text-red-500",
+            bg: "bg-red-500/10"
         }
     ];
 

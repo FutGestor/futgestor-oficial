@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -79,6 +80,8 @@ export default function SuperAdminUsuarios() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<ProfileWithEmail | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
+    const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
 
     // Search and Filters
     const [searchTerm, setSearchTerm] = useState("");
@@ -152,6 +155,107 @@ export default function SuperAdminUsuarios() {
             return matchesSearch && matchesPlan && matchesStatus;
         });
     }, [profiles, searchTerm, filterPlan, filterStatus]);
+
+    const toggleSelectAll = () => {
+        if (selectedUserIds.size === filteredProfiles.length) {
+            setSelectedUserIds(new Set());
+        } else {
+            setSelectedUserIds(new Set(filteredProfiles.map(p => p.id)));
+        }
+    };
+
+    const toggleSelectUser = (userId: string) => {
+        const newSelected = new Set(selectedUserIds);
+        if (newSelected.has(userId)) {
+            newSelected.delete(userId);
+        } else {
+            newSelected.add(userId);
+        }
+        setSelectedUserIds(newSelected);
+    };
+
+    const handleBulkApprove = async () => {
+        if (selectedUserIds.size === 0) return;
+        setIsBulkActionLoading(true);
+        try {
+            const { error } = await supabase
+                .from("profiles")
+                .update({ aprovado: true })
+                .in("id", Array.from(selectedUserIds));
+
+            if (error) throw error;
+            queryClient.invalidateQueries({ queryKey: ["super-admin-profiles"] });
+            toast({ title: `${selectedUserIds.size} usuários aprovados com sucesso!` });
+            setSelectedUserIds(new Set());
+        } catch (error) {
+            toast({ variant: "destructive", title: "Erro na aprovação em massa", description: error instanceof Error ? error.message : "Ocorreu um erro" });
+        } finally {
+            setIsBulkActionLoading(false);
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedUserIds.size === 0) return;
+        if (!confirm(`Deseja realmente excluir permanentemente ${selectedUserIds.size} usuários?`)) return;
+
+        setIsBulkActionLoading(true);
+        try {
+            // Processing in chunks or sequential to ensure all are deleted if RPC has limits
+            const ids = Array.from(selectedUserIds);
+            const results = await Promise.all(ids.map(id =>
+                supabase.rpc("admin_delete_user" as any, { _user_id: id })
+            ));
+
+            const errors = results.filter(r => r.error);
+            if (errors.length > 0) throw errors[0].error;
+
+            queryClient.invalidateQueries({ queryKey: ["super-admin-profiles"] });
+            toast({ title: `${ids.length} usuários excluídos permanentemente!` });
+            setSelectedUserIds(new Set());
+        } catch (error) {
+            toast({ variant: "destructive", title: "Erro na exclusão em massa", description: error instanceof Error ? error.message : "Ocorreu um erro" });
+        } finally {
+            setIsBulkActionLoading(false);
+        }
+    };
+
+    const handleBulkSetPlan = async (plan: string) => {
+        if (selectedUserIds.size === 0) return;
+        setIsBulkActionLoading(true);
+        try {
+            // Plan updates need to be team-based, but our selection is user-based.
+            // We'll get all unique team_ids from selected users.
+            const selectedTeams = [...new Set(
+                filteredProfiles
+                    .filter(p => selectedUserIds.has(p.id))
+                    .map(p => p.team_id)
+                    .filter(Boolean)
+            )] as string[];
+
+            if (selectedTeams.length === 0) {
+                toast({ variant: "destructive", title: "Nenhum time associado aos usuários selecionados" });
+                return;
+            }
+
+            const results = await Promise.all(selectedTeams.map(team_id =>
+                supabase.rpc("admin_set_plan" as any, {
+                    _team_id: team_id,
+                    _plan_type: plan
+                })
+            ));
+
+            const errors = results.filter(r => r.error);
+            if (errors.length > 0) throw errors[0].error;
+
+            queryClient.invalidateQueries({ queryKey: ["super-admin-profiles"] });
+            toast({ title: `Plano atualizado para ${selectedTeams.length} times!` });
+            setSelectedUserIds(new Set());
+        } catch (error) {
+            toast({ variant: "destructive", title: "Erro na atualização em massa", description: error instanceof Error ? error.message : "Ocorreu um erro" });
+        } finally {
+            setIsBulkActionLoading(false);
+        }
+    };
 
     const stats = useMemo(() => {
         if (!profiles) return { total: 0, pending: 0, paid: 0 };
@@ -339,7 +443,14 @@ export default function SuperAdminUsuarios() {
                                 <Table>
                                     <TableHeader className="bg-white/5 hover:bg-white/5">
                                         <TableRow className="border-white/5 hover:bg-transparent">
-                                            <TableHead className="text-gray-400 font-bold uppercase text-[10px] py-4">Usuário</TableHead>
+                                            <TableHead className="w-12 px-4 py-4">
+                                                <Checkbox
+                                                    checked={filteredProfiles.length > 0 && selectedUserIds.size === filteredProfiles.length}
+                                                    onCheckedChange={toggleSelectAll}
+                                                    className="border-white/20 data-[state=checked]:bg-[#D4A84B] data-[state=checked]:border-[#D4A84B]"
+                                                />
+                                            </TableHead>
+                                            <TableHead className="text-gray-400 font-bold uppercase text-[10px]">Usuário</TableHead>
                                             <TableHead className="text-gray-400 font-bold uppercase text-[10px]">Time</TableHead>
                                             <TableHead className="text-gray-400 font-bold uppercase text-[10px]">Plano</TableHead>
                                             <TableHead className="text-gray-400 font-bold uppercase text-[10px]">Poderes</TableHead>
@@ -357,7 +468,14 @@ export default function SuperAdminUsuarios() {
                                         ) : (
                                             filteredProfiles.map(profile => (
                                                 <TableRow key={profile.id} className="border-white/5 hover:bg-white/[0.02]">
-                                                    <TableCell className="py-4">
+                                                    <TableCell className="px-4 py-4">
+                                                        <Checkbox
+                                                            checked={selectedUserIds.has(profile.id)}
+                                                            onCheckedChange={() => toggleSelectUser(profile.id)}
+                                                            className="border-white/20 data-[state=checked]:bg-[#D4A84B] data-[state=checked]:border-[#D4A84B]"
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
                                                         <div className="flex flex-col">
                                                             <span className="text-white font-medium">{profile.nome || "Sem nome"}</span>
                                                             <span className="text-[10px] text-gray-500 font-mono tracking-tight">{profile.email}</span>
@@ -501,6 +619,65 @@ export default function SuperAdminUsuarios() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Bulk Actions Bar */}
+            {selectedUserIds.size > 0 && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
+                    <div className="bg-[#0F2440] border border-[#D4A84B]/30 shadow-2xl shadow-black/50 px-6 py-4 rounded-2xl flex items-center gap-6 backdrop-blur-md">
+                        <div className="flex items-center gap-3 pr-6 border-r border-white/10">
+                            <div className="bg-[#D4A84B] text-white font-bold h-6 w-6 rounded-full flex items-center justify-center text-xs">
+                                {selectedUserIds.size}
+                            </div>
+                            <span className="text-white font-medium text-sm">Selecionados</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white font-bold h-9"
+                                onClick={handleBulkApprove}
+                                disabled={isBulkActionLoading}
+                            >
+                                <UserCheck className="mr-2 h-4 w-4" />
+                                Aprovar
+                            </Button>
+
+                            <Select onValueChange={handleBulkSetPlan} disabled={isBulkActionLoading}>
+                                <SelectTrigger className="w-32 bg-white/5 border-white/10 text-white h-9 text-xs font-bold">
+                                    <SelectValue placeholder="Alterar Plano" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#0F2440] border-white/10 text-white">
+                                    <SelectItem value="free">Free</SelectItem>
+                                    <SelectItem value="pro">Pro</SelectItem>
+                                    <SelectItem value="liga">Liga</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-red-500/50 text-red-500 hover:bg-red-500/10 font-bold h-9"
+                                onClick={handleBulkDelete}
+                                disabled={isBulkActionLoading}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Excluir
+                            </Button>
+
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-white/10 text-white hover:bg-white/5 font-bold h-9"
+                                onClick={() => setSelectedUserIds(new Set())}
+                                disabled={isBulkActionLoading}
+                            >
+                                <X className="mr-2 h-4 w-4" />
+                                Cancelar
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </Layout>
     );
 }
