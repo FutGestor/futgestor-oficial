@@ -8,8 +8,8 @@ import { usePlanAccess } from "@/hooks/useSubscription";
 
 export function MobileBottomNav() {
   const location = useLocation();
-  const { data: naoLidos } = useAvisosNaoLidos(team?.id);
   const { basePath, team } = useTeamSlug();
+  const { data: naoLidos } = useAvisosNaoLidos(team?.id);
   const { user } = useAuth();
   const { hasCampeonatos, hasFinanceiro, hasAvisos } = usePlanAccess(team.id);
 
