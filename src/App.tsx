@@ -30,6 +30,7 @@ import Suporte from "./pages/Suporte";
 import SuperAdminSuporte from "./pages/SuperAdminSuporte";
 import SuperAdminStatus from "./pages/SuperAdminStatus";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import SuperAdminUsuarios from "./pages/SuperAdminUsuarios";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/super-admin/vendas" element={<SuperAdminVendas />} />
             <Route path="/super-admin/suporte" element={<SuperAdminSuporte />} />
             <Route path="/super-admin/status" element={<SuperAdminStatus />} />
+            <Route path="/super-admin/usuarios" element={<SuperAdminUsuarios />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
             <Route path="/player/dashboard" element={<RequireApproval />}>
               <Route index element={<PlayerDashboard />} />

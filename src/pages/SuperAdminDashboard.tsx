@@ -52,10 +52,10 @@ export default function SuperAdminDashboard() {
             title: "Controle de Usuários",
             description: "Gestão completa de perfis, permissões e aprovações de novos cadastros.",
             icon: Users,
-            path: "/admin/usuarios",
+            path: "/super-admin/usuarios",
             color: "text-amber-500",
             bg: "bg-amber-500/10",
-            disabled: true // Future module
+            disabled: false
         }
     ];
 
