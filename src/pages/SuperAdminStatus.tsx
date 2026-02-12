@@ -48,7 +48,14 @@ export default function SuperAdminStatus() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [hasConfig, setHasConfig] = useState(false);
-    const [analyticsData, setAnalyticsData] = useState<any>(null);
+    const [analyticsData, setAnalyticsData] = useState<any[]>([]);
+    const [metrics, setMetrics] = useState({
+        visitors: 0,
+        pageviews: 0,
+        bounce_rate: 0,
+        avg_duration: 0
+    });
+    const [topPages, setTopPages] = useState<any[]>([]);
 
     useEffect(() => {
         if (!authLoading && isSuperAdmin) {
@@ -69,13 +76,39 @@ export default function SuperAdminStatus() {
             }
 
             if (data) {
-                setAnalyticsData(MOCK_DATA); // Still using mock for visual trends, but linking status
+                // Parse stats for the chart
+                const chartData = (data.analytics || []).map((item: any) => ({
+                    name: new Date(item.key).toLocaleDateString('pt-BR', { weekday: 'short' }),
+                    visitantes: item.visitors || 0,
+                    views: item.pageviews || 0
+                }));
+
+                setAnalyticsData(chartData.length > 0 ? chartData : MOCK_DATA);
+
+                // Calculate totals for KPIs
+                const totals = (data.analytics || []).reduce((acc: any, curr: any) => ({
+                    visitors: acc.visitors + (curr.visitors || 0),
+                    pageviews: acc.pageviews + (curr.pageviews || 0),
+                    bounce_rate: acc.bounce_rate + (curr.bounce_rate || 0),
+                    avg_duration: acc.avg_duration + (curr.avg_duration || 0)
+                }), { visitors: 0, pageviews: 0, bounce_rate: 0, avg_duration: 0 });
+
+                const count = (data.analytics || []).length || 1;
+                setMetrics({
+                    visitors: totals.visitors,
+                    pageviews: totals.pageviews,
+                    bounce_rate: Math.round(totals.bounce_rate / count),
+                    avg_duration: Math.round(totals.avg_duration / count)
+                });
+
+                // Top Pages
+                setTopPages(data.topPages || []);
+
                 setHasConfig(true);
                 toast.success("Dados atualizados com sucesso");
             }
         } catch (error: any) {
             console.error("Error fetching analytics:", error);
-            // If we get a 404 or similar, it means function is not deployed or no secrets
             setHasConfig(false);
         } finally {
             setLoading(false);
@@ -148,10 +181,8 @@ export default function SuperAdminStatus() {
                                 <Users className="h-4 w-4 text-primary" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold text-white">1,284</div>
-                                <p className="text-[10px] text-green-500 flex items-center gap-1 mt-1 font-medium">
-                                    <TrendingUp className="h-3 w-3" /> +12.5% em relação a ontem
-                                </p>
+                                <div className="text-2xl font-bold text-white">{loading ? <Skeleton className="h-8 w-20 bg-white/10" /> : metrics.visitors.toLocaleString()}</div>
+                                <p className="text-[10px] text-gray-500 mt-1 uppercase">Últimos 7 dias</p>
                             </CardContent>
                         </Card>
 
@@ -161,10 +192,8 @@ export default function SuperAdminStatus() {
                                 <MousePointer2 className="h-4 w-4 text-blue-400" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold text-white">8,432</div>
-                                <p className="text-[10px] text-green-500 flex items-center gap-1 mt-1 font-medium">
-                                    <TrendingUp className="h-3 w-3" /> +5.2% em relação a ontem
-                                </p>
+                                <div className="text-2xl font-bold text-white">{loading ? <Skeleton className="h-8 w-20 bg-white/10" /> : metrics.pageviews.toLocaleString()}</div>
+                                <p className="text-[10px] text-gray-500 mt-1 uppercase">Últimos 7 dias</p>
                             </CardContent>
                         </Card>
 
@@ -174,10 +203,8 @@ export default function SuperAdminStatus() {
                                 <Clock className="h-4 w-4 text-yellow-400" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold text-white">03:45</div>
-                                <p className="text-[10px] text-gray-500 flex items-center gap-1 mt-1">
-                                    Estável nos últimos 7 dias
-                                </p>
+                                <div className="text-2xl font-bold text-white">{loading ? <Skeleton className="h-8 w-20 bg-white/10" /> : `${Math.floor(metrics.avg_duration / 60)}m ${metrics.avg_duration % 60}s`}</div>
+                                <p className="text-[10px] text-gray-500 mt-1 uppercase">Média por sessão</p>
                             </CardContent>
                         </Card>
 
@@ -187,10 +214,8 @@ export default function SuperAdminStatus() {
                                 <AlertCircle className="h-4 w-4 text-red-400" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold text-white">42%</div>
-                                <p className="text-[10px] text-red-400 flex items-center gap-1 mt-1 font-medium">
-                                    <TrendingUp className="h-3 w-3" /> +2% crítico
-                                </p>
+                                <div className="text-2xl font-bold text-white">{loading ? <Skeleton className="h-8 w-20 bg-white/10" /> : `${metrics.bounce_rate}%`}</div>
+                                <p className="text-[10px] text-gray-500 mt-1 uppercase">Média da semana</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -251,31 +276,32 @@ export default function SuperAdminStatus() {
                             </CardHeader>
                             <CardContent className="pt-2">
                                 <div className="space-y-4">
-                                    {[
-                                        { path: "/", label: "Landing Page", views: "2.4k", pct: 45 },
-                                        { path: "/auth", label: "Login/Cadastro", views: "1.2k", pct: 22 },
-                                        { path: "/time/unidos", label: "Página de Time", views: "850", pct: 15 },
-                                        { path: "/agenda", label: "Calendário", views: "420", pct: 8 },
-                                    ].map((item) => (
-                                        <div key={item.path} className="space-y-1">
-                                            <div className="flex items-center justify-between text-xs">
-                                                <div className="flex items-center gap-2">
-                                                    <Badge variant="outline" className="bg-white/5 border-white/10 text-[10px] px-1.5 py-0 h-4">
-                                                        {item.views}
-                                                    </Badge>
-                                                    <span className="text-gray-300 font-medium">{item.label}</span>
-                                                    <span className="text-gray-600 font-mono text-[10px]">{item.path}</span>
+                                    {loading ? (
+                                        [1, 2, 3, 4].map(i => <Skeleton key={i} className="h-8 w-full bg-white/5" />)
+                                    ) : topPages.length > 0 ? (
+                                        topPages.map((item: any) => (
+                                            <div key={item.path} className="space-y-1">
+                                                <div className="flex items-center justify-between text-xs">
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge variant="outline" className="bg-white/5 border-white/10 text-[10px] px-1.5 py-0 h-4">
+                                                            {item.pageviews} views
+                                                        </Badge>
+                                                        <span className="text-gray-300 font-mono text-[10px]">{item.path}</span>
+                                                    </div>
                                                 </div>
-                                                <span className="text-gray-400 font-bold">{item.pct}%</span>
+                                                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-primary transition-all duration-1000"
+                                                        style={{ width: `${Math.min(100, (item.pageviews / metrics.pageviews) * 100)}%` }}
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-primary transition-all duration-1000"
-                                                    style={{ width: `${item.pct}%` }}
-                                                />
-                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <p className="text-gray-500 text-sm">Nenhum dado de acesso recente.</p>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

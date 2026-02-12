@@ -34,46 +34,57 @@ serve(async (req) => {
         const projectRes = await fetch(
             `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}?${teamParam}`,
             {
-                headers: {
-                    Authorization: `Bearer ${VERCEL_TOKEN}`,
-                },
+                headers: { Authorization: `Bearer ${VERCEL_TOKEN}` },
             }
         );
 
         if (!projectRes.ok) {
-            const errorText = await projectRes.text();
-            return new Response(
-                JSON.stringify({
-                    error: "Failed to fetch project data",
-                    details: errorText
-                }),
-                {
-                    status: projectRes.status,
-                    headers: { ...corsHeaders, "Content-Type": "application/json" }
-                }
-            );
+            const err = await projectRes.json();
+            return new Response(JSON.stringify({ error: "Vercel API Error", details: err }), {
+                status: projectRes.status,
+                headers: { ...corsHeaders, "Content-Type": "application/json" }
+            });
         }
 
         const projectData = await projectRes.json();
 
-        // 2. Fetch Analytics Data (7 days)
-        // Note: This endpoint might vary based on the specific Analytics plan
-        // We try to fetch visitors, pageviews and bounce rate
+        // 2. Fetch Web Analytics Stats
+        // We'll fetch for the last 7 days
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-        // We'll return the project data and a placeholder for analytics if the user doesn't have the advanced plan
-        // but typically a simple fetch to deployments or domains can also serve as 'Status'
+        const statsUrl = `https://api.vercel.com/v1/analytics/stats/query?projectId=${VERCEL_PROJECT_ID}${teamParam}&from=${sevenDaysAgo.toISOString()}&to=${now.toISOString()}&metrics=visitors,pageviews,bounce_rate,avg_duration`;
+
+        const statsRes = await fetch(statsUrl, {
+            headers: { Authorization: `Bearer ${VERCEL_TOKEN}` },
+        });
+
+        let statsData = { data: [] };
+        if (statsRes.ok) {
+            statsData = await statsRes.json();
+        }
+
+        // 3. Fetch Top Pages
+        const topPagesUrl = `https://api.vercel.com/v1/analytics/stats/query?projectId=${VERCEL_PROJECT_ID}${teamParam}&from=${sevenDaysAgo.toISOString()}&to=${now.toISOString()}&metrics=pageviews&groupBy=path&limit=10`;
+
+        const topPagesRes = await fetch(topPagesUrl, {
+            headers: { Authorization: `Bearer ${VERCEL_TOKEN}` },
+        });
+
+        let topPagesData = { data: [] };
+        if (topPagesRes.ok) {
+            topPagesData = await topPagesRes.json();
+        }
 
         return new Response(
             JSON.stringify({
                 project: {
                     name: projectData.name,
-                    status: "active",
-                    updatedAt: projectData.updatedAt,
                     framework: projectData.framework,
                     link: projectData.link
                 },
-                // We'll return mock data if real analytics query fails in the frontend
-                // providing a stable structure
+                analytics: statsData.data || [],
+                topPages: topPagesData.data || [],
                 timestamp: new Date().toISOString()
             }),
             {
