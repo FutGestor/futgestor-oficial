@@ -19,6 +19,7 @@ export interface TeamSlugData {
     fontSize: string;
     fontWeight: string;
     textAlign: string;
+    fontFamily: string;
   };
 }
 

@@ -32,6 +32,7 @@ export default function AdminConfiguracoes() {
   const [bioFontSize, setBioFontSize] = useState("text-lg");
   const [bioFontWeight, setBioFontWeight] = useState("font-normal");
   const [bioTextAlign, setBioTextAlign] = useState("text-center");
+  const [bioFontFamily, setBioFontFamily] = useState("font-sans");
   const [saving, setSaving] = useState(false);
   const [uploadingEscudo, setUploadingEscudo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
@@ -56,6 +57,7 @@ export default function AdminConfiguracoes() {
     setBioFontSize(bioConfig?.fontSize || "text-lg");
     setBioFontWeight(bioConfig?.fontWeight || "font-normal");
     setBioTextAlign(bioConfig?.textAlign || "text-center");
+    setBioFontFamily(bioConfig?.fontFamily || "font-sans");
 
     setInitialized(true);
   }
@@ -133,7 +135,8 @@ export default function AdminConfiguracoes() {
             color: bioColor,
             fontSize: bioFontSize,
             fontWeight: bioFontWeight,
-            textAlign: bioTextAlign
+            textAlign: bioTextAlign,
+            fontFamily: bioFontFamily
           }
         })
         .eq("id", teamId);
@@ -350,7 +353,26 @@ export default function AdminConfiguracoes() {
                   <SelectItem value="text-base">Média</SelectItem>
                   <SelectItem value="text-lg">Grande (Padrão)</SelectItem>
                   <SelectItem value="text-xl">Extra Grande</SelectItem>
-                  <SelectItem value="text-2xl">Gigante</SelectItem>
+                  <SelectItem value="text-2xl">2x Extra Grande</SelectItem>
+                  <SelectItem value="text-3xl">3x Extra Grande</SelectItem>
+                  <SelectItem value="text-4xl">4x Extra Grande</SelectItem>
+                  <SelectItem value="text-5xl">Gigante</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Estilo da Fonte */}
+            <div>
+              <Label>Fonte / Estilo</Label>
+              <Select value={bioFontFamily} onValueChange={setBioFontFamily}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="font-sans">Sans (Padrão)</SelectItem>
+                  <SelectItem value="font-serif">Serif (Clássica)</SelectItem>
+                  <SelectItem value="font-mono">Mono (Código)</SelectItem>
+                  <SelectItem value="font-display">Display (Moderna)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -414,7 +436,7 @@ export default function AdminConfiguracoes() {
             >
               <div className="absolute inset-0 bg-black/40" />
               <p
-                className={cn("relative z-10 w-full max-w-lg shadow-sm drop-shadow-md", bioFontSize, bioFontWeight, bioTextAlign)}
+                className={cn("relative z-10 w-full max-w-2xl shadow-sm drop-shadow-md", bioFontSize, bioFontWeight, bioTextAlign, bioFontFamily)}
                 style={{ color: bioColor }}
               >
                 {bio || "Bem-vindo à página do time. Gerencie seu time de futebol em um só lugar."}

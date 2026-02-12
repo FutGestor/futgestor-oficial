@@ -387,7 +387,8 @@ export default function TeamPublicPage() {
                 "mb-8 max-w-2xl drop-shadow-md",
                 team.bio_config?.fontSize || "text-lg",
                 team.bio_config?.fontWeight || "font-normal",
-                team.bio_config?.textAlign || "text-center"
+                team.bio_config?.textAlign || "text-center",
+                team.bio_config?.fontFamily || "font-sans"
               )}
               style={{ color: team.bio_config?.color || "rgba(255, 255, 255, 0.8)" }}
             >
