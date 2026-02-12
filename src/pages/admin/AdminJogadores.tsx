@@ -465,6 +465,9 @@ export default function AdminJogadores() {
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {jogador.numero !== null && (
+                    <Badge variant="outline" className="font-mono">#{jogador.numero}</Badge>
+                  )}
                   <Badge variant="secondary">{positionLabels[jogador.posicao]}</Badge>
                   {!jogador.ativo && <Badge variant="outline">Inativo</Badge>}
                   {jogador.user_id ? (

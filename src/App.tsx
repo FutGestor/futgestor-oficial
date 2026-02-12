@@ -23,6 +23,7 @@ import Termos from "./pages/Termos";
 import PresencaPublica from "./pages/PresencaPublica";
 import PlayerDashboard from "./pages/PlayerDashboard";
 import SuperAdminVendas from "./pages/SuperAdminVendas";
+import { RequireApproval } from "./components/auth/RequireApproval";
 import LandingPage from "./pages/LandingPage";
 import Ligas from "./pages/Ligas";
 import Suporte from "./pages/Suporte";
@@ -46,20 +47,26 @@ const App = () => (
             <Route path="/super-admin/vendas" element={<SuperAdminVendas />} />
             <Route path="/super-admin/suporte" element={<SuperAdminSuporte />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
-            <Route path="/player/dashboard" element={<PlayerDashboard />} />
+            <Route path="/player/dashboard" element={<RequireApproval />}>
+              <Route index element={<PlayerDashboard />} />
+            </Route>
+
             <Route path="/time/:slug" element={<TeamSlugLayout />}>
               <Route index element={<TeamPublicPage />} />
-              <Route path="agenda" element={<Agenda />} />
-              <Route path="financeiro" element={<Financeiro />} />
-              <Route path="escalacao" element={<Escalacao />} />
-              <Route path="jogadores" element={<Jogadores />} />
-              <Route path="meu-perfil" element={<MeuPerfil />} />
-              <Route path="ranking" element={<Ranking />} />
-              <Route path="resultados" element={<Resultados />} />
-              <Route path="ligas" element={<Ligas />} />
-              <Route path="avisos" element={<Avisos />} />
-              <Route path="suporte" element={<Suporte />} />
-              <Route path="admin/*" element={<Admin />} />
+
+              <Route element={<RequireApproval />}>
+                <Route path="agenda" element={<Agenda />} />
+                <Route path="financeiro" element={<Financeiro />} />
+                <Route path="escalacao" element={<Escalacao />} />
+                <Route path="jogadores" element={<Jogadores />} />
+                <Route path="meu-perfil" element={<MeuPerfil />} />
+                <Route path="ranking" element={<Ranking />} />
+                <Route path="resultados" element={<Resultados />} />
+                <Route path="ligas" element={<Ligas />} />
+                <Route path="avisos" element={<Avisos />} />
+                <Route path="suporte" element={<Suporte />} />
+                <Route path="admin/*" element={<Admin />} />
+              </Route>
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

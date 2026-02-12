@@ -44,7 +44,7 @@ function ResultadosContent() {
     <Layout>
       <div className="container py-8 px-4 md:px-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-primary">Resultados</h1>
+          <h1 className="text-3xl font-bold text-foreground">Resultados</h1>
           <p className="text-muted-foreground">Histórico de partidas do {team.nome}</p>
         </div>
 
@@ -53,7 +53,7 @@ function ResultadosContent() {
           <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-3xl font-bold text-primary">{stats.total}</p>
+                <p className="text-3xl font-bold text-foreground">{stats.total}</p>
                 <p className="text-sm text-muted-foreground">Jogos</p>
               </CardContent>
             </Card>
@@ -77,7 +77,7 @@ function ResultadosContent() {
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-3xl font-bold text-primary">
+                <p className="text-3xl font-bold text-foreground">
                   {stats.golsPro} : {stats.golsContra}
                 </p>
                 <p className="text-sm text-muted-foreground">Saldo de Gols</p>
@@ -105,7 +105,7 @@ function ResultadosContent() {
               <div className="space-y-4">
                 {resultados.map((resultado) => {
                   const tipo = getResultType(resultado.gols_favor, resultado.gols_contra);
-                  
+
                   return (
                     <div
                       key={resultado.id}
@@ -124,8 +124,8 @@ function ResultadosContent() {
                             tipo === "vitoria"
                               ? "default"
                               : tipo === "derrota"
-                              ? "destructive"
-                              : "secondary"
+                                ? "destructive"
+                                : "secondary"
                           }
                         >
                           {tipo === "vitoria" ? "Vitória" : tipo === "derrota" ? "Derrota" : "Empate"}
@@ -136,7 +136,7 @@ function ResultadosContent() {
                       <div className="hidden sm:block">
                         <ResultIcon tipo={tipo} />
                       </div>
-                      
+
                       <div className="flex-1">
                         {/* Mobile: layout empilhado */}
                         <div className="flex flex-col gap-1 sm:hidden">
@@ -169,11 +169,11 @@ function ResultadosContent() {
                           </span>
                           <span className="font-semibold">{resultado.jogo?.adversario}</span>
                         </div>
-                        
+
                         <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
-                            {resultado.jogo?.data_hora && 
+                            {resultado.jogo?.data_hora &&
                               format(new Date(resultado.jogo.data_hora), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                           </span>
                           {resultado.jogo?.local && (
@@ -199,8 +199,8 @@ function ResultadosContent() {
                           tipo === "vitoria"
                             ? "default"
                             : tipo === "derrota"
-                            ? "destructive"
-                            : "secondary"
+                              ? "destructive"
+                              : "secondary"
                         }
                       >
                         {tipo === "vitoria" ? "Vitória" : tipo === "derrota" ? "Derrota" : "Empate"}

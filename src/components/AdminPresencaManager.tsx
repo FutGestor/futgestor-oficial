@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useJogadores } from "@/hooks/useData";
-import { useConfirmacoesJogo, useConfirmacoesContagem } from "@/hooks/useConfirmacoes";
+import { useConfirmacoesJogo, useConfirmacoesContagem, useConfirmarPresenca } from "@/hooks/useConfirmacoes";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { usePresencaLink, usePresencasViaLink } from "@/hooks/usePresencaLink";
 import type { PresenceStatus } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,7 +33,9 @@ export default function AdminPresencaManager({ jogoId }: AdminPresencaManagerPro
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { profile } = useAuth();
+  // const { profile } = useAuth(); // Not needed if we use team from useTeamConfig
+  const { team } = useTeamConfig();
+  const confirmarPresenca = useConfirmarPresenca();
 
   const isLoading = isLoadingJogadores || isLoadingConfirmacoes;
 
@@ -49,17 +52,17 @@ export default function AdminPresencaManager({ jogoId }: AdminPresencaManagerPro
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      for (const [jogadorId, status] of Object.entries(statusMap)) {
-        if (status === null) continue;
-        const existingConfirmacao = confirmacoes?.find(c => c.jogador_id === jogadorId);
-        if (existingConfirmacao) {
-          const { error } = await supabase.from("confirmacoes_presenca").update({ status }).eq("id", existingConfirmacao.id);
-          if (error) throw error;
-        } else {
-          const { error } = await supabase.from("confirmacoes_presenca").insert({ jogo_id: jogoId, jogador_id: jogadorId, status, team_id: profile?.team_id });
-          if (error) throw error;
-        }
-      }
+      const updates = Object.entries(statusMap).map(async ([jogadorId, status]) => {
+        if (status === null || !team.id) return;
+        return confirmarPresenca.mutateAsync({
+          jogoId,
+          jogadorId,
+          status,
+          teamId: team.id,
+        });
+      });
+
+      await Promise.all(updates);
       setStatusMap({});
       queryClient.invalidateQueries({ queryKey: ["confirmacoes-jogo", jogoId] });
       queryClient.invalidateQueries({ queryKey: ["confirmacoes-contagem", jogoId] });

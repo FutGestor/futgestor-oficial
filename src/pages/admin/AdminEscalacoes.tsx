@@ -20,6 +20,7 @@ import {
   formacoesPorModalidade,
   positionSlotsByFormation,
   positionSlotLabels,
+  positionLabels,
   type Escalacao,
   type Jogo,
   type GameModality
@@ -31,7 +32,8 @@ type EscalacaoFormData = {
   formacao: string;
   modalidade: GameModality;
   publicada: boolean;
-  jogadores_por_posicao: Record<string, string>; // posicao_campo -> jogador_id
+  jogadores_por_posicao: Record<string, string>; // slot -> jogador_id
+  posicoes_customizadas: Record<string, string>; // jogador_id -> "label|top|left"
   banco: string[]; // jogador_id array para banco de reservas
 };
 
@@ -41,6 +43,7 @@ const initialFormData: EscalacaoFormData = {
   modalidade: "society-6",
   publicada: false,
   jogadores_por_posicao: {},
+  posicoes_customizadas: {},
   banco: [],
 };
 
@@ -90,13 +93,25 @@ export default function AdminEscalacoes() {
       .eq("escalacao_id", escalacao.id);
 
     const jogadoresPorPosicao: Record<string, string> = {};
+    const posicoesCustomizadas: Record<string, string> = {};
     const bancoJogadores: string[] = [];
 
-    players?.forEach(p => {
+    // Mapear slots disponíveis da formação para preencher o Record
+    const slots = positionSlotsByFormation[escalacao.formacao || "2-2-2"] || [];
+
+    players?.forEach((p, index) => {
       if (p.posicao_campo === 'banco') {
         bancoJogadores.push(p.jogador_id);
       } else {
-        jogadoresPorPosicao[p.posicao_campo] = p.jogador_id;
+        // Se a posição for customizada (contém |), guardamos no objeto de customização
+        if (p.posicao_campo.includes('|')) {
+          posicoesCustomizadas[p.jogador_id] = p.posicao_campo;
+          // E associamos a um slot disponível (ou o index se faltar slots nominais)
+          const slot = slots[index] || `pos-${index}`;
+          jogadoresPorPosicao[slot] = p.jogador_id;
+        } else {
+          jogadoresPorPosicao[p.posicao_campo] = p.jogador_id;
+        }
       }
     });
 
@@ -106,6 +121,7 @@ export default function AdminEscalacoes() {
       modalidade: ((escalacao as any).modalidade as GameModality) || "society-6",
       publicada: escalacao.publicada ?? false,
       jogadores_por_posicao: jogadoresPorPosicao,
+      posicoes_customizadas: posicoesCustomizadas,
       banco: bancoJogadores,
     });
     setIsDialogOpen(true);
@@ -150,10 +166,10 @@ export default function AdminEscalacoes() {
         // Jogadores do campo
         const jogadoresCampo = Object.entries(formData.jogadores_por_posicao)
           .filter(([_, jogadorId]) => jogadorId)
-          .map(([posicao, jogadorId], index) => ({
+          .map(([slot, jogadorId], index) => ({
             escalacao_id: editingEscalacao.id,
             jogador_id: jogadorId,
-            posicao_campo: posicao,
+            posicao_campo: formData.posicoes_customizadas[jogadorId] || slot,
             ordem: index,
           }));
 
@@ -195,10 +211,10 @@ export default function AdminEscalacoes() {
         // Jogadores do campo
         const jogadoresCampoNovo = Object.entries(formData.jogadores_por_posicao)
           .filter(([_, jogadorId]) => jogadorId)
-          .map(([posicao, jogadorId], index) => ({
+          .map(([slot, jogadorId], index) => ({
             escalacao_id: newEscalacao.id,
             jogador_id: jogadorId,
-            posicao_campo: posicao,
+            posicao_campo: formData.posicoes_customizadas[jogadorId] || slot,
             ordem: index,
           }));
 
@@ -275,12 +291,12 @@ export default function AdminEscalacoes() {
     }
   };
 
-  // Criar preview dos jogadores para o campo
+  // Logic for field preview
   const jogadoresPreview = Object.entries(formData.jogadores_por_posicao)
     .filter(([_, jogadorId]) => jogadorId)
-    .map(([posicao, jogadorId]) => ({
+    .map(([slot, jogadorId]) => ({
       jogador: jogadores?.find(j => j.id === jogadorId)!,
-      posicao_campo: posicao,
+      posicao_campo: formData.posicoes_customizadas[jogadorId] || slot,
     }))
     .filter(item => item.jogador);
 
@@ -358,6 +374,7 @@ export default function AdminEscalacoes() {
                       ...formData,
                       formacao: value,
                       jogadores_por_posicao: {}, // Reset jogadores ao mudar formação
+                      posicoes_customizadas: {}, // Reset coordenadas
                     })}
                   >
                     <SelectTrigger>
@@ -387,12 +404,22 @@ export default function AdminEscalacoes() {
               <div className="grid gap-6 lg:grid-cols-2">
                 {/* Preview do campo */}
                 <div>
-                  <Label className="mb-2 block">Visualização do Campo</Label>
+                  <Label className="mb-2 block">Visualização do Campo (Arraste os jogadores)</Label>
                   <SocietyField
                     modalidade={formData.modalidade}
                     formacao={formData.formacao}
                     jogadores={jogadoresPreview}
                     className="mx-auto"
+                    isEditable={true}
+                    onPlayerMove={(jogadorId, encodedPos) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        posicoes_customizadas: {
+                          ...prev.posicoes_customizadas,
+                          [jogadorId]: encodedPos
+                        }
+                      }));
+                    }}
                   />
                 </div>
 
@@ -425,8 +452,17 @@ export default function AdminEscalacoes() {
                               formData.jogadores_por_posicao[posicao] === j.id
                             ).map((jogador) => (
                               <SelectItem key={jogador.id} value={jogador.id}>
-                                {jogador.numero && <span className="mr-1 font-bold">{jogador.numero}</span>}
-                                {jogador.apelido || jogador.nome}
+                                <div className="flex items-center gap-2">
+                                  {jogador.numero !== null && (
+                                    <Badge variant="outline" className="h-5 px-1 font-mono text-xs">
+                                      #{jogador.numero}
+                                    </Badge>
+                                  )}
+                                  <span className="font-medium">{jogador.apelido || jogador.nome}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {positionLabels[jogador.posicao]}
+                                  </span>
+                                </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -465,8 +501,17 @@ export default function AdminEscalacoes() {
                         !jogadoresAlocados.includes(j.id)
                       ).map((jogador) => (
                         <SelectItem key={jogador.id} value={jogador.id}>
-                          {jogador.numero && <span className="mr-1 font-bold">{jogador.numero}</span>}
-                          {jogador.apelido || jogador.nome} - {jogador.posicao}
+                          <div className="flex items-center gap-2">
+                            {jogador.numero !== null && (
+                              <Badge variant="outline" className="h-5 px-1 font-mono text-xs">
+                                #{jogador.numero}
+                              </Badge>
+                            )}
+                            <span className="font-medium">{jogador.apelido || jogador.nome}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {positionLabels[jogador.posicao]}
+                            </span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -485,8 +530,11 @@ export default function AdminEscalacoes() {
                           className="flex items-center gap-2 rounded-full bg-muted px-3 py-1"
                         >
                           <span className="text-sm">
-                            {jogador.numero && <span className="mr-1 font-bold">{jogador.numero}</span>}
+                            {jogador.numero !== null && <span className="mr-1 font-bold">#{jogador.numero}</span>}
                             {jogador.apelido || jogador.nome}
+                            <span className="ml-1 text-xs opacity-70">
+                              ({positionLabels[jogador.posicao]})
+                            </span>
                           </span>
                           <button
                             type="button"
@@ -534,7 +582,7 @@ export default function AdminEscalacoes() {
             <Card key={escalacao.id}>
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-4">
-                  <Users className="h-8 w-8 text-primary" />
+                  <Users className="h-8 w-8 text-foreground" />
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-semibold">vs {escalacao.jogo?.adversario || "Jogo removido"}</span>

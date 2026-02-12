@@ -41,12 +41,12 @@ export default function AdminResultados() {
   const [editingResultado, setEditingResultado] = useState<Resultado | null>(null);
   const [formData, setFormData] = useState<ResultadoFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { data: resultados, isLoading } = useResultados();
-  const { data: jogos } = useJogos();
+
+  const { team } = useTeamConfig();
+  const { data: resultados, isLoading } = useResultados(team.id);
+  const { data: jogos } = useJogos(team.id);
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { team } = useTeamConfig();
   const { profile } = useAuth();
 
   // Jogos sem resultado ainda
@@ -258,11 +258,10 @@ export default function AdminResultados() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-1 sm:gap-2">
                         <span className="text-sm font-semibold sm:text-base">{team.nome}</span>
-                        <span className={`rounded px-1.5 py-0.5 text-sm font-bold sm:px-2 sm:py-1 sm:text-lg ${
-                          tipo === "vitoria" ? "bg-green-100 text-green-800" :
+                        <span className={`rounded px-1.5 py-0.5 text-sm font-bold sm:px-2 sm:py-1 sm:text-lg ${tipo === "vitoria" ? "bg-green-100 text-green-800" :
                           tipo === "derrota" ? "bg-red-100 text-red-800" :
-                          "bg-gray-100 text-gray-800"
-                        }`}>
+                            "bg-gray-100 text-gray-800"
+                          }`}>
                           {resultado.gols_favor} x {resultado.gols_contra}
                         </span>
                         <span className="text-sm font-semibold sm:text-base">{resultado.jogo?.adversario}</span>
@@ -276,8 +275,8 @@ export default function AdminResultados() {
                     <Badge variant={tipo === "vitoria" ? "default" : tipo === "derrota" ? "destructive" : "secondary"}>
                       {tipo === "vitoria" ? "Vitória" : tipo === "derrota" ? "Derrota" : "Empate"}
                     </Badge>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       className="h-8"
                       onClick={() => {
@@ -321,8 +320,8 @@ export default function AdminResultados() {
             <DialogTitle>Estatísticas da Partida</DialogTitle>
           </DialogHeader>
           {selectedResultadoId && (
-            <EstatisticasPartidaForm 
-              resultadoId={selectedResultadoId} 
+            <EstatisticasPartidaForm
+              resultadoId={selectedResultadoId}
               onSave={() => setStatsDialogOpen(false)}
             />
           )}

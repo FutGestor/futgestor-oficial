@@ -71,7 +71,7 @@ function AvisosContent() {
       <div className="container py-8 px-4 md:px-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-primary">Avisos</h1>
+            <h1 className="text-3xl font-bold text-foreground">Avisos</h1>
             <p className="text-muted-foreground">Comunicados e informações importantes do time</p>
           </div>
           {naoLidosCount > 0 && (

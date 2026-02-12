@@ -43,8 +43,8 @@ function LastResultCard({ teamId }: { teamId: string }) {
     return (
       <Card className="bg-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-primary">
-            <Trophy className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Trophy className="h-5 w-5 text-foreground" />
             Último Resultado
           </CardTitle>
         </CardHeader>
@@ -65,8 +65,8 @@ function LastResultCard({ teamId }: { teamId: string }) {
   return (
     <Card className="bg-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <Trophy className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Trophy className="h-5 w-5 text-foreground" />
           Último Resultado
         </CardTitle>
       </CardHeader>
@@ -112,8 +112,8 @@ function FinancialCard({ teamId }: { teamId: string }) {
   return (
     <Card className="bg-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <TrendingUp className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <TrendingUp className="h-5 w-5 text-foreground" />
           Saldo do Time
         </CardTitle>
       </CardHeader>
@@ -151,8 +151,8 @@ function NoticesCard({ teamId }: { teamId: string }) {
   return (
     <Card className="bg-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <Bell className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Bell className="h-5 w-5 text-foreground" />
           Últimos Avisos
         </CardTitle>
       </CardHeader>
@@ -229,7 +229,7 @@ function AgendaGameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null
             </div>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-primary">{format(gameDate, "dd")}</div>
+            <div className="text-2xl font-bold text-foreground">{format(gameDate, "dd")}</div>
             <div className="text-sm text-muted-foreground">{format(gameDate, "MMM", { locale: ptBR })}</div>
           </div>
         </div>

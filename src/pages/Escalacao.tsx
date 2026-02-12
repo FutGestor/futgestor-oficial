@@ -12,13 +12,13 @@ import { useState } from "react";
 import { SocietyField } from "@/components/SocietyField";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 
-function EscalacaoCard({ escalacao, isSelected, onClick }: { 
-  escalacao: { id: string; jogo: { adversario: string; data_hora: string } | null; formacao: string }; 
-  isSelected: boolean; 
+function EscalacaoCard({ escalacao, isSelected, onClick }: {
+  escalacao: { id: string; jogo: { adversario: string; data_hora: string } | null; formacao: string };
+  isSelected: boolean;
   onClick: () => void;
 }) {
   return (
-    <Card 
+    <Card
       className={cn(
         "cursor-pointer transition-all hover:shadow-md",
         isSelected && "ring-2 ring-primary"
@@ -60,7 +60,7 @@ function EscalacaoContent() {
     <Layout>
       <div className="container py-8 px-4 md:px-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-primary">Escalação</h1>
+          <h1 className="text-3xl font-bold text-foreground">Escalação</h1>
           <p className="text-muted-foreground">Veja a escalação do time para os jogos</p>
         </div>
 
@@ -191,7 +191,7 @@ function EscalacaoContent() {
           {/* Histórico de escalações */}
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Escalações</h2>
-            
+
             {loadingEscalacoes ? (
               <div className="space-y-3">
                 <Skeleton className="h-20 w-full" />
@@ -202,10 +202,10 @@ function EscalacaoContent() {
                 {escalacoes.map((esc) => (
                   <EscalacaoCard
                     key={esc.id}
-                    escalacao={{ 
-                      id: esc.id, 
-                      jogo: esc.jogo || null, 
-                      formacao: esc.formacao 
+                    escalacao={{
+                      id: esc.id,
+                      jogo: esc.jogo || null,
+                      formacao: esc.formacao
                     }}
                     isSelected={esc.id === currentId}
                     onClick={() => setSelectedId(esc.id)}

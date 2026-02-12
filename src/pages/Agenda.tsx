@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 function GameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
   const gameDate = new Date(jogo.data_hora);
   const time = jogo.time_adversario;
-  
+
   return (
     <Card className="transition-shadow hover:shadow-md">
       <CardContent className="p-4">
@@ -31,18 +31,18 @@ function GameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
             <div className="flex items-center gap-2">
               {/* Escudo do time da casa */}
               {timeCasa?.escudo_url && (
-                <img 
-                  src={timeCasa.escudo_url} 
-                  alt={timeCasa.nome} 
+                <img
+                  src={timeCasa.escudo_url}
+                  alt={timeCasa.nome}
                   className="h-8 w-8 rounded-full object-contain"
                 />
               )}
               <span className="text-sm text-muted-foreground font-medium">vs</span>
               {/* Escudo do adversário */}
               {time?.escudo_url && (
-                <img 
-                  src={time.escudo_url} 
-                  alt={time.nome} 
+                <img
+                  src={time.escudo_url}
+                  alt={time.nome}
                   className="h-8 w-8 rounded-full object-contain"
                 />
               )}
@@ -69,7 +69,7 @@ function GameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
             )}
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-primary">
+            <div className="text-2xl font-bold text-foreground">
               {format(gameDate, "dd")}
             </div>
             <div className="text-sm text-muted-foreground">
@@ -107,7 +107,7 @@ function AgendaContent() {
     <Layout>
       <div className="container py-8 px-4 md:px-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-primary">Agenda</h1>
+          <h1 className="text-3xl font-bold text-foreground">Agenda</h1>
           <p className="text-muted-foreground">Calendário de jogos do time</p>
         </div>
 
@@ -152,12 +152,12 @@ function AgendaContent() {
                 {Array.from({ length: monthStart.getDay() }).map((_, i) => (
                   <div key={`empty-${i}`} className="aspect-square" />
                 ))}
-                
+
                 {monthDays.map((day) => {
                   const dayGames = getDayGames(day);
                   const hasGames = dayGames.length > 0;
                   const isToday = isSameDay(day, new Date());
-                  
+
                   // Pegar o primeiro jogo do dia para exibir o escudo
                   const firstGame = dayGames[0];
                   const time = firstGame?.time_adversario;
@@ -181,18 +181,18 @@ function AgendaContent() {
                           {format(day, "d")}
                         </span>
                       )}
-                      
+
                       {/* Escudo circular centralizado */}
                       {hasGames && time?.escudo_url && (
                         <div className="absolute inset-0 flex items-center justify-center p-0.5">
                           <img
-                            src={time.escudo_url} 
+                            src={time.escudo_url}
                             alt={time.nome || firstGame.adversario}
                             className="h-full w-full rounded-full object-contain"
                           />
                         </div>
                       )}
-                      
+
                       {/* Abreviação do time (posicionada abaixo do número) */}
                       {hasGames && !time?.escudo_url && (
                         <div className="absolute inset-0 flex items-center justify-center pt-3">
@@ -213,7 +213,7 @@ function AgendaContent() {
             <h2 className="text-xl font-semibold">
               Jogos em {format(currentMonth, "MMMM", { locale: ptBR })}
             </h2>
-            
+
             {isLoading ? (
               <div className="space-y-4">
                 <Skeleton className="h-32 w-full" />

@@ -30,12 +30,12 @@ interface EstatisticasPartidaFormProps {
 export default function EstatisticasPartidaForm({ resultadoId, onSave }: EstatisticasPartidaFormProps) {
   const [stats, setStats] = useState<Record<string, JogadorStats>>({});
   const [mvpJogadorId, setMvpJogadorId] = useState<string>("");
-  
-  const { data: jogadores, isLoading: jogadoresLoading } = useJogadores();
+
+  const { profile } = useAuth();
+  const { data: jogadores, isLoading: jogadoresLoading } = useJogadores(true, profile?.team_id);
   const { data: estatisticasExistentes, isLoading: estatisticasLoading } = useEstatisticasPartida(resultadoId);
   const saveEstatisticas = useSaveEstatisticasPartida();
   const { toast } = useToast();
-  const { profile } = useAuth();
 
   const jogadoresAtivos = jogadores?.filter(j => j.ativo !== false) || [];
 
@@ -57,29 +57,29 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
     if (!jogadoresAtivos.length) return;
 
     const initialStats: Record<string, JogadorStats> = {};
-    
+
     for (const jogador of jogadoresAtivos) {
       const existente = estatisticasExistentes?.find(e => e.jogador_id === jogador.id);
-      
-      initialStats[jogador.id] = existente 
+
+      initialStats[jogador.id] = existente
         ? {
-            jogador_id: jogador.id,
-            participou: existente.participou,
-            gols: existente.gols,
-            assistencias: existente.assistencias,
-            cartao_amarelo: existente.cartao_amarelo,
-            cartao_vermelho: existente.cartao_vermelho,
-          }
+          jogador_id: jogador.id,
+          participou: existente.participou,
+          gols: existente.gols,
+          assistencias: existente.assistencias,
+          cartao_amarelo: existente.cartao_amarelo,
+          cartao_vermelho: existente.cartao_vermelho,
+        }
         : {
-            jogador_id: jogador.id,
-            participou: false,
-            gols: 0,
-            assistencias: 0,
-            cartao_amarelo: false,
-            cartao_vermelho: false,
-          };
+          jogador_id: jogador.id,
+          participou: false,
+          gols: 0,
+          assistencias: 0,
+          cartao_amarelo: false,
+          cartao_vermelho: false,
+        };
     }
-    
+
     setStats(initialStats);
   }, [jogadoresAtivos.length, estatisticasExistentes]);
 
@@ -96,7 +96,7 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
   const handleSave = async () => {
     try {
       const estatisticasParaSalvar = Object.values(stats).filter(s => s.participou);
-      
+
       await saveEstatisticas.mutateAsync({
         resultadoId,
         estatisticas: estatisticasParaSalvar,
@@ -178,9 +178,9 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
                       />
                       <div className="flex items-center gap-2 flex-1">
                         {jogador.foto_url ? (
-                          <img 
-                            src={jogador.foto_url} 
-                            alt={jogador.nome} 
+                          <img
+                            src={jogador.foto_url}
+                            alt={jogador.nome}
                             className="h-8 w-8 rounded-full object-cover"
                           />
                         ) : (
@@ -188,7 +188,7 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
                             <User className="h-4 w-4" />
                           </div>
                         )}
-                        <Label 
+                        <Label
                           htmlFor={`participou-${jogador.id}`}
                           className="flex-1 font-medium cursor-pointer"
                         >
@@ -251,8 +251,8 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
         </div>
       </ScrollArea>
 
-      <Button 
-        onClick={handleSave} 
+      <Button
+        onClick={handleSave}
         disabled={saveEstatisticas.isPending}
         className="w-full"
       >

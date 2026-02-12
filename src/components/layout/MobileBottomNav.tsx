@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Trophy, Medal, Bell, Award, Headphones } from "lucide-react";
+import { Trophy, Medal, Bell, Award, Headphones, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAvisosNaoLidos } from "@/hooks/useAvisoLeituras";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
@@ -11,7 +11,7 @@ export function MobileBottomNav() {
   const { data: naoLidos } = useAvisosNaoLidos();
   const { basePath, team } = useTeamSlug();
   const { user } = useAuth();
-  const { hasCampeonatos } = usePlanAccess(team.id);
+  const { hasCampeonatos, hasFinanceiro, hasAvisos } = usePlanAccess(team.id);
 
   const publicItems = [
     { href: `${basePath}/resultados`, label: "Resultados", icon: Trophy },
@@ -20,7 +20,8 @@ export function MobileBottomNav() {
 
   const memberItems = [
     { href: `${basePath}/ranking`, label: "Ranking", icon: Medal },
-    { href: `${basePath}/avisos`, label: "Avisos", icon: Bell },
+    ...(hasFinanceiro ? [{ href: `${basePath}/financeiro`, label: "Financeiro", icon: DollarSign }] : []),
+    ...(hasAvisos ? [{ href: `${basePath}/avisos`, label: "Avisos", icon: Bell }] : []),
     { href: `${basePath}/suporte`, label: "Suporte", icon: Headphones },
   ];
 

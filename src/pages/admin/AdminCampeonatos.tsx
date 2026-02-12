@@ -96,7 +96,7 @@ export default function AdminCampeonatos() {
           >
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-primary" />
+                <Trophy className="h-5 w-5 text-foreground" />
                 {league.name}
               </CardTitle>
               <AlertDialog>

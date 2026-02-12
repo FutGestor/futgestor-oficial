@@ -23,9 +23,9 @@ export function ScheduleGameCard({ teamId }: ScheduleGameCardProps) {
       <Card className="border-2 border-dashed border-primary/50 bg-gradient-to-r from-primary/5 via-secondary/10 to-primary/5">
         <div className="flex flex-col items-center gap-4 p-6 md:flex-row md:justify-between">
           <div className="flex flex-col items-center gap-4 text-center md:flex-row md:text-left">
-            <CalendarPlus className="h-12 w-12 text-primary" />
+            <CalendarPlus className="h-12 w-12 text-foreground" />
             <div>
-              <h3 className="text-xl font-bold text-primary">Quer jogar contra a gente?</h3>
+              <h3 className="text-xl font-bold text-foreground">Quer jogar contra a gente?</h3>
               <p className="text-muted-foreground">Agende uma partida amistosa! Envie uma proposta com a data e local de sua preferência.</p>
             </div>
           </div>
@@ -50,7 +50,7 @@ export function ScheduleGameCard({ teamId }: ScheduleGameCardProps) {
               em contato para confirmar.
             </DialogDescription>
           </DialogHeader>
-          <SolicitacaoJogoForm teamId={teamId} onSuccess={() => {}} />
+          <SolicitacaoJogoForm teamId={teamId} onSuccess={() => { }} />
         </DialogContent>
       </Dialog>
     </>

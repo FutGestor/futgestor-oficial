@@ -31,7 +31,7 @@ export function Header() {
   const teamEscudo = teamSlug?.team.escudo_url || null;
   const redesSociais = teamSlug?.team.redes_sociais || {};
   const teamId = teamSlug?.team.id || null;
-  const { hasRanking, hasResultados, hasCampeonatos } = usePlanAccess(teamId);
+  const { hasRanking, hasResultados, hasCampeonatos, hasFinanceiro, hasAvisos } = usePlanAccess(teamId);
 
   // Nav items visíveis para todos (incluindo visitantes) - condicionados ao plano
   const visitorNavItems = teamSlug
@@ -53,8 +53,8 @@ export function Header() {
 
   const privateNavItems = teamSlug
     ? [
-      { href: `${basePath}/financeiro`, label: "Financeiro" },
-      { href: `${basePath}/avisos`, label: "Avisos" },
+      ...(hasFinanceiro ? [{ href: `${basePath}/financeiro`, label: "Financeiro" }] : []),
+      ...(hasAvisos ? [{ href: `${basePath}/avisos`, label: "Avisos" }] : []),
       { href: `${basePath}/suporte`, label: "Suporte" },
     ]
     : [];

@@ -54,6 +54,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 
 const statusLabels: Record<RequestStatus, string> = {
   pendente: "Pendente",
@@ -324,14 +325,17 @@ export default function AdminSolicitacoes() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="dataHora">Data e Horário</Label>
-              <Input
-                id="dataHora"
-                type="datetime-local"
-                value={gameData.dataHora}
-                onChange={(e) =>
-                  setGameData((prev) => ({ ...prev, dataHora: e.target.value }))
-                }
+              <Label>Data e Horário</Label>
+              <DateTimePicker
+                date={gameData.dataHora ? new Date(gameData.dataHora) : undefined}
+                setDate={(date) => {
+                  if (date) {
+                    setGameData((prev) => ({
+                      ...prev,
+                      dataHora: format(date, "yyyy-MM-dd'T'HH:mm"),
+                    }));
+                  }
+                }}
               />
             </div>
             <div className="space-y-2">

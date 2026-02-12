@@ -24,6 +24,7 @@ import { statusLabels, type Jogo, type GameStatus } from "@/lib/types";
 import AdminPresencaManager from "@/components/AdminPresencaManager";
 import { cn } from "@/lib/utils";
 import { usePlanAccess } from "@/hooks/useSubscription";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 
 type JogoFormData = {
   data_hora: string;
@@ -256,13 +257,17 @@ export default function AdminJogos() {
                   </div>
                 )}
                 <div className="space-y-2">
-                  <Label htmlFor="data_hora">Data e Hora</Label>
-                  <Input
-                    id="data_hora"
-                    type="datetime-local"
-                    value={formData.data_hora}
-                    onChange={(e) => setFormData({ ...formData, data_hora: e.target.value })}
-                    required
+                  <Label>Data e Hora</Label>
+                  <DateTimePicker
+                    date={formData.data_hora ? new Date(formData.data_hora) : undefined}
+                    setDate={(date) => {
+                      if (date) {
+                        setFormData({
+                          ...formData,
+                          data_hora: format(date, "yyyy-MM-dd'T'HH:mm"),
+                        });
+                      }
+                    }}
                   />
                 </div>
                 <div className="space-y-2">

@@ -16,6 +16,9 @@ export interface TeamConfig {
     facebook?: string;
     [key: string]: string | undefined;
   };
+  cores?: {
+    primary?: string;
+  };
 }
 
 const DEFAULT_TEAM: TeamConfig = {
@@ -55,6 +58,7 @@ export function useTeamConfig() {
         escudo_url: teamSlug.team.escudo_url,
         banner_url: teamSlug.team.banner_url,
         redes_sociais: teamSlug.team.redes_sociais || {},
+        cores: (teamSlug.team.cores as any),
       } as TeamConfig,
       isLoading: false,
     };
@@ -62,13 +66,14 @@ export function useTeamConfig() {
 
   const team: TeamConfig = teamData
     ? {
-        id: teamData.id,
-        nome: teamData.nome,
-        slug: teamData.slug,
-        escudo_url: teamData.escudo_url,
-        banner_url: (teamData as any).banner_url || null,
-        redes_sociais: (teamData.redes_sociais as any) || {},
-      }
+      id: teamData.id,
+      nome: teamData.nome,
+      slug: teamData.slug,
+      escudo_url: teamData.escudo_url,
+      banner_url: (teamData as any).banner_url || null,
+      redes_sociais: (teamData.redes_sociais as any) || {},
+      cores: (teamData.cores as any),
+    }
     : DEFAULT_TEAM;
 
   return { team, isLoading };

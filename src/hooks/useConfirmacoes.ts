@@ -64,10 +64,12 @@ export function useConfirmarPresenca() {
       jogoId,
       jogadorId,
       status,
+      teamId,
     }: {
       jogoId: string;
       jogadorId: string;
       status: PresenceStatus;
+      teamId: string;
     }) => {
       // Upsert - insere ou atualiza
       const { error } = await supabase.from("confirmacoes_presenca").upsert(
@@ -75,6 +77,7 @@ export function useConfirmarPresenca() {
           jogo_id: jogoId,
           jogador_id: jogadorId,
           status,
+          team_id: teamId,
         },
         { onConflict: "jogo_id,jogador_id" }
       );

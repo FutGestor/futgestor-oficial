@@ -39,7 +39,7 @@ function JogadorCard({ jogador, stats }: { jogador: JogadorPublico; stats: any }
             </div>
           )}
         </div>
-        
+
         <Badge variant="secondary" className="mb-3">
           {positionLabels[jogador.posicao]}
         </Badge>
@@ -67,7 +67,7 @@ export default function JogadoresPage() {
     <Layout>
       <div className="container py-8 px-4 md:px-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-primary">Jogadores</h1>
+          <h1 className="text-3xl font-bold text-foreground">Jogadores</h1>
           <p className="text-muted-foreground">Conheça o elenco do time</p>
         </div>
 
@@ -91,14 +91,14 @@ export default function JogadoresPage() {
 
               return (
                 <section key={posicao}>
-                  <h2 className="mb-4 text-xl font-semibold text-primary">
+                  <h2 className="mb-4 text-xl font-semibold text-foreground">
                     {positionLabels[posicao as keyof typeof positionLabels]}s
                   </h2>
                   <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {jogadoresDaPosicao.map((jogador) => (
-                      <JogadorCard 
-                        key={jogador.id} 
-                        jogador={jogador} 
+                      <JogadorCard
+                        key={jogador.id}
+                        jogador={jogador}
                         stats={estatisticas?.[jogador.id]}
                       />
                     ))}

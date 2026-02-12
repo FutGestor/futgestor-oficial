@@ -16,8 +16,8 @@ function LeagueCard({ leagueId, leagueName }: { leagueId: string; leagueName: st
   return (
     <Card className="bg-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <Trophy className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Trophy className="h-5 w-5 text-foreground" />
           {leagueName}
         </CardTitle>
       </CardHeader>
@@ -45,7 +45,7 @@ export default function LigasPage() {
     <Layout>
       <div className="container py-8 px-4 md:px-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-primary">Campeonatos</h1>
+          <h1 className="text-3xl font-bold text-foreground">Campeonatos</h1>
           <p className="text-muted-foreground">Acompanhe os campeonatos do time</p>
         </div>
         {leagues && leagues.length > 0 ? (

@@ -24,6 +24,7 @@ export default function AdminConfiguracoes() {
   const [youtube, setYoutube] = useState("");
   const [facebook, setFacebook] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [corPrincipal, setCorPrincipal] = useState("#000000");
   const [saving, setSaving] = useState(false);
   const [uploadingEscudo, setUploadingEscudo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
@@ -39,12 +40,14 @@ export default function AdminConfiguracoes() {
     setYoutube(team.redes_sociais?.youtube || "");
     setFacebook(team.redes_sociais?.facebook || "");
     setWhatsapp(team.redes_sociais?.whatsapp || "");
+    setCorPrincipal(team.cores?.primary || "#222222"); // Default dark gray if not set
     setInitialized(true);
   }
 
   const teamId = profile?.team_id;
 
   const handleUploadImage = async (file: File, type: "escudo" | "banner") => {
+    // ... (upload logic remains unchanged, omitted for brevity if not changing)
     if (!teamId) return;
     const setUploading = type === "escudo" ? setUploadingEscudo : setUploadingBanner;
     setUploading(true);
@@ -108,6 +111,7 @@ export default function AdminConfiguracoes() {
         .update({
           nome: nome.trim(),
           redes_sociais,
+          cores: { primary: corPrincipal }
         })
         .eq("id", teamId);
 
@@ -232,6 +236,34 @@ export default function AdminConfiguracoes() {
               placeholder="Nome do time"
               className="mt-1.5"
             />
+          </div>
+
+          {/* Cor Principal */}
+          <div>
+            <Label htmlFor="corPrincipal">Cor Principal do Time</Label>
+            <div className="mt-1.5 flex items-center gap-3">
+              <div
+                className="h-10 w-10 rounded-full border border-border shadow-sm"
+                style={{ backgroundColor: corPrincipal }}
+              />
+              <Input
+                id="corPrincipal"
+                type="color"
+                value={corPrincipal}
+                onChange={(e) => setCorPrincipal(e.target.value)}
+                className="h-10 w-20 p-1 cursor-pointer"
+              />
+              <Input
+                value={corPrincipal}
+                onChange={(e) => setCorPrincipal(e.target.value)}
+                placeholder="#000000"
+                className="w-32 font-mono uppercase"
+                maxLength={7}
+              />
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Esta cor será usada no cabeçalho e em botões principais do seu site.
+            </p>
           </div>
         </CardContent>
       </Card>

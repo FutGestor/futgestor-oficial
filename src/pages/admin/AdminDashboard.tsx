@@ -84,7 +84,7 @@ export default function AdminDashboard() {
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <Calendar className="h-6 w-6 text-primary" />
+                <Calendar className="h-6 w-6 text-foreground" />
               </div>
               <div>
                 <h3 className="font-semibold">Gerenciar Jogos</h3>
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <Users className="h-6 w-6 text-primary" />
+                <Users className="h-6 w-6 text-foreground" />
               </div>
               <div>
                 <h3 className="font-semibold">Gerenciar Jogadores</h3>
@@ -110,7 +110,7 @@ export default function AdminDashboard() {
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <DollarSign className="h-6 w-6 text-primary" />
+                <DollarSign className="h-6 w-6 text-foreground" />
               </div>
               <div>
                 <h3 className="font-semibold">Gerenciar Finanças</h3>
@@ -123,7 +123,7 @@ export default function AdminDashboard() {
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <Trophy className="h-6 w-6 text-primary" />
+                <Trophy className="h-6 w-6 text-foreground" />
               </div>
               <div>
                 <h3 className="font-semibold">Registrar Resultados</h3>
@@ -136,7 +136,7 @@ export default function AdminDashboard() {
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <ClipboardList className="h-6 w-6 text-primary" />
+                <ClipboardList className="h-6 w-6 text-foreground" />
               </div>
               <div>
                 <h3 className="font-semibold">Montar Escalações</h3>
@@ -149,7 +149,7 @@ export default function AdminDashboard() {
           <Card className="cursor-pointer transition-shadow hover:shadow-md">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <Bell className="h-6 w-6 text-primary" />
+                <Bell className="h-6 w-6 text-foreground" />
               </div>
               <div>
                 <h3 className="font-semibold">Publicar Avisos</h3>

@@ -6,13 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRanking, useRankingDestaques } from "@/hooks/useEstatisticas";
 import { cn } from "@/lib/utils";
 
-function PodiumItem({ 
-  position, 
-  nome, 
-  foto, 
-  valor, 
-  label 
-}: { 
+function PodiumItem({
+  position,
+  nome,
+  foto,
+  valor,
+  label
+}: {
   position: 1 | 2 | 3;
   nome: string;
   foto: string | null;
@@ -20,10 +20,10 @@ function PodiumItem({
   label: string;
 }) {
   const heights = { 1: "h-24", 2: "h-16", 3: "h-12" };
-  const colors = { 
-    1: "bg-yellow-500", 
-    2: "bg-gray-400", 
-    3: "bg-amber-700" 
+  const colors = {
+    1: "bg-yellow-500",
+    2: "bg-gray-400",
+    3: "bg-amber-700"
   };
   const orders = { 1: "order-2", 2: "order-1", 3: "order-3" };
 
@@ -56,10 +56,10 @@ function PodiumItem({
 }
 
 interface RankingItem {
-  jogador: { 
-    id: string; 
-    nome: string; 
-    apelido: string | null; 
+  jogador: {
+    id: string;
+    nome: string;
+    apelido: string | null;
     foto_url: string | null;
   };
   gols?: number;
@@ -68,12 +68,12 @@ interface RankingItem {
   votos?: number;
 }
 
-function RankingTable({ 
-  data, 
-  valorKey, 
+function RankingTable({
+  data,
+  valorKey,
   label,
   icon: Icon,
-}: { 
+}: {
   data: RankingItem[];
   valorKey: "gols" | "assistencias" | "jogos" | "votos";
   label: string;
@@ -173,7 +173,7 @@ function RankingTable({
                 <div className="flex-1">
                   <p className="font-medium">{item.jogador.apelido || item.jogador.nome}</p>
                 </div>
-                <span className="text-lg font-bold text-primary">
+                <span className="text-lg font-bold text-foreground">
                   {item[valorKey] ?? 0}
                 </span>
               </div>
@@ -193,7 +193,7 @@ function RankingContent() {
     <Layout>
       <div className="container py-8 px-4 md:px-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-primary">Ranking</h1>
+          <h1 className="text-3xl font-bold text-foreground">Ranking</h1>
           <p className="text-muted-foreground">Artilharia e estatísticas do time</p>
         </div>
 

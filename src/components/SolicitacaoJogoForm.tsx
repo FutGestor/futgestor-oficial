@@ -66,6 +66,7 @@ interface SolicitacaoJogoFormProps {
 export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [captcha, setCaptcha] = useState(() => generateCaptcha());
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const createSolicitacao = useCreateSolicitacao();
   const { data: jogosFuturos } = useJogosFuturos(teamId);
 
@@ -182,7 +183,7 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Data Preferida *</FormLabel>
-                <Popover>
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
@@ -198,7 +199,10 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={field.onChange}
+                      onSelect={(date) => {
+                        field.onChange(date);
+                        setIsCalendarOpen(false);
+                      }}
                       disabled={(date) => date < new Date()}
                       modifiers={{ occupied: datasOcupadas }}
                       modifiersStyles={{

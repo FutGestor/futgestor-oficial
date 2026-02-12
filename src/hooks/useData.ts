@@ -1,14 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Jogador, JogadorPublico, Jogo, Resultado, Transacao, Escalacao, EscalacaoJogador, Aviso, FinancialSummary } from "@/lib/types";
+import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 
 // Jogadores (authenticated - full data)
 export function useJogadores(ativos = true, teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["jogadores", ativos, teamId],
-    enabled: !!teamId,
+    queryKey: ["jogadores", ativos, effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
-      let query = supabase.from("jogadores").select("*").eq("team_id", teamId!);
+      let query = supabase.from("jogadores").select("*").eq("team_id", effectiveTeamId!);
       if (ativos) {
         query = query.eq("ativo", true);
       }
@@ -21,14 +25,17 @@ export function useJogadores(ativos = true, teamId?: string) {
 
 // Jogadores públicos (view sem email/telefone)
 export function useJogadoresPublicos(teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["jogadores-publicos", teamId],
-    enabled: !!teamId,
+    queryKey: ["jogadores-publicos", effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jogadores_public" as any)
         .select("*")
-        .eq("team_id", teamId)
+        .eq("team_id", effectiveTeamId)
         .eq("ativo", true)
         .order("nome");
       if (error) throw error;
@@ -39,11 +46,14 @@ export function useJogadoresPublicos(teamId?: string) {
 
 // Jogos
 export function useJogos(teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["jogos", teamId],
-    enabled: !!teamId,
+    queryKey: ["jogos", effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
-      let query = supabase.from("jogos").select(`*, time_adversario:times(*)`).eq("team_id", teamId!);
+      let query = supabase.from("jogos").select(`*, time_adversario:times(*)`).eq("team_id", effectiveTeamId!);
       const { data, error } = await query.order("data_hora", { ascending: false });
       if (error) throw error;
       return data as Jogo[];
@@ -52,9 +62,12 @@ export function useJogos(teamId?: string) {
 }
 
 export function useProximoJogo(teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["proximo-jogo", teamId],
-    enabled: !!teamId,
+    queryKey: ["proximo-jogo", effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
       // Usar início do dia atual para incluir jogos de hoje
       const today = new Date();
@@ -63,7 +76,7 @@ export function useProximoJogo(teamId?: string) {
       const { data, error } = await supabase
         .from("jogos")
         .select("*")
-        .eq("team_id", teamId!)
+        .eq("team_id", effectiveTeamId!)
         .gte("data_hora", today.toISOString())
         .in("status", ["agendado", "confirmado"])
         .order("data_hora", { ascending: true })
@@ -77,11 +90,14 @@ export function useProximoJogo(teamId?: string) {
 
 // Resultados
 export function useResultados(teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["resultados", teamId],
-    enabled: !!teamId,
+    queryKey: ["resultados", effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
-      let query = supabase.from("resultados").select(`*, jogo:jogos(*)`).eq("team_id", teamId!);
+      let query = supabase.from("resultados").select(`*, jogo:jogos(*)`).eq("team_id", effectiveTeamId!);
       const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return data as (Resultado & { jogo: Jogo })[];
@@ -91,14 +107,17 @@ export function useResultados(teamId?: string) {
 
 // Transações
 export function useTransacoes(teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["transacoes", teamId],
-    enabled: !!teamId,
+    queryKey: ["transacoes", effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("transacoes")
         .select("*")
-        .eq("team_id", teamId!)
+        .eq("team_id", effectiveTeamId!)
         .order("data", { ascending: false });
       if (error) throw error;
       return data as Transacao[];
@@ -107,28 +126,34 @@ export function useTransacoes(teamId?: string) {
 }
 
 export function useFinancialSummary(teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["financial-summary", teamId],
-    enabled: !!teamId,
+    queryKey: ["financial-summary", effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
       // Use RPC for secure calculation (works for public page/anon users)
-      const { data, error } = await supabase.rpc("get_financial_summary", {
-        _team_id: teamId!,
+      const { data, error } = await supabase.rpc("get_financial_summary" as any, {
+        _team_id: effectiveTeamId!,
       });
 
       if (error) throw error;
 
       // The RPC returns a single object compatible with FinancialSummary
-      return data as FinancialSummary;
+      return (data as unknown) as FinancialSummary;
     },
   });
 }
 
 // Escalações
 export function useEscalacoes(teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["escalacoes", teamId],
-    enabled: !!teamId,
+    queryKey: ["escalacoes", effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("escalacoes")
@@ -136,7 +161,7 @@ export function useEscalacoes(teamId?: string) {
           *,
           jogo:jogos(*)
         `)
-        .eq("team_id", teamId!)
+        .eq("team_id", effectiveTeamId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as (Escalacao & { jogo: Jogo })[];
@@ -164,9 +189,12 @@ export function useEscalacaoJogadores(escalacaoId: string | undefined) {
 }
 
 export function useProximaEscalacao(teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["proxima-escalacao", teamId],
-    enabled: !!teamId,
+    queryKey: ["proxima-escalacao", effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("escalacoes")
@@ -174,7 +202,7 @@ export function useProximaEscalacao(teamId?: string) {
           *,
           jogo:jogos(*)
         `)
-        .eq("team_id", teamId!)
+        .eq("team_id", effectiveTeamId!)
         .eq("publicada", true)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -187,14 +215,17 @@ export function useProximaEscalacao(teamId?: string) {
 
 // Último Resultado
 export function useUltimoResultado(teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["ultimo-resultado", teamId],
-    enabled: !!teamId,
+    queryKey: ["ultimo-resultado", effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("resultados")
         .select(`*, jogo:jogos(*)`)
-        .eq("team_id", teamId!)
+        .eq("team_id", effectiveTeamId!)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -206,9 +237,12 @@ export function useUltimoResultado(teamId?: string) {
 
 // Jogos futuros (para agendamento de visitantes)
 export function useJogosFuturos(teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["jogos-futuros", teamId],
-    enabled: !!teamId,
+    queryKey: ["jogos-futuros", effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -221,7 +255,7 @@ export function useJogosFuturos(teamId?: string) {
           time_adversario:times(id, nome, apelido, escudo_url)
         `)
         .gte("data_hora", today.toISOString())
-        .eq("team_id", teamId!)
+        .eq("team_id", effectiveTeamId!)
         .in("status", ["agendado", "confirmado"]);
 
       if (error) throw error;
@@ -232,15 +266,18 @@ export function useJogosFuturos(teamId?: string) {
 
 // Avisos
 export function useAvisos(limit?: number, teamId?: string) {
+  const context = useOptionalTeamSlug();
+  const effectiveTeamId = teamId || context?.team.id;
+
   return useQuery({
-    queryKey: ["avisos", limit, teamId],
-    enabled: !!teamId,
+    queryKey: ["avisos", limit, effectiveTeamId],
+    enabled: !!effectiveTeamId,
     queryFn: async () => {
       let query = supabase
         .from("avisos")
         .select("*")
         .eq("publicado", true)
-        .eq("team_id", teamId!)
+        .eq("team_id", effectiveTeamId!)
         .order("created_at", { ascending: false });
 
       if (limit) {
