@@ -19,19 +19,22 @@ export function useAvisoLeituras() {
   });
 }
 
-export function useAvisosNaoLidos() {
+export function useAvisosNaoLidos(teamId?: string) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["avisos-nao-lidos", user?.id],
-    enabled: !!user,
+    queryKey: ["avisos-nao-lidos", user?.id, teamId],
+    enabled: !!user && !!teamId,
     queryFn: async () => {
-      // Get all published avisos for the team
+      // Get all published avisos for the specific team
       const { data: avisos, error: avisosErr } = await supabase
         .from("avisos")
         .select("id")
-        .eq("publicado", true);
+        .eq("publicado", true)
+        .eq("team_id", teamId!);
       if (avisosErr) throw avisosErr;
+
+      if (avisos.length === 0) return 0;
 
       // Get user's read avisos
       const { data: leituras, error: leiturasErr } = await supabase
