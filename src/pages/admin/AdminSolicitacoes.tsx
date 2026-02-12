@@ -54,7 +54,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
+import { DatePickerPopover } from "@/components/ui/date-picker-popover";
+import { TimePickerSelect } from "@/components/ui/time-picker-select";
 
 const statusLabels: Record<RequestStatus, string> = {
   pendente: "Pendente",
@@ -324,19 +325,35 @@ export default function AdminSolicitacoes() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Data e Horário</Label>
-              <DateTimePicker
-                date={gameData.dataHora ? new Date(gameData.dataHora) : undefined}
-                setDate={(date) => {
-                  if (date) {
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Data</Label>
+                <DatePickerPopover
+                  date={gameData.dataHora ? new Date(gameData.dataHora) : undefined}
+                  setDate={(date) => {
+                    if (date) {
+                      const currentTime = gameData.dataHora ? gameData.dataHora.split('T')[1] : "19:00";
+                      setGameData((prev) => ({
+                        ...prev,
+                        dataHora: `${format(date, "yyyy-MM-dd")}T${currentTime}`,
+                      }));
+                    }
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Horário</Label>
+                <TimePickerSelect
+                  value={gameData.dataHora ? gameData.dataHora.split('T')[1] : undefined}
+                  onChange={(time) => {
+                    const currentDate = gameData.dataHora ? gameData.dataHora.split('T')[0] : format(new Date(), "yyyy-MM-dd");
                     setGameData((prev) => ({
                       ...prev,
-                      dataHora: format(date, "yyyy-MM-dd'T'HH:mm"),
+                      dataHora: `${currentDate}T${time}`,
                     }));
-                  }
-                }}
-              />
+                  }}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="local">Local</Label>

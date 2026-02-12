@@ -24,7 +24,8 @@ import { statusLabels, type Jogo, type GameStatus } from "@/lib/types";
 import AdminPresencaManager from "@/components/AdminPresencaManager";
 import { cn } from "@/lib/utils";
 import { usePlanAccess } from "@/hooks/useSubscription";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
+import { DatePickerPopover } from "@/components/ui/date-picker-popover";
+import { TimePickerSelect } from "@/components/ui/time-picker-select";
 
 type JogoFormData = {
   data_hora: string;
@@ -256,19 +257,35 @@ export default function AdminJogos() {
                     />
                   </div>
                 )}
-                <div className="space-y-2">
-                  <Label>Data e Hora</Label>
-                  <DateTimePicker
-                    date={formData.data_hora ? new Date(formData.data_hora) : undefined}
-                    setDate={(date) => {
-                      if (date) {
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Data</Label>
+                    <DatePickerPopover
+                      date={formData.data_hora ? new Date(formData.data_hora) : undefined}
+                      setDate={(date) => {
+                        if (date) {
+                          const currentTime = formData.data_hora ? formData.data_hora.split('T')[1] : "19:00";
+                          setFormData({
+                            ...formData,
+                            data_hora: `${format(date, "yyyy-MM-dd")}T${currentTime}`,
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Horário</Label>
+                    <TimePickerSelect
+                      value={formData.data_hora ? formData.data_hora.split('T')[1] : undefined}
+                      onChange={(time) => {
+                        const currentDate = formData.data_hora ? formData.data_hora.split('T')[0] : format(new Date(), "yyyy-MM-dd");
                         setFormData({
                           ...formData,
-                          data_hora: format(date, "yyyy-MM-dd'T'HH:mm"),
+                          data_hora: `${currentDate}T${time}`,
                         });
-                      }
-                    }}
-                  />
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="local">Local</Label>
