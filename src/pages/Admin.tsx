@@ -3,7 +3,7 @@ import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom"
 import { User, Session } from "@supabase/supabase-js";
 import {
   LayoutDashboard, Calendar, Users, DollarSign, Trophy, Bell, ClipboardList,
-  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon, Lock, Crown, TrendingUp, BookOpen
+  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon, Lock, Crown, TrendingUp, BookOpen, Headphones, BarChart3, ShieldAlert
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -326,15 +326,40 @@ export default function Admin() {
             onLockedClick={(plan, feature) => setUpgradeModal({ open: true, plan, feature })}
           />
 
-          {user.email === "futgestor@gmail.com" && (
-            <div className="border-t border-sidebar-border p-2">
+          {isSuperAdmin && (
+            <div className="border-t border-sidebar-border p-2 space-y-1">
+              <p className="px-3 py-1 text-[10px] font-bold text-yellow-500 uppercase tracking-wider">SuperAdmin</p>
+              <Link
+                to="/super-admin"
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+              >
+                <ShieldAlert className="h-5 w-5 text-yellow-500" />
+                Painel Master
+              </Link>
               <Link
                 to="/super-admin/vendas"
                 onClick={() => setSidebarOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-yellow-500 hover:bg-sidebar-accent/50"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
               >
-                <TrendingUp className="h-5 w-5" />
+                <TrendingUp className="h-5 w-5 text-yellow-500" />
                 Vendas SaaS
+              </Link>
+              <Link
+                to="/super-admin/suporte"
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+              >
+                <Headphones className="h-5 w-5 text-yellow-500" />
+                Suporte Global
+              </Link>
+              <Link
+                to="/super-admin/status"
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+              >
+                <BarChart3 className="h-5 w-5 text-yellow-500" />
+                Status do Site
               </Link>
             </div>
           )}

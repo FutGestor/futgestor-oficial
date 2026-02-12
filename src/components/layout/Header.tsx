@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Instagram, MessageCircle, User, LogOut, Sun, Moon, Headphones } from "lucide-react";
+import { Menu, X, Instagram, MessageCircle, User, LogOut, Sun, Moon, Headphones, BarChart3, ShieldAlert } from "lucide-react";
 import logoFutgestor from "@/assets/logo-futgestor.png";
 import { Button } from "@/components/ui/button";
 
@@ -120,16 +120,15 @@ export function Header() {
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
 
-          {/* Super Admin Suporte Link */}
           {isSuperAdmin && (
-            <Link to="/super-admin/suporte">
+            <Link to="/super-admin">
               <Button
                 variant="ghost"
                 size="sm"
-                className="hidden text-primary-foreground hover:bg-primary-foreground/10 md:inline-flex relative"
+                className="hidden text-[#D4A84B] hover:bg-[#D4A84B]/10 md:inline-flex relative border border-[#D4A84B]/20"
               >
-                <Headphones className="mr-1 h-4 w-4" />
-                Suporte Global
+                <ShieldAlert className="mr-1 h-4 w-4" />
+                Painel Master
                 {chamados?.filter(c => c.status === "aberto").length ? (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
                     {chamados.filter(c => c.status === "aberto").length}
@@ -285,10 +284,10 @@ export function Header() {
                     </Link>
                   )}
                   {isSuperAdmin && (
-                    <Link to="/super-admin/suporte" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="secondary" size="sm" className="relative">
-                        <Headphones className="mr-1 h-4 w-4" />
-                        Suporte Global
+                    <Link to="/super-admin" onClick={() => setMobileMenuOpen(false)} className="w-full">
+                      <Button variant="secondary" size="sm" className="w-full justify-start relative bg-[#D4A84B]/10 text-[#D4A84B] border-[#D4A84B]/20">
+                        <ShieldAlert className="mr-2 h-4 w-4" />
+                        Painel Master
                         {chamados?.filter(c => c.status === "aberto").length ? (
                           <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20">
                             {chamados.filter(c => c.status === "aberto").length}

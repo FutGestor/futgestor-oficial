@@ -28,6 +28,8 @@ import LandingPage from "./pages/LandingPage";
 import Ligas from "./pages/Ligas";
 import Suporte from "./pages/Suporte";
 import SuperAdminSuporte from "./pages/SuperAdminSuporte";
+import SuperAdminStatus from "./pages/SuperAdminStatus";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -44,8 +46,10 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/termos" element={<Termos />} />
             <Route path="/site" element={<LandingPage />} />
+            <Route path="/super-admin" element={<SuperAdminDashboard />} />
             <Route path="/super-admin/vendas" element={<SuperAdminVendas />} />
             <Route path="/super-admin/suporte" element={<SuperAdminSuporte />} />
+            <Route path="/super-admin/status" element={<SuperAdminStatus />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
             <Route path="/player/dashboard" element={<RequireApproval />}>
               <Route index element={<PlayerDashboard />} />
