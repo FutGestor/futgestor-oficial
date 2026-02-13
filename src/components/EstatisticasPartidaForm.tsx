@@ -39,7 +39,10 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
   const saveEstatisticas = useSaveEstatisticasPartida();
   const { toast } = useToast();
 
-  const jogadoresAtivos = jogadores?.filter(j => j.ativo !== false) || [];
+  const jogadoresAtivos = useMemo(() => 
+    jogadores?.filter(j => j.ativo !== false) || [],
+    [jogadores]
+  );
 
   // Carregar MVP existente
   useEffect(() => {
