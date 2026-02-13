@@ -185,9 +185,12 @@ function RankingTable({
   );
 }
 
+import { useTeamSlug } from "@/hooks/useTeamSlug";
+
 function RankingContent() {
-  const { data: ranking, isLoading } = useRanking();
-  const { data: destaques, isLoading: isLoadingDestaques } = useRankingDestaques();
+  const { team } = useTeamSlug();
+  const { data: ranking, isLoading } = useRanking(team?.id);
+  const { data: destaques, isLoading: isLoadingDestaques } = useRankingDestaques(team?.id);
 
   return (
     <Layout>

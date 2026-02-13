@@ -12,7 +12,8 @@ import {
     ShieldAlert,
     Megaphone,
     ArrowRight,
-    ArrowLeft
+    ArrowLeft,
+    Heart
 } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,14 @@ export default function SuperAdminDashboard() {
             path: "/super-admin/avisos",
             color: "text-red-500",
             bg: "bg-red-500/10"
+        },
+        {
+            title: "Saúde dos Clubes",
+            description: "Análise de engajamento e risco de cancelamento (churn) baseado na atividade.",
+            icon: Heart,
+            path: "/super-admin/health",
+            color: "text-pink-500",
+            bg: "bg-pink-500/10"
         }
     ];
 

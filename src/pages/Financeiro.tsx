@@ -1,7 +1,7 @@
-import { format } from "date-fns";
+import { format, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { TrendingUp, TrendingDown, Wallet, AlertTriangle, Activity } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area, ReferenceLine } from "recharts";
 import { Layout } from "@/components/layout/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTransacoes, useFinancialSummary } from "@/hooks/useData";
@@ -11,15 +11,16 @@ import { RequireProPlan } from "@/components/RequireProPlan";
 
 const PIE_COLORS = ["#22c55e", "#f87171", "#D4A84B", "#60a5fa", "#a78bfa"];
 
-function SummaryCard({ label, value, color, icon: Icon, isLoading }: {
+function SummaryCard({ label, value, color, icon: Icon, isLoading, suffix = "" }: {
   label: string;
-  value: number;
+  value: number | string;
   color: string;
   icon: React.ElementType;
   isLoading: boolean;
+  suffix?: string;
 }) {
   return (
-    <div className="bg-[#0F2440] border border-white/[0.06] rounded-xl p-5 text-center">
+    <div className="bg-[#0F2440] border border-white/[0.06] rounded-xl p-5 text-center relative overflow-hidden">
       <div className="flex items-center justify-center gap-2 mb-2">
         <Icon className="h-4 w-4 text-gray-500" />
         <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold">{label}</p>
@@ -28,7 +29,10 @@ function SummaryCard({ label, value, color, icon: Icon, isLoading }: {
         <Skeleton className="h-8 w-28 mx-auto bg-white/5" />
       ) : (
         <p className={`text-2xl md:text-3xl font-bold ${color}`}>
-          R$ {value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+          {typeof value === 'number' 
+            ? `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+            : value}
+          {suffix && <span className="text-sm ml-1 text-gray-500 font-normal">{suffix}</span>}
         </p>
       )}
     </div>
@@ -49,6 +53,60 @@ const darkTooltipStyle = {
 function FinanceiroContent() {
   const { data: transacoes, isLoading } = useTransacoes();
   const { data: summary } = useFinancialSummary();
+
+  // Cálculos de Projeção (Runway e Burn Rate)
+  const financialHealth = (() => {
+    if (!transacoes || transacoes.length === 0 || !summary) return null;
+
+    const now = new Date();
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(now.getMonth() - 3);
+
+    const recentTransactions = transacoes.filter(t => new Date(t.data) >= threeMonthsAgo);
+    
+    // Média mensal baseada em 3 meses (ou menos se não tiver dados)
+    const monthsDiff = 3; 
+    
+    const totalExpenses = recentTransactions
+      .filter(t => t.tipo === 'saida')
+      .reduce((acc, t) => acc + Number(t.valor), 0);
+      
+    const totalIncome = recentTransactions
+      .filter(t => t.tipo === 'entrada')
+      .reduce((acc, t) => acc + Number(t.valor), 0);
+
+    const monthlyBurnRate = totalExpenses / monthsDiff;
+    const monthlyIncome = totalIncome / monthsDiff;
+    const netCashFlow = monthlyIncome - monthlyBurnRate;
+
+    // Runway: Saldo / (Despesas - Receitas) -> Só faz sentido se estiver queimando caixa
+    // Se cashflow for positivo, runway é infinito
+    let runway = Infinity;
+    if (netCashFlow < 0) {
+      runway = summary.saldoAtual / Math.abs(netCashFlow);
+    }
+
+    // Dados para gráfico de projeção (próximos 6 meses)
+    const projectionData = [];
+    let currentBalance = summary.saldoAtual;
+    
+    for (let i = 0; i <= 6; i++) {
+        const date = addMonths(now, i);
+        projectionData.push({
+            month: format(date, 'MMM/yy', { locale: ptBR }),
+            saldo: currentBalance,
+            safeLine: 0 // Linha de zero
+        });
+        currentBalance += netCashFlow;
+    }
+
+    return {
+        monthlyBurnRate,
+        netCashFlow,
+        runway,
+        projectionData
+    };
+  })();
 
   const monthlyData = transacoes?.reduce((acc, t) => {
     const month = format(new Date(t.data), "MMM/yy", { locale: ptBR });
@@ -95,7 +153,7 @@ function FinanceiroContent() {
           </div>
 
           {/* Summary Cards */}
-          <div className="mb-8 grid gap-4 md:grid-cols-3">
+          <div className="mb-8 grid gap-4 grid-cols-2 md:grid-cols-4">
             <SummaryCard
               label="Saldo Atual"
               value={summary?.saldoAtual ?? 0}
@@ -104,20 +162,72 @@ function FinanceiroContent() {
               isLoading={isLoading}
             />
             <SummaryCard
-              label="Total Arrecadado"
-              value={summary?.totalArrecadado ?? 0}
-              color="text-green-400"
-              icon={TrendingUp}
+              label="Runway (Caixa)"
+              value={financialHealth?.runway === Infinity ? '∞' : Math.floor(financialHealth?.runway || 0)}
+              suffix="meses"
+              color={financialHealth?.runway && financialHealth.runway < 3 ? "text-red-500" : "text-blue-400"}
+              icon={Activity}
               isLoading={isLoading}
             />
             <SummaryCard
-              label="Total Gasto"
-              value={summary?.totalGasto ?? 0}
+              label="Fluxo Mensal (Médio)"
+              value={financialHealth?.netCashFlow ?? 0}
+              color={financialHealth?.netCashFlow && financialHealth.netCashFlow >= 0 ? "text-green-400" : "text-red-400"}
+              icon={financialHealth?.netCashFlow && financialHealth.netCashFlow >= 0 ? TrendingUp : TrendingDown}
+              isLoading={isLoading}
+            />
+            <SummaryCard
+              label="Burn Rate (Mensal)"
+              value={financialHealth?.monthlyBurnRate ?? 0}
               color="text-red-400"
-              icon={TrendingDown}
+              icon={AlertTriangle}
               isLoading={isLoading}
             />
           </div>
+
+          {/* Projection Chart */}
+            <div className="mb-8 bg-[#0F2440] border border-white/[0.06] rounded-xl p-5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <TrendingUp size={100} className="text-indigo-500" />
+                </div>
+                <div className="mb-4">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold">Inteligência Financeira</p>
+                    <h3 className="text-lg font-bold text-white">Projeção de Fluxo de Caixa (6 Meses)</h3>
+                    <p className="text-xs text-gray-400">Baseado na média de gastos e receitas dos últimos 90 dias.</p>
+                </div>
+                
+                {isLoading ? (
+                    <Skeleton className="h-64 w-full bg-white/5" />
+                ) : financialHealth?.projectionData ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                        <AreaChart data={financialHealth.projectionData}>
+                            <defs>
+                                <linearGradient id="colorSaldo" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                            <XAxis dataKey="month" tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
+                            <Tooltip formatter={formatCurrency} {...darkTooltipStyle} />
+                            <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
+                            <Area 
+                                type="monotone" 
+                                dataKey="saldo" 
+                                stroke="#6366f1" 
+                                strokeWidth={3}
+                                fillOpacity={1} 
+                                fill="url(#colorSaldo)" 
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                ) : (
+                    <div className="h-64 flex items-center justify-center text-gray-500 text-sm">
+                        Dados insuficientes para projeção.
+                    </div>
+                )}
+            </div>
 
           {/* Charts */}
           <div className="mb-8 grid gap-6 lg:grid-cols-5">
@@ -179,7 +289,7 @@ function FinanceiroContent() {
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 justify-center text-[10px] text-gray-500">
                   {pieChartData.map((item, i) => (
                     <span key={item.name} className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length], opacity: 0.7 }} />
+                      <span className="w-2 h-2 rounded-sm bg-[var(--pie-color)] opacity-70" style={{ "--pie-color": PIE_COLORS[i % PIE_COLORS.length] } as React.CSSProperties} />
                       {item.name}
                     </span>
                   ))}

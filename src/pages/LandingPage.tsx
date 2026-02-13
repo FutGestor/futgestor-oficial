@@ -16,6 +16,8 @@ import { FaqSection } from "@/components/landing/FaqSection";
 import { CtaFinal } from "@/components/landing/CtaFinal";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 
+import { LandingPlayground } from "@/components/landing/LandingPlayground";
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#0A1628] text-white font-sans">
@@ -23,6 +25,7 @@ export default function LandingPage() {
       <HeroSection />
       <TrustBar />
       <PainSection />
+      <LandingPlayground />
       <SectionCta text="Conhecer planos" />
       <FeaturesGrid />
       <SectionCta text="Começar agora" />

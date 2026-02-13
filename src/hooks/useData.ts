@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Jogador, JogadorPublico, Jogo, Resultado, Transacao, Escalacao, EscalacaoJogador, Aviso, FinancialSummary } from "@/lib/types";
+import type { Jogador, JogadorPublico, Jogo, Resultado, Transacao, Escalacao, EscalacaoJogador, Aviso, FinancialSummary, EstatisticaPartida } from "@/lib/types";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 
 // Jogadores (authenticated - full data)
@@ -288,5 +288,24 @@ export function useAvisos(limit?: number, teamId?: string) {
       if (error) throw error;
       return data as Aviso[];
     },
+  });
+}
+
+
+export function useCraqueVoting(gameId?: string) {
+  return useQuery({
+    queryKey: ["craque-voting", gameId],
+    enabled: !!gameId,
+    queryFn: async () => {
+      // Usar a view ou RPC criada
+      const { data, error } = await supabase
+        .from("view_craque_jogo" as any)
+        .select("*")
+        .eq("jogo_id", gameId!);
+      
+      if (error) throw error;
+      return (data as unknown) as { jogo_id: string; jogador_id: string; votos: number }[];
+    },
+    refetchInterval: 10000, // Atualizar a cada 10s
   });
 }

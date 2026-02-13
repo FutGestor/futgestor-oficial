@@ -192,20 +192,22 @@ export const presenceStatusLabels: Record<PresenceStatus, string> = {
 };
 
 // Society/Campo modality types
-export type GameModality = 'society-5' | 'society-6' | 'society-7' | 'campo-11';
+export type GameModality = 'society-5' | 'society-6' | 'society-7' | 'campo-11' | 'futsal';
 
 export const modalityLabels: Record<GameModality, string> = {
   'society-5': 'Society 5x5 (6 jogadores)',
   'society-6': 'Society 6x6 (7 jogadores)',
   'society-7': 'Society 7x7 (8 jogadores)',
   'campo-11': 'Campo 11x11 (11 jogadores)',
+  'futsal': 'Futsal 5x5 (5 jogadores)',
 };
 
 export const formacoesPorModalidade: Record<GameModality, string[]> = {
   'society-5': ['2-2-1', '1-2-2', '2-1-2', '1-3-1'],
   'society-6': ['2-2-2', '2-3-1', '3-2-1', '2-1-3'],
   'society-7': ['2-3-2', '3-2-2', '2-2-3', '3-3-1'],
-  'campo-11': ['4-3-3', '4-4-2', '3-5-2', '4-2-3-1'],
+  'campo-11': ['4-3-3', '4-4-2', '3-5-2', '4-1-4-1', '4-2-3-1'],
+  'futsal': ['1-2-1', '2-2', '3-1'],
 };
 
 // Mapeamento de posições por FORMAÇÃO (dinâmico)
@@ -331,9 +333,9 @@ export const formationPositions: Record<string, Record<string, { top: string; le
     'volante': { top: '58%', left: '50%' },
     'meia-centro-esquerdo': { top: '45%', left: '30%' },
     'meia-centro-direito': { top: '45%', left: '70%' },
-    'ponta-esquerda': { top: '22%', left: '15%' },
+    'ponta-esquerdo': { top: '22%', left: '15%' },
     'atacante-centro': { top: '12%', left: '50%' },
-    'ponta-direita': { top: '22%', left: '85%' },
+    'ponta-direito': { top: '22%', left: '85%' },
   },
   '4-4-2': {
     'goleiro': { top: '90%', left: '50%' },
@@ -341,10 +343,10 @@ export const formationPositions: Record<string, Record<string, { top: string; le
     'zagueiro-centro-esquerdo': { top: '80%', left: '38%' },
     'zagueiro-centro-direito': { top: '80%', left: '62%' },
     'lateral-direito': { top: '75%', left: '85%' },
-    'meia-esquerda': { top: '50%', left: '15%' },
+    'meia-esquerdo': { top: '50%', left: '15%' },
     'volante-esquerdo': { top: '55%', left: '38%' },
     'volante-direito': { top: '55%', left: '62%' },
-    'meia-direita': { top: '50%', left: '85%' },
+    'meia-direito': { top: '50%', left: '85%' },
     'atacante-esquerdo': { top: '15%', left: '35%' },
     'atacante-direito': { top: '15%', left: '65%' },
   },
@@ -353,11 +355,11 @@ export const formationPositions: Record<string, Record<string, { top: string; le
     'zagueiro-esquerdo': { top: '78%', left: '25%' },
     'zagueiro-centro': { top: '82%', left: '50%' },
     'zagueiro-direito': { top: '78%', left: '75%' },
-    'meia-esquerda': { top: '50%', left: '15%' },
+    'meia-esquerdo': { top: '50%', left: '15%' },
     'volante-esquerdo': { top: '60%', left: '35%' },
-    'meia-central': { top: '45%', left: '50%' },
+    'meia-centro': { top: '45%', left: '50%' },
     'volante-direito': { top: '60%', left: '65%' },
-    'meia-direita': { top: '50%', left: '85%' },
+    'meia-direito': { top: '50%', left: '85%' },
     'atacante-esquerdo': { top: '15%', left: '35%' },
     'atacante-direito': { top: '15%', left: '65%' },
   },
@@ -369,10 +371,45 @@ export const formationPositions: Record<string, Record<string, { top: string; le
     'lateral-direito': { top: '75%', left: '85%' },
     'volante-esquerdo': { top: '62%', left: '38%' },
     'volante-direito': { top: '62%', left: '62%' },
-    'meia-esquerda': { top: '38%', left: '15%' },
-    'meia-central': { top: '42%', left: '50%' },
-    'meia-direita': { top: '38%', left: '85%' },
+    'meia-esquerdo': { top: '38%', left: '15%' },
+    'meia-centro': { top: '42%', left: '50%' },
+    'meia-direito': { top: '38%', left: '85%' },
     'atacante-centro': { top: '12%', left: '50%' },
+  },
+  '4-1-4-1': {
+    'goleiro': { top: '90%', left: '50%' },
+    'lateral-esquerdo': { top: '75%', left: '15%' },
+    'zagueiro-centro-esquerdo': { top: '80%', left: '38%' },
+    'zagueiro-centro-direito': { top: '80%', left: '62%' },
+    'lateral-direito': { top: '75%', left: '85%' },
+    'volante': { top: '60%', left: '50%' },
+    'meia-esquerdo': { top: '45%', left: '15%' },
+    'meia-centro-esquerdo': { top: '45%', left: '35%' },
+    'meia-centro-direito': { top: '45%', left: '65%' },
+    'meia-direito': { top: '45%', left: '85%' },
+    'atacante-centro': { top: '12%', left: '50%' },
+  },
+  // Futsal
+  '1-2-1': {
+    'goleiro': { top: '88%', left: '50%' },
+    'zagueiro-centro': { top: '68%', left: '50%' },
+    'meia-esquerdo': { top: '42%', left: '25%' },
+    'meia-direito': { top: '42%', left: '75%' },
+    'atacante-centro': { top: '15%', left: '50%' },
+  },
+  '2-2': {
+    'goleiro': { top: '88%', left: '50%' },
+    'zagueiro-esquerdo': { top: '68%', left: '35%' },
+    'zagueiro-direito': { top: '68%', left: '65%' },
+    'atacante-esquerdo': { top: '25%', left: '35%' },
+    'atacante-direito': { top: '25%', left: '65%' },
+  },
+  '3-1': {
+    'goleiro': { top: '88%', left: '50%' },
+    'zagueiro-centro': { top: '68%', left: '50%' },
+    'lateral-esquerdo': { top: '55%', left: '20%' },
+    'lateral-direito': { top: '55%', left: '80%' },
+    'atacante-centro': { top: '15%', left: '50%' },
   },
 };
 
@@ -394,10 +431,15 @@ export const positionSlotsByFormation: Record<string, string[]> = {
   '2-2-3': ['goleiro', 'zagueiro-esquerdo', 'zagueiro-direito', 'meia-esquerdo', 'meia-direito', 'atacante-esquerdo', 'atacante-centro', 'atacante-direito'],
   '3-3-1': ['goleiro', 'zagueiro-esquerdo', 'zagueiro-centro', 'zagueiro-direito', 'meia-esquerdo', 'meia-centro', 'meia-direito', 'atacante-centro'],
   // Campo 11x11
-  '4-3-3': ['goleiro', 'lateral-esquerdo', 'zagueiro-centro-esquerdo', 'zagueiro-centro-direito', 'lateral-direito', 'volante', 'meia-centro-esquerdo', 'meia-centro-direito', 'ponta-esquerda', 'atacante-centro', 'ponta-direita'],
-  '4-4-2': ['goleiro', 'lateral-esquerdo', 'zagueiro-centro-esquerdo', 'zagueiro-centro-direito', 'lateral-direito', 'meia-esquerda', 'volante-esquerdo', 'volante-direito', 'meia-direita', 'atacante-esquerdo', 'atacante-direito'],
-  '3-5-2': ['goleiro', 'zagueiro-esquerdo', 'zagueiro-centro', 'zagueiro-direito', 'meia-esquerda', 'volante-esquerdo', 'meia-central', 'volante-direito', 'meia-direita', 'atacante-esquerdo', 'atacante-direito'],
-  '4-2-3-1': ['goleiro', 'lateral-esquerdo', 'zagueiro-centro-esquerdo', 'zagueiro-centro-direito', 'lateral-direito', 'volante-esquerdo', 'volante-direito', 'meia-esquerda', 'meia-central', 'meia-direita', 'atacante-centro'],
+  '4-3-3': ['goleiro', 'lateral-esquerdo', 'zagueiro-centro-esquerdo', 'zagueiro-centro-direito', 'lateral-direito', 'volante', 'meia-centro-esquerdo', 'meia-centro-direito', 'ponta-esquerdo', 'atacante-centro', 'ponta-direito'],
+  '4-4-2': ['goleiro', 'lateral-esquerdo', 'zagueiro-centro-esquerdo', 'zagueiro-centro-direito', 'lateral-direito', 'meia-esquerdo', 'volante-esquerdo', 'volante-direito', 'meia-direito', 'atacante-esquerdo', 'atacante-direito'],
+  '3-5-2': ['goleiro', 'zagueiro-esquerdo', 'zagueiro-centro', 'zagueiro-direito', 'meia-esquerdo', 'volante-esquerdo', 'meia-centro', 'volante-direito', 'meia-direito', 'atacante-esquerdo', 'atacante-direito'],
+  '4-2-3-1': ['goleiro', 'lateral-esquerdo', 'zagueiro-centro-esquerdo', 'zagueiro-centro-direito', 'lateral-direito', 'volante-esquerdo', 'volante-direito', 'meia-esquerdo', 'meia-centro', 'meia-direito', 'atacante-centro'],
+  '4-1-4-1': ['goleiro', 'lateral-esquerdo', 'zagueiro-centro-esquerdo', 'zagueiro-centro-direito', 'lateral-direito', 'volante', 'meia-esquerdo', 'meia-centro-esquerdo', 'meia-centro-direito', 'meia-direito', 'atacante-centro'],
+  // Futsal
+  '1-2-1': ['goleiro', 'zagueiro-centro', 'meia-esquerdo', 'meia-direito', 'atacante-centro'],
+  '2-2': ['goleiro', 'zagueiro-esquerdo', 'zagueiro-direito', 'atacante-esquerdo', 'atacante-direito'],
+  '3-1': ['goleiro', 'zagueiro-centro', 'lateral-esquerdo', 'lateral-direito', 'atacante-centro'],
 };
 
 export const positionSlotLabels: Record<string, string> = {
@@ -411,17 +453,15 @@ export const positionSlotLabels: Record<string, string> = {
   'lateral-direito': 'LTD',
   'volante': 'VOL',
   'volante-esquerdo': 'VOL',
+  'volante-centro': 'VOL',
   'volante-direito': 'VOL',
-  'meia-esquerda': 'ME',
-  'meia-central': 'MEI',
-  'meia-direita': 'MD',
   'meia-esquerdo': 'ME',
   'meia-centro': 'MEI',
+  'meia-direito': 'MD',
   'meia-centro-esquerdo': 'MEI',
   'meia-centro-direito': 'MEI',
-  'meia-direito': 'MD',
-  'ponta-esquerda': 'PTE',
-  'ponta-direita': 'PTD',
+  'ponta-esquerdo': 'PTE',
+  'ponta-direito': 'PTD',
   'atacante-esquerdo': 'ATA',
   'atacante-centro': 'ATA',
   'atacante-direito': 'ATA',

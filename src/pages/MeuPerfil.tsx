@@ -250,9 +250,21 @@ export default function MeuPerfil() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Meu Perfil de Jogador
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Meu Perfil de Jogador
+              </div>
+              {jogador && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary animate-pulse"
+                  onClick={() => navigate("/player/dashboard")}
+                >
+                  📈 Ver Meu Desempenho
+                </Button>
+              )}
             </CardTitle>
             <CardDescription>
               {jogador 

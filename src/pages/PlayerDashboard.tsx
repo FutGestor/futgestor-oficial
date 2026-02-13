@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOut, Calendar, MapPin, CheckCircle2, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FutGestorLogo } from "@/components/FutGestorLogo";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { usePlayerPerformance } from "@/hooks/useEstatisticas";
+import { PerformanceCharts } from "@/components/PerformanceCharts";
 
 function usePlayerData() {
   const { profile } = useAuth();
@@ -47,6 +49,9 @@ function usePlayerData() {
       return data;
     },
   });
+
+  // Fetch player performance data (new)
+  const performance = usePlayerPerformance(jogadorId, teamId);
 
   // Fetch player financial balance
   const financeiro = useQuery({
@@ -103,7 +108,7 @@ function usePlayerData() {
     },
   });
 
-  return { jogador, team, financeiro, proximoJogo, confirmacao, jogadorId, teamId };
+  return { jogador, team, financeiro, proximoJogo, confirmacao, performance, jogadorId, teamId };
 }
 
 export default function PlayerDashboard() {
@@ -111,7 +116,7 @@ export default function PlayerDashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { jogador, team, financeiro, proximoJogo, confirmacao, jogadorId, teamId } = usePlayerData();
+  const { jogador, team, financeiro, proximoJogo, confirmacao, performance, jogadorId, teamId } = usePlayerData();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -213,7 +218,7 @@ export default function PlayerDashboard() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 space-y-4 p-4">
+      <main className="flex-1 space-y-4 pb-8 p-4">
         {/* Card Financeiro */}
         <Card>
           <CardContent className="p-4">
@@ -293,6 +298,18 @@ export default function PlayerDashboard() {
             )}
           </CardContent>
         </Card>
+        {/* Evolução e Performance */}
+        {performance.isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            <Skeleton className="h-[250px] w-full" />
+            <Skeleton className="h-[250px] w-full" />
+          </div>
+        ) : (
+          <PerformanceCharts 
+            performanceData={performance.data} 
+            jogadorId={jogadorId!} 
+          />
+        )}
       </main>
     </div>
   );

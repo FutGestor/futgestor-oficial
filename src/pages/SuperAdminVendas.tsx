@@ -208,9 +208,9 @@ export default function SuperAdminVendas() {
                 <p className="text-2xl font-bold text-white">
                   R$ {mrr.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                 </p>
-                <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+                <div className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
                   <Badge className="bg-green-500/10 text-green-500 border-none text-[8px] px-1 h-3">+12%</Badge> vs mês anterior
-                </p>
+                </div>
               </CardContent>
             </Card>
 

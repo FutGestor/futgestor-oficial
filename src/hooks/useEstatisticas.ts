@@ -58,14 +58,20 @@ export function useEstatisticasJogadores() {
 }
 
 // Ranking de artilheiros e assistências
-export function useRanking() {
+export function useRanking(teamId?: string | null) {
   return useQuery({
-    queryKey: ["ranking"],
+    queryKey: ["ranking", teamId],
     queryFn: async () => {
       // Buscar todas as estatísticas com jogadores
-      const { data: estatisticas, error: estError } = await supabase
+      let query = supabase
         .from("estatisticas_partida")
         .select(`*, jogador:jogadores(*)`);
+
+      if (teamId) {
+        query = query.eq("team_id", teamId);
+      }
+
+      const { data: estatisticas, error: estError } = await query;
       if (estError) throw estError;
 
       // Agregar por jogador
@@ -123,17 +129,24 @@ export function useRanking() {
 }
 
 // Ranking de destaques (MVP escolhido pelo admin)
-export function useRankingDestaques() {
+export function useRankingDestaques(teamId?: string | null) {
   return useQuery({
-    queryKey: ["ranking-destaques"],
+    queryKey: ["ranking-destaques", teamId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("resultados")
         .select(`
           mvp_jogador_id,
-          jogador:jogadores!resultados_mvp_jogador_id_fkey(id, nome, apelido, foto_url)
+          jogador:jogadores!resultados_mvp_jogador_id_fkey(id, nome, apelido, foto_url),
+          jogo:jogos!inner(team_id)
         `)
         .not("mvp_jogador_id", "is", null);
+
+      if (teamId) {
+        query = query.eq("jogo.team_id", teamId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -220,6 +233,46 @@ export function useSaveEstatisticasPartida() {
       queryClient.invalidateQueries({ queryKey: ["estatisticas-partida"] });
       queryClient.invalidateQueries({ queryKey: ["estatisticas-jogadores"] });
       queryClient.invalidateQueries({ queryKey: ["ranking"] });
+    },
+  });
+}
+// Estatísticas detalhadas de performance de um jogador para dashboard
+export function usePlayerPerformance(jogadorId: string | undefined, teamId: string | undefined) {
+  return useQuery({
+    queryKey: ["player-performance", jogadorId, teamId],
+    enabled: !!jogadorId && !!teamId,
+    queryFn: async () => {
+      // 1. Buscar histórico de estatísticas do jogador com data do jogo
+      const { data: playerStats, error: playerError } = await supabase
+        .from("estatisticas_partida")
+        .select(`
+          gols, 
+          assistencias, 
+          participou,
+          cartao_amarelo,
+          cartao_vermelho,
+          resultado:resultados!inner(
+            mvp_jogador_id,
+            jogo:jogos!inner(data_hora)
+          )
+        `)
+        .eq("jogador_id", jogadorId!)
+        .eq("team_id", teamId!);
+
+      if (playerError) throw playerError;
+
+      // 2. Buscar estatísticas de TODOS os jogadores do time para calcular médias
+      const { data: teamStats, error: teamError } = await supabase
+        .from("estatisticas_partida")
+        .select("gols, assistencias, participou, jogador_id")
+        .eq("team_id", teamId!);
+
+      if (teamError) throw teamError;
+
+      return {
+        playerStats: playerStats as any[],
+        teamStats: teamStats as any[]
+      };
     },
   });
 }

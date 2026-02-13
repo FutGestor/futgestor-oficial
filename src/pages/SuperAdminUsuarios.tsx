@@ -5,7 +5,7 @@ import { ptBR } from "date-fns/locale";
 import {
     Check, X, Clock, UserCheck, UserX, Shield, ShieldOff,
     Trash2, Pencil, CreditCard, Search, Filter, ArrowLeft,
-    Users, Users2, Star, ShieldAlert
+    Users, Users2, Star, ShieldAlert, Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -75,7 +75,7 @@ export default function SuperAdminUsuarios() {
     const { toast } = useToast();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const { isSuperAdmin: authIsSuperAdmin, isLoading: authLoading } = useAuth();
+    const { isSuperAdmin: authIsSuperAdmin, isLoading: authLoading, impersonate } = useAuth();
     const [isUpdating, setIsUpdating] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<ProfileWithEmail | null>(null);
@@ -515,6 +515,21 @@ export default function SuperAdminUsuarios() {
                                                             {!profile.aprovado && (
                                                                 <Button size="icon" variant="ghost" className="h-8 w-8 text-green-500 hover:bg-green-500/10" onClick={() => handleApprove(profile.id)}>
                                                                     <Check className="h-4 w-4" />
+                                                                </Button>
+                                                            )}
+                                                            {profile.team_id && (
+                                                                <Button 
+                                                                    size="icon" 
+                                                                    variant="ghost" 
+                                                                    className="h-8 w-8 text-[#D4A84B] hover:bg-[#D4A84B]/10" 
+                                                                    title="Acessar como este time (Impersonate)"
+                                                                    onClick={() => {
+                                                                        impersonate(profile.team_id!);
+                                                                        navigate("/");
+                                                                        toast({ title: "Modo Suporte Ativado", description: `Simulando acesso do time ${profile.teamName || ""}` });
+                                                                    }}
+                                                                >
+                                                                    <Eye className="h-4 w-4" />
                                                                 </Button>
                                                             )}
                                                             <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-400 hover:text-white" title="Alterar Plano" onClick={() => {

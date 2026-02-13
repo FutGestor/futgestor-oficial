@@ -24,6 +24,9 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   clearPasswordRecovery: () => void;
+  impersonate: (teamId: string) => void;
+  stopImpersonating: () => void;
+  isImpersonating: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,6 +40,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isApproved, setIsApproved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const [impersonatedTeamId, setImpersonatedTeamId] = useState<string | null>(
+    sessionStorage.getItem("futgestor_impersonated_team")
+  );
+
+  const impersonate = (teamId: string) => {
+    sessionStorage.setItem("futgestor_impersonated_team", teamId);
+    setImpersonatedTeamId(teamId);
+  };
+
+  const stopImpersonating = () => {
+    sessionStorage.removeItem("futgestor_impersonated_team");
+    setImpersonatedTeamId(null);
+  };
 
   const clearPasswordRecovery = () => setPasswordRecovery(false);
 
@@ -170,7 +186,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         session,
-        profile,
         isAdmin,
         isSuperAdmin,
         isApproved,
@@ -181,6 +196,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut,
         refreshProfile,
         clearPasswordRecovery,
+        impersonate,
+        stopImpersonating,
+        isImpersonating: !!impersonatedTeamId,
+        profile: profile ? {
+          ...profile,
+          team_id: impersonatedTeamId || profile.team_id
+        } : null
       }}
     >
       {children}

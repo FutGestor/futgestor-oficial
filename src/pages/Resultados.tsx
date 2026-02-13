@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useResultados } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
-import { useTeamConfig } from "@/hooks/useTeamConfig";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 function getResultType(golsFavor: number, golsContra: number) {
   if (golsFavor > golsContra) return "vitoria";
@@ -22,8 +22,8 @@ function ResultIcon({ tipo }: { tipo: "vitoria" | "derrota" | "empate" }) {
 }
 
 function ResultadosContent() {
-  const { team } = useTeamConfig();
-  const { data: resultados, isLoading } = useResultados(team.id || undefined);
+  const { team } = useTeamSlug();
+  const { data: resultados, isLoading } = useResultados(team.id);
 
   // Estatísticas
   const stats = resultados?.reduce(

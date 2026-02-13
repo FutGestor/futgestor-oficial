@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
-import { Calendar, MapPin, Instagram, MessageCircle, Youtube, Facebook, Clock, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { Calendar, MapPin, Instagram, MessageCircle, Youtube, Facebook, Clock, ChevronLeft, ChevronRight as ChevronRightIcon, Trophy, TrendingUp, Bell, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanAccess } from "@/hooks/useSubscription";
@@ -10,25 +10,23 @@ import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { statusLabels, type Jogo, type Time } from "@/lib/types";
+import { statusLabels, type Jogo, type Time, categoryLabels } from "@/lib/types";
 import { ScheduleGameCard } from "@/components/ScheduleGameCard";
 import { useAvisos, useFinancialSummary, useUltimoResultado, useJogos } from "@/hooks/useData";
 import { useTimeCasa } from "@/hooks/useTimes";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
-import { Trophy, TrendingUp, Bell, ChevronRight } from "lucide-react";
-import { categoryLabels } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { CraqueVoting } from "@/components/public/CraqueVoting";
+import { StickerAlbum } from "@/components/public/StickerAlbum";
 
+// ... existing code ...
 
 function LastResultCard({ teamId }: { teamId: string }) {
   const { data: resultado, isLoading } = useUltimoResultado(teamId);
-  const { team } = useTeamConfig(); // Still need this for team name? Actually result has names.
-  // Wait, the card uses `team.nome`.
-  // If we pass teamId, we might want to pass team name too or rely on the result/hook.
-  // Let's keep `useTeamConfig` for now as it handles the slug logic too, OR better: use the data from the hook if possible.
-  // actually `useTeamConfig` is fine IF it works correctly. But passing `teamId` to `useUltimoResultado` is CRITICAL.
+  const { team } = useTeamConfig(); 
   const { basePath } = useTeamSlug();
+  const { hasVotacaoCraque } = usePlanAccess(teamId); // Check permission
 
   if (isLoading) {
     return (
@@ -70,7 +68,7 @@ function LastResultCard({ teamId }: { teamId: string }) {
           Último Resultado
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         <div className={`rounded-lg p-4 ${bgColor}`}>
           <div className="flex flex-col items-center gap-2 text-center sm:flex-row sm:justify-center sm:gap-4">
             <span className="text-lg font-semibold">{team.nome}</span>
@@ -83,7 +81,14 @@ function LastResultCard({ teamId }: { teamId: string }) {
             {format(new Date(resultado.jogo.data_hora), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
           </p>
         </div>
-        <Link to={`${basePath}/resultados`} className="mt-4 block">
+
+        {hasVotacaoCraque && (
+          <div className="pt-4 border-t border-border">
+            <CraqueVoting gameId={resultado.jogo_id} resultadoId={resultado.id} />
+          </div>
+        )}
+
+        <Link to={`${basePath}/resultados`} className="block">
           <Button variant="outline" className="w-full">
             Ver todos os resultados
             <ChevronRight className="ml-2 h-4 w-4" />
@@ -93,6 +98,8 @@ function LastResultCard({ teamId }: { teamId: string }) {
     </Card>
   );
 }
+
+// ... existing code ...
 
 function FinancialCard({ teamId }: { teamId: string }) {
   const { data: summary, isLoading } = useFinancialSummary(teamId);
@@ -382,8 +389,8 @@ export default function TeamPublicPage() {
         <div className="container relative z-10 flex min-h-[500px] md:min-h-[600px] items-center justify-center px-4 md:px-6">
           <div className="flex flex-col items-center text-center">
             <h1
-              className="mb-4 text-4xl font-bold md:text-5xl drop-shadow-lg"
-              style={{ color: team.bio_config?.titleColor || "#FFFFFF" }}
+              className="mb-4 text-4xl font-bold md:text-5xl drop-shadow-lg text-[var(--title-color)]"
+              style={{ "--title-color": team.bio_config?.titleColor || "#FFFFFF" } as React.CSSProperties}
             >
               {team.nome}
             </h1>
@@ -393,9 +400,10 @@ export default function TeamPublicPage() {
                 team.bio_config?.fontSize || "text-lg",
                 team.bio_config?.fontWeight || "font-normal",
                 team.bio_config?.textAlign || "text-center",
-                team.bio_config?.fontFamily || "font-sans"
+                team.bio_config?.fontFamily || "font-sans",
+                "text-[var(--text-color)]"
               )}
-              style={{ color: team.bio_config?.color || "rgba(255, 255, 255, 0.8)" }}
+              style={{ "--text-color": team.bio_config?.color || "rgba(255, 255, 255, 0.8)" } as React.CSSProperties}
             >
               {team.bio_config?.text || (isMember
                 ? "Gerencie seu time de futebol. Agenda, escalações, resultados, finanças e muito mais em um só lugar."
@@ -452,12 +460,29 @@ export default function TeamPublicPage() {
       {/* Agenda pública - sempre visível */}
       <AgendaSection teamId={team.id} />
 
-      {/* Cards de membros */}
-      {isMember && (
-        <section className="py-12">
+      {/* Último Resultado e Votação - Público */}
+      <section className="py-8 bg-muted/20">
+        <div className="container px-4 md:px-6">
+          <h2 className="mb-6 text-2xl font-bold">Última Partida</h2>
+          <div className="max-w-3xl">
+            <LastResultCard teamId={team.id} />
+          </div>
+        </div>
+      </section>
+
+      {/* Álbum de Figurinhas - Público */}
+      <section className="py-12">
+        <div className="container px-4 md:px-6">
+          <StickerAlbum teamId={team.id} />
+        </div>
+      </section>
+
+      {/* Cards de membros (Financeiro/Avisos) */}
+      {isMember && (hasFinanceiro || hasAvisos) && (
+        <section className="py-8">
           <div className="container px-4 md:px-6">
+            <h2 className="mb-6 text-2xl font-bold">Área do Membro</h2>
             <div className="grid gap-6 md:grid-cols-2">
-              <LastResultCard teamId={team.id} />
               {hasFinanceiro && <FinancialCard teamId={team.id} />}
               {hasAvisos && <NoticesCard teamId={team.id} />}
             </div>

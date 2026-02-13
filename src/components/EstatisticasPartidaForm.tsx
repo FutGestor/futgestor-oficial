@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Star } from "lucide-react";
+import { User, Star, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useJogadores } from "@/hooks/useData";
 import { useEstatisticasPartida, useSaveEstatisticasPartida } from "@/hooks/useEstatisticas";
 import { useToast } from "@/hooks/use-toast";
@@ -97,6 +98,12 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
     try {
       const estatisticasParaSalvar = Object.values(stats).filter(s => s.participou);
 
+      if (estatisticasParaSalvar.length === 0) {
+        if (!confirm("Nenhum jogador foi marcado como participante. Isso impedirá a votação do Craque da Galera.\n\nDeseja salvar mesmo assim?")) {
+          return;
+        }
+      }
+
       await saveEstatisticas.mutateAsync({
         resultadoId,
         estatisticas: estatisticasParaSalvar,
@@ -131,6 +138,14 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
 
   return (
     <div className="space-y-4">
+      <Alert variant="warning" className="bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-900/50 dark:text-yellow-200">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Importante!</AlertTitle>
+        <AlertDescription>
+          Para que a votação do <strong>Craque da Galera</strong> funcione, você deve marcar abaixo quem <strong>Participou</strong> da partida.
+        </AlertDescription>
+      </Alert>
+
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>{participantes} jogador(es) participaram</span>
         <span>{totalGols} gol(s) marcado(s)</span>

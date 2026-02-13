@@ -95,6 +95,8 @@ export function usePlanAccess(teamId?: string | null) {
     hasLoginJogadores: planLevel >= 3, // liga
     hasCampeonatos: planLevel >= 3, // liga
     hasSaldoCard: planLevel >= 2, // pro+
+    hasVotacaoCraque: planLevel >= 2, // pro+
+    hasAlbumFigurinhas: planLevel >= 3, // liga
     // Utility
     canAccess: (requiredPlan: PlanType) => planLevel >= (PLAN_HIERARCHY[requiredPlan] ?? 0),
   };
