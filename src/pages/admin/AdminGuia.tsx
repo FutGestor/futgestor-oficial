@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { FileDown, Globe, ShieldCheck, BookOpen } from "lucide-react";
+import { FileDown, Globe, ShieldCheck, BookOpen, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -55,6 +55,7 @@ const planFeatures = [
   { feature: "Estatísticas avançadas (cartões, assistências)", basico: false, pro: true, liga: true },
   { feature: "Gestor de Campeonatos (ligas)", basico: false, pro: false, liga: true },
   { feature: "Login individual para jogadores", basico: false, pro: false, liga: true },
+  { feature: "Suporte prioritário", basico: false, pro: true, liga: true },
 ];
 
 /* ───────────── component ───────────── */
@@ -271,6 +272,9 @@ export default function AdminGuia() {
                       <li><strong>Financeiro:</strong> Comunicados sobre cobranças, pagamentos, etc.</li>
                       <li><strong>Jogo:</strong> Avisos relacionados a partidas (mudança de horário, local, etc).</li>
                     </ul>
+                    <Tip>
+                      Fique atento aos badges vermelhos no menu do site — eles indicam que há novos avisos não lidos!
+                    </Tip>
                   </AccordionContent>
                 </AccordionItem>
 
@@ -374,7 +378,7 @@ export default function AdminGuia() {
                       Central de gerenciamento de partidas do time. Aqui você cria, edita e controla todos os jogos.
                     </p>
                     <h4 className="font-semibold text-sm mb-2">Criar um novo jogo:</h4>
-                    <Step n={1}>Clique no botão "Novo Jogo".</Step>
+                    <Step n={1}>Clique em "Novo Jogo".</Step>
                     <Step n={2}>Preencha: adversário, data/hora, local e observações.</Step>
                     <Step n={3}>Opcionalmente selecione um time cadastrado como adversário (para exibir o escudo).</Step>
                     <Step n={4}>Clique em "Salvar".</Step>
@@ -409,7 +413,7 @@ export default function AdminGuia() {
                     <Step n={3}>Analise a solicitação e clique em "Aceitar" ou "Recusar".</Step>
                     <Step n={4}>Se aceitar, crie o jogo manualmente na aba Jogos com os dados combinados.</Step>
                     <Tip>
-                      Um badge vermelho aparece no menu quando há solicitações pendentes. Não deixe o adversário esperando!
+                      Um <strong>badge vermelho</strong> aparece no menu lateral quando há solicitações pendentes. Não deixe o adversário esperando!
                     </Tip>
                   </AccordionContent>
                 </AccordionItem>
@@ -461,26 +465,6 @@ export default function AdminGuia() {
                   </AccordionContent>
                 </AccordionItem>
 
-                {/* Usuários */}
-                <AccordionItem value="adm-usuarios">
-                  <AccordionTrigger>Usuários</AccordionTrigger>
-                  <AccordionContent>
-                    <p className="text-sm mb-3">
-                      Gerencie os usuários vinculados ao time que possuem login no sistema.
-                    </p>
-                    <h4 className="font-semibold text-sm mb-2">O que você pode fazer:</h4>
-                    <ul className="list-disc pl-5 text-sm space-y-1">
-                      <li>Ver todos os usuários cadastrados com e-mail e status de aprovação.</li>
-                      <li>Aprovar ou reprovar novos usuários que se registram.</li>
-                      <li>Vincular um usuário a um jogador do elenco.</li>
-                      <li>Remover acesso de um usuário.</li>
-                    </ul>
-                    <Tip>
-                      Quando um jogador recebe um login (via Jogadores → Criar Acesso), ele aparece automaticamente aqui como usuário vinculado.
-                    </Tip>
-                  </AccordionContent>
-                </AccordionItem>
-
                 {/* Transações */}
                 <AccordionItem value="adm-transacoes">
                   <AccordionTrigger>Transações Financeiras <Badge variant="secondary" className="ml-2 text-xs">Pro</Badge></AccordionTrigger>
@@ -496,7 +480,7 @@ export default function AdminGuia() {
                     <h4 className="font-semibold text-sm mb-2 mt-4">Categorias sugeridas:</h4>
                     <ul className="list-disc pl-5 text-sm space-y-1">
                       <li><strong>Entradas:</strong> Mensalidade, rifa, patrocínio, doação, outros.</li>
-                      <li><strong>Saídas:</strong> Aluguel de campo, uniforme, bola, premiação, transporte, outros.</li>
+                      <li><strong>Saídas:</strong> Aluguel de campo, uniformes, bola, premiação, transporte, outros.</li>
                     </ul>
                     <Tip>
                       Todas as transações ficam visíveis no portal público (aba Financeiro), garantindo transparência total com o elenco.
@@ -615,6 +599,47 @@ export default function AdminGuia() {
             </CardContent>
           </Card>
 
+           {/* ═══════════ SUPORTE E AJUDA ═══════════ */}
+           <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Headphones className="h-5 w-5 text-primary" />
+                Precisa de Ajuda? (Suporte)
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Canal direto com a equipe do FutGestor para tirar dúvidas ou resolver problemas.
+              </p>
+            </CardHeader>
+            <CardContent>
+            <Accordion type="multiple" data-guia-accordion className="w-full">
+                <AccordionItem value="suporte-como-usar">
+                  <AccordionTrigger>Como abrir um chamado</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm mb-3">
+                      Nosso sistema possui uma central de suporte integrada para atender você rapidamente.
+                    </p>
+                    <h4 className="font-semibold text-sm mb-2">Passo a passo:</h4>
+                    <Step n={1}>No menu superior, clique em <strong>"Suporte"</strong>.</Step>
+                    <Step n={2}>Clique em "Novo Chamado" ou "Abrir Chamado".</Step>
+                    <Step n={3}>Escolha a categoria (Dúvida, Bug, Sugestão, etc.).</Step>
+                    <Step n={4}>Descreva sua solicitação com detalhes e clique em "Criar Chamado".</Step>
+                    <Step n={5}>Você pode anexar prints ou imagens para facilitar o entendimento.</Step>
+                    
+                    <h4 className="font-semibold text-sm mb-2 mt-4">Acompanhamento:</h4>
+                    <ul className="list-disc pl-5 text-sm space-y-1">
+                      <li>Você será notificado com um <strong>badge vermelho</strong> no menu "Suporte" sempre que houver uma resposta da nossa equipe.</li>
+                      <li>O chat funciona em tempo real. Você pode consultar seu histórico a qualquer momento.</li>
+                      <li>Clique na notificação para ir direto para a conversa.</li>
+                    </ul>
+                    <Tip>
+                      Caso encontre algum erro no sistema, tente enviar um print da tela, isso nos ajuda a resolver muito mais rápido!
+                    </Tip>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+
           {/* ═══════════ COMPARATIVO DE PLANOS ═══════════ */}
           <Card>
             <CardHeader className="pb-2">
@@ -635,27 +660,27 @@ export default function AdminGuia() {
                 </TableHeader>
                 <TableBody>
                   {planFeatures.map((row) => (
-                    <TableRow key={row.feature}>
-                      <TableCell className="text-sm">{row.feature}</TableCell>
+                    <TableRow key={row.feature} className="hover:bg-muted/50 border-b border-white/5 dark:border-white/10">
+                      <TableCell className="text-sm font-medium dark:text-gray-200">{row.feature}</TableCell>
                       <TableCell className="text-center">
                         {row.basico ? (
-                          <Check className="h-4 w-4 text-primary mx-auto" />
+                          <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 mx-auto" />
                         ) : (
-                          <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+                          <X className="h-4 w-4 text-muted-foreground/60 dark:text-gray-600 mx-auto" />
                         )}
                       </TableCell>
                       <TableCell className="text-center">
                         {row.pro ? (
-                          <Check className="h-4 w-4 text-primary mx-auto" />
+                          <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 mx-auto" />
                         ) : (
-                          <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+                          <X className="h-4 w-4 text-muted-foreground/60 dark:text-gray-600 mx-auto" />
                         )}
                       </TableCell>
                       <TableCell className="text-center">
                         {row.liga ? (
-                          <Check className="h-4 w-4 text-primary mx-auto" />
+                          <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 mx-auto" />
                         ) : (
-                          <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+                          <X className="h-4 w-4 text-muted-foreground/60 dark:text-gray-600 mx-auto" />
                         )}
                       </TableCell>
                     </TableRow>

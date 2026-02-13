@@ -18,12 +18,18 @@ import {
 import { Navigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
+
+import { useTodosChamados } from "@/hooks/useChamados";
+
 export default function SuperAdminDashboard() {
     const { isSuperAdmin, isLoading } = useAuth();
     const navigate = useNavigate();
+    const { data: chamados } = useTodosChamados();
 
     if (isLoading) return null;
     if (!isSuperAdmin) return <Navigate to="/" replace />;
+    
+    const chamadosAbertos = chamados?.filter(c => c.status === "aberto").length || 0;
 
     const modules = [
         {
@@ -40,7 +46,8 @@ export default function SuperAdminDashboard() {
             icon: Headphones,
             path: "/super-admin/suporte",
             color: "text-blue-500",
-            bg: "bg-blue-500/10"
+            bg: "bg-blue-500/10",
+            badge: chamadosAbertos > 0 ? chamadosAbertos : undefined
         },
         {
             title: "Status do Sistema",
@@ -116,7 +123,14 @@ export default function SuperAdminDashboard() {
                                         <module.icon className={cn("h-6 w-6", module.color)} />
                                     </div>
                                     <CardTitle className="text-white flex items-center justify-between">
-                                        {module.title}
+                                        <div className="flex items-center gap-2">
+                                            {module.title}
+                                            {(module as any).badge && (
+                                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
+                                                    {(module as any).badge}
+                                                </span>
+                                            )}
+                                        </div>
                                         {!module.disabled && <ArrowRight className="h-4 w-4 text-gray-500 group-hover:text-white transition-colors" />}
                                     </CardTitle>
                                     <CardDescription className="text-gray-400 text-sm leading-relaxed">
