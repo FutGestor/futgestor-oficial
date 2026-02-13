@@ -32,18 +32,8 @@ import SuperAdminSuporte from "./pages/SuperAdminSuporte";
 import SuperAdminStatus from "./pages/SuperAdminStatus";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SuperAdminUsuarios from "./pages/SuperAdminUsuarios";
-import SuperAdminHealth from "./pages/SuperAdminHealth";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -64,7 +54,6 @@ const App = () => (
             <Route path="/super-admin/status" element={<SuperAdminStatus />} />
             <Route path="/super-admin/usuarios" element={<SuperAdminUsuarios />} />
             <Route path="/super-admin/avisos" element={<SuperAdminAvisos />} />
-            <Route path="/super-admin/health" element={<SuperAdminHealth />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
             <Route path="/player/dashboard" element={<RequireApproval />}>
               <Route index element={<PlayerDashboard />} />
@@ -72,9 +61,6 @@ const App = () => (
 
             <Route path="/time/:slug" element={<TeamSlugLayout />}>
               <Route index element={<TeamPublicPage />} />
-              <Route path="ranking" element={<Ranking />} />
-              <Route path="resultados" element={<Resultados />} />
-              <Route path="ligas" element={<Ligas />} />
 
               <Route element={<RequireApproval />}>
                 <Route path="agenda" element={<Agenda />} />
@@ -82,6 +68,9 @@ const App = () => (
                 <Route path="escalacao" element={<Escalacao />} />
                 <Route path="jogadores" element={<Jogadores />} />
                 <Route path="meu-perfil" element={<MeuPerfil />} />
+                <Route path="ranking" element={<Ranking />} />
+                <Route path="resultados" element={<Resultados />} />
+                <Route path="ligas" element={<Ligas />} />
                 <Route path="avisos" element={<Avisos />} />
                 <Route path="suporte" element={<Suporte />} />
                 <Route path="admin/*" element={<Admin />} />
