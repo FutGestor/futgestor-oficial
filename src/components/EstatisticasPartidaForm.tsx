@@ -13,6 +13,7 @@ import { useEstatisticasPartida, useSaveEstatisticasPartida } from "@/hooks/useE
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 type JogadorStats = {
   jogador_id: string;
@@ -82,7 +83,7 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
     }
 
     setStats(initialStats);
-  }, [jogadoresAtivos.length, estatisticasExistentes]);
+  }, [jogadoresAtivos, estatisticasExistentes]);
 
   const updateStats = (jogadorId: string, field: keyof JogadorStats, value: boolean | number) => {
     setStats(prev => ({
@@ -138,7 +139,7 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
 
   return (
     <div className="space-y-4">
-      <Alert variant="warning" className="bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-900/50 dark:text-yellow-200">
+      <Alert className="bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-900/50 dark:text-yellow-200">
         <AlertTriangle className="h-4 w-4" />
         <AlertTitle>Importante!</AlertTitle>
         <AlertDescription>
@@ -181,7 +182,15 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
             if (!jogadorStats) return null;
 
             return (
-              <Card key={jogador.id} className={jogadorStats.participou ? "border-primary/50" : ""}>
+              <Card 
+                key={jogador.id} 
+                className={cn(
+                  "transition-all duration-200",
+                  jogadorStats.participou 
+                    ? "border-primary shadow-md bg-primary/5 dark:bg-primary/10" 
+                    : "border-border opacity-80"
+                )}
+              >
                 <CardContent className="p-3">
                   <div className="flex flex-col gap-3">
                     {/* Header com checkbox e nome */}
