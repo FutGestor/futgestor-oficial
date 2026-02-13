@@ -15,36 +15,36 @@ export function JogadorStats({ stats }: JogadorStatsProps) {
   }
 
   return (
-    <div className="mt-3 grid grid-cols-4 gap-2 border-t pt-3 text-center text-xs">
+    <div className="mt-3 grid grid-cols-4 gap-2 border-t pt-3 text-center text-xs border-border/50">
       <div>
-        <div className="flex items-center justify-center gap-1 font-semibold text-primary">
+        <div className="flex items-center justify-center gap-1 font-semibold text-orange-500 dark:text-orange-400">
           <Users className="h-3 w-3" />
           {stats.jogos}
         </div>
-        <div className="text-muted-foreground">Jogos</div>
+        <div className="text-muted-foreground dark:text-gray-400">Jogos</div>
       </div>
       <div>
-        <div className="flex items-center justify-center gap-1 font-semibold text-green-600">
+        <div className="flex items-center justify-center gap-1 font-semibold text-green-600 dark:text-green-400">
           <Target className="h-3 w-3" />
           {stats.gols}
         </div>
-        <div className="text-muted-foreground">Gols</div>
+        <div className="text-muted-foreground dark:text-gray-400">Gols</div>
       </div>
       <div>
-        <div className="flex items-center justify-center gap-1 font-semibold text-blue-600">
-          🎯
+        <div className="flex items-center justify-center gap-1 font-semibold text-blue-600 dark:text-blue-400">
+          <span className="text-[10px]">🎯</span>
           {stats.assistencias}
         </div>
-        <div className="text-muted-foreground">Assist.</div>
+        <div className="text-muted-foreground dark:text-gray-400">Assist.</div>
       </div>
       <div>
-        <div className="flex items-center justify-center gap-1 font-semibold">
+        <div className="flex items-center justify-center gap-1 font-semibold text-foreground">
           <span className="text-yellow-500">🟨</span>
           {stats.cartoes_amarelos}
           <span className="text-red-500">🟥</span>
           {stats.cartoes_vermelhos}
         </div>
-        <div className="text-muted-foreground">Cartões</div>
+        <div className="text-muted-foreground dark:text-gray-400">Cartões</div>
       </div>
     </div>
   );
