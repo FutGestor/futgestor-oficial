@@ -17,8 +17,6 @@ import { useJogadores } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { positionLabels, type Jogador, type PlayerPosition } from "@/lib/types";
 import { usePlanAccess } from "@/hooks/useSubscription";
-import { PlayerPerformanceDialog } from "@/components/PlayerPerformanceDialog";
-import { BarChart3 } from "lucide-react";
 
 type JogadorFormData = {
   nome: string;
@@ -56,9 +54,6 @@ export default function AdminJogadores() {
   const [accessDialog, setAccessDialog] = useState<{ open: boolean; jogador: Jogador | null }>({ open: false, jogador: null });
   const [accessEmail, setAccessEmail] = useState("");
   const [isCreatingAccess, setIsCreatingAccess] = useState(false);
-
-  // Performance View state
-  const [performanceDialog, setPerformanceDialog] = useState<{ open: boolean; jogador: Jogador | null }>({ open: false, jogador: null });
 
   const { team } = useTeamConfig();
   const { data: jogadores, isLoading } = useJogadores(false, team.id);
@@ -262,12 +257,7 @@ export default function AdminJogadores() {
       setAccessDialog({ open: false, jogador: null });
       setAccessEmail("");
     } catch (err: any) {
-      console.error("Erro completo ao invocar Edge Function:", err);
-      toast({ 
-        variant: "destructive", 
-        title: "Erro de Conexão", 
-        description: err.message || "Não foi possível conectar à Edge Function. Verifique o console ou a implantação no Supabase." 
-      });
+      toast({ variant: "destructive", title: "Erro", description: err.message });
     } finally {
       setIsCreatingAccess(false);
     }
@@ -466,15 +456,6 @@ export default function AdminJogadores() {
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-primary hover:text-primary hover:bg-primary/10"
-                      onClick={() => setPerformanceDialog({ open: true, jogador })}
-                      title="Ver estatísticas de performance"
-                    >
-                      <BarChart3 className="h-4 w-4" />
-                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => openEditDialog(jogador)}>
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -554,12 +535,6 @@ export default function AdminJogadores() {
           </div>
         </DialogContent>
       </Dialog>
-      <PlayerPerformanceDialog 
-        open={performanceDialog.open}
-        onOpenChange={(open) => setPerformanceDialog({ ...performanceDialog, open })}
-        jogador={performanceDialog.jogador}
-        teamId={team.id}
-      />
     </div>
   );
 }
