@@ -39,10 +39,31 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
   const saveEstatisticas = useSaveEstatisticasPartida();
   const { toast } = useToast();
 
-  const jogadoresAtivos = useMemo(() => 
-    jogadores?.filter(j => j.ativo !== false) || [],
-    [jogadores]
-  );
+  const jogadoresAtivos = useMemo(() => {
+    if (!jogadores) return [];
+
+    const positionPriority: Record<string, number> = {
+      'atacante': 1,
+      'meia': 2,
+      'volante': 3,
+      'lateral': 4,
+      'zagueiro': 5,
+      'goleiro': 6
+    };
+
+    return jogadores
+      .filter(j => j.ativo !== false)
+      .sort((a, b) => {
+        const priorityA = positionPriority[a.posicao] || 99;
+        const priorityB = positionPriority[b.posicao] || 99;
+        
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+        
+        return a.nome.localeCompare(b.nome);
+      });
+  }, [jogadores]);
 
   // Carregar MVP existente
   useEffect(() => {
@@ -98,6 +119,23 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
     }));
   };
 
+  const toggleAll = () => {
+    const allSelected = jogadoresAtivos.every(j => stats[j.id]?.participou);
+    
+    setStats(prev => {
+      const newStats = { ...prev };
+      jogadoresAtivos.forEach(j => {
+        if (newStats[j.id]) {
+          newStats[j.id] = {
+            ...newStats[j.id],
+            participou: !allSelected
+          };
+        }
+      });
+      return newStats;
+    });
+  };
+
   const handleSave = async () => {
     try {
       const estatisticasParaSalvar = Object.values(stats).filter(s => s.participou);
@@ -151,7 +189,17 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
       </Alert>
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{participantes} jogador(es) participaram</span>
+        <div className="flex items-center gap-4">
+          <span>{participantes} jogador(es) participaram</span>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={toggleAll}
+            className="h-auto p-0 text-primary hover:text-primary/80"
+          >
+            {jogadoresAtivos.every(j => stats[j.id]?.participou) ? "Desmarcar Todos" : "Marcar Todos"}
+          </Button>
+        </div>
         <span>{totalGols} gol(s) marcado(s)</span>
       </div>
 

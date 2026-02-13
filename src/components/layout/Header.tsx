@@ -41,7 +41,7 @@ export function Header() {
   const visitorNavItems = teamSlug
     ? [
       { href: basePath, label: "Início" },
-      ...(hasResultados ? [{ href: `${basePath}/resultados`, label: "Resultados" }] : []),
+
       ...(hasRanking ? [{ href: `${basePath}/ranking`, label: "Ranking" }] : []),
       ...(hasCampeonatos ? [{ href: `${basePath}/ligas`, label: "Ligas" }] : []),
     ]

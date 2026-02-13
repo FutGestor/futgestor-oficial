@@ -7,50 +7,74 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useJogos } from "@/hooks/useData";
+import { useJogos, useResultados } from "@/hooks/useData";
 import { useTimeCasa } from "@/hooks/useTimes";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
-import { statusLabels, type Jogo, type Time } from "@/lib/types";
+import { statusLabels, type Jogo, type Time, type Resultado } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 
-function GameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
+function GameCard({ jogo, timeCasa, resultado }: { jogo: Jogo; timeCasa?: Time | null; resultado?: Resultado | null }) {
   const gameDate = new Date(jogo.data_hora);
   const time = jogo.time_adversario;
+
+  const isFinalizado = jogo.status === 'finalizado' && resultado;
+  const golsFavor = resultado?.gols_favor ?? 0;
+  const golsContra = resultado?.gols_contra ?? 0;
+
+  const isVitoria = isFinalizado && golsFavor > golsContra;
+  const isDerrota = isFinalizado && golsFavor < golsContra;
 
   return (
     <Card className="transition-shadow hover:shadow-md">
       <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             <div className="mb-2 flex items-center gap-2">
-              <Badge variant={jogo.status === 'confirmado' ? 'default' : 'secondary'}>
+              <Badge variant={jogo.status === 'confirmado' ? 'default' : jogo.status === 'finalizado' ? 'secondary' : 'outline'}>
                 {statusLabels[jogo.status]}
               </Badge>
             </div>
-            <div className="flex items-center gap-2">
-              {/* Escudo do time da casa */}
-              {timeCasa?.escudo_url && (
-                <img
-                  src={timeCasa.escudo_url}
-                  alt={timeCasa.nome}
-                  className="h-8 w-8 rounded-full object-contain"
-                />
-              )}
-              <span className="text-sm text-muted-foreground font-medium">vs</span>
-              {/* Escudo do adversário */}
-              {time?.escudo_url && (
-                <img
-                  src={time.escudo_url}
-                  alt={time.nome}
-                  className="h-8 w-8 rounded-full object-contain"
-                />
-              )}
+            
+            <div className="flex items-center gap-3">
+              {/* Time da Casa */}
+              <div className="flex items-center gap-2">
+                {timeCasa?.escudo_url && (
+                  <img src={timeCasa.escudo_url} alt={timeCasa.nome} className="h-8 w-8 rounded-full object-contain" />
+                )}
+                <span className={cn("font-semibold", isFinalizado && "hidden sm:inline")}>
+                  {timeCasa?.nome || 'Meu Time'}
+                </span>
+              </div>
+
+              {/* Placar ou VS */}
+              <div className="flex flex-col items-center min-w-[60px]">
+                {isFinalizado ? (
+                  <div className={cn(
+                    "px-3 py-1 rounded text-lg font-bold whitespace-nowrap",
+                    isVitoria ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
+                    isDerrota ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" :
+                    "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                  )}>
+                    {golsFavor} x {golsContra}
+                  </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground font-medium">vs</span>
+                )}
+              </div>
+
+              {/* Adversário */}
+              <div className="flex items-center gap-2">
+                {time?.escudo_url && (
+                  <img src={time.escudo_url} alt={time.nome} className="h-8 w-8 rounded-full object-contain" />
+                )}
+                <span className={cn("font-semibold", isFinalizado && "hidden sm:inline")}>
+                  {time?.nome || jogo.adversario}
+                </span>
+              </div>
             </div>
-            <h3 className="mt-1 text-lg font-semibold">
-              {timeCasa?.nome || 'Meu Time'} vs {time?.nome || jogo.adversario}
-            </h3>
-            <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
+
+            <div className="mt-3 flex flex-wrap gap-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
                 <CalendarIcon className="h-4 w-4" />
                 {format(gameDate, "dd 'de' MMMM", { locale: ptBR })}
@@ -68,11 +92,11 @@ function GameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
               <p className="mt-2 text-sm text-muted-foreground">{jogo.observacoes}</p>
             )}
           </div>
-          <div className="text-right">
+          <div className="text-right hidden sm:block">
             <div className="text-2xl font-bold text-foreground">
               {format(gameDate, "dd")}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground capitalize">
               {format(gameDate, "MMM", { locale: ptBR })}
             </div>
           </div>
@@ -84,13 +108,19 @@ function GameCard({ jogo, timeCasa }: { jogo: Jogo; timeCasa?: Time | null }) {
 
 function AgendaContent() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const { team } = useTeamConfig();
   const { data: jogos, isLoading } = useJogos(team.id || undefined);
+  const { data: resultados } = useResultados(team.id || undefined);
   const { data: timeCasa } = useTimeCasa(team.id || undefined);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  const getDayGames = (date: Date) => {
+    return jogos?.filter((jogo) => isSameDay(new Date(jogo.data_hora), date)) || [];
+  };
 
   const jogosDoMes = jogos?.filter((jogo) => {
     const jogoDate = new Date(jogo.data_hora);
@@ -99,9 +129,9 @@ function AgendaContent() {
     return new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime();
   }) || [];
 
-  const getDayGames = (date: Date) => {
-    return jogos?.filter((jogo) => isSameDay(new Date(jogo.data_hora), date)) || [];
-  };
+  const jogosFiltrados = selectedDate 
+    ? jogos?.filter(j => isSameDay(new Date(j.data_hora), selectedDate)).sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime()) || []
+    : jogosDoMes;
 
   return (
     <Layout>
@@ -163,13 +193,15 @@ function AgendaContent() {
                   const time = firstGame?.time_adversario;
 
                   return (
-                    <div
+                    <button
                       key={day.toISOString()}
+                      onClick={() => setSelectedDate(isSameDay(day, selectedDate || new Date(0)) ? null : day)}
                       className={cn(
-                        "aspect-square relative flex items-center justify-center rounded-lg text-sm transition-colors",
-                        isToday && "bg-primary text-primary-foreground",
-                        hasGames && !isToday && "bg-card text-card-foreground border",
-                        !hasGames && !isToday && "bg-secondary/30 hover:bg-secondary/50"
+                        "aspect-square relative flex items-center justify-center rounded-lg text-sm transition-all hover:ring-2 hover:ring-primary/50 focus:outline-none focus:ring-2 focus:ring-primary",
+                        isToday && !selectedDate && "bg-primary text-primary-foreground",
+                        selectedDate && isSameDay(day, selectedDate) && "bg-primary text-primary-foreground ring-2 ring-offset-2 ring-primary",
+                        hasGames && !isToday && (!selectedDate || !isSameDay(day, selectedDate)) && "bg-card text-card-foreground border hover:bg-card/80",
+                        !hasGames && !isToday && (!selectedDate || !isSameDay(day, selectedDate)) && "bg-secondary/30 hover:bg-secondary/50 text-muted-foreground"
                       )}
                     >
                       {/* Numero do dia - escondido se tiver escudo */}
@@ -201,7 +233,7 @@ function AgendaContent() {
                           </span>
                         </div>
                       )}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -210,25 +242,49 @@ function AgendaContent() {
 
           {/* Games list */}
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">
-              Jogos em {format(currentMonth, "MMMM", { locale: ptBR })}
-            </h2>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <h2 className="text-xl font-semibold">
+                {selectedDate 
+                  ? `Jogos em ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}`
+                  : `Jogos em ${format(currentMonth, "MMMM", { locale: ptBR })}`
+                }
+              </h2>
+              {selectedDate && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setSelectedDate(null)}
+                >
+                  Ver mês inteiro
+                </Button>
+              )}
+            </div>
 
             {isLoading ? (
               <div className="space-y-4">
                 <Skeleton className="h-32 w-full" />
                 <Skeleton className="h-32 w-full" />
               </div>
-            ) : jogosDoMes.length > 0 ? (
+            ) : jogosFiltrados.length > 0 ? (
               <div className="space-y-4">
-                {jogosDoMes.map((jogo) => (
-                  <GameCard key={jogo.id} jogo={jogo} timeCasa={timeCasa} />
-                ))}
+                {jogosFiltrados.map((jogo) => {
+                  const resultado = resultados?.find(r => r.jogo_id === jogo.id);
+                  return (
+                    <GameCard key={jogo.id} jogo={jogo} timeCasa={timeCasa} resultado={resultado} />
+                  );
+                })}
               </div>
             ) : (
               <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">
-                  Nenhum jogo agendado para este mês.
+                  Nenhum jogo agendado para {selectedDate ? "esta data" : "este mês"}.
+                  {selectedDate && (
+                    <div className="mt-4">
+                      <Button variant="link" onClick={() => setSelectedDate(null)}>
+                        Ver jogos do mês
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

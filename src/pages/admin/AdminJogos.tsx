@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Edit, Trash2, Calendar, MapPin, Clock, Users, Check, X, Shield, List, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, MapPin, Clock, Users, Check, X, Shield, List, ChevronLeft, ChevronRight, ArrowUpDown, Trophy } from "lucide-react";
 import PresencaLinkDialog from "@/components/PresencaLinkDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,16 +16,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useJogos } from "@/hooks/useData";
+import { useJogos, useResultados } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { useTimesAtivos } from "@/hooks/useTimes";
 import { useConfirmacoesContagem } from "@/hooks/useConfirmacoes";
-import { statusLabels, type Jogo, type GameStatus } from "@/lib/types";
+import { statusLabels, type Jogo, type GameStatus, type Resultado } from "@/lib/types";
 import AdminPresencaManager from "@/components/AdminPresencaManager";
+import EstatisticasPartidaForm from "@/components/EstatisticasPartidaForm";
 import { cn } from "@/lib/utils";
 import { usePlanAccess } from "@/hooks/useSubscription";
 import { DatePickerPopover } from "@/components/ui/date-picker-popover";
 import { TimePickerSelect } from "@/components/ui/time-picker-select";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type JogoFormData = {
   data_hora: string;
@@ -33,6 +36,13 @@ type JogoFormData = {
   adversario: string;
   time_adversario_id: string | null;
   status: GameStatus;
+  observacoes: string;
+};
+
+type ResultadoFormData = {
+  jogo_id: string;
+  gols_favor: string;
+  gols_contra: string;
   observacoes: string;
 };
 
@@ -45,7 +55,12 @@ const initialFormData: JogoFormData = {
   observacoes: "",
 };
 
-import { useTeamConfig } from "@/hooks/useTeamConfig";
+const initialResultFormData: ResultadoFormData = {
+  jogo_id: "",
+  gols_favor: "0",
+  gols_contra: "0",
+  observacoes: "",
+};
 
 export default function AdminJogos() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -55,18 +70,28 @@ export default function AdminJogos() {
   const [formData, setFormData] = useState<JogoFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Estados para Resultado
+  const [isResultDialogOpen, setIsResultDialogOpen] = useState(false);
+  const [statsDialogOpen, setStatsDialogOpen] = useState(false);
+  const [selectedResultadoId, setSelectedResultadoId] = useState<string | null>(null);
+  const [editingResult, setEditingResult] = useState<Resultado | null>(null);
+  const [resultFormData, setResultFormData] = useState<ResultadoFormData>(initialResultFormData);
+
   // Estados para visualização de calendário
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const { team } = useTeamConfig();
-  const { data: jogos, isLoading } = useJogos(team.id);
+  const { data: jogos, isLoading: loadingJogos } = useJogos(team.id);
+  const { data: resultados, isLoading: loadingResultados } = useResultados(team.id);
+  
   const { profile } = useAuth();
   const { data: times } = useTimesAtivos(profile?.team_id);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const isLoading = loadingJogos || loadingResultados;
 
   // Funções auxiliares para o calendário
   const monthStart = startOfMonth(currentMonth);
@@ -79,18 +104,48 @@ export default function AdminJogos() {
 
   const jogosDoDia = selectedDate ? getDayGames(selectedDate) : [];
 
-  // Filtrar jogos finalizados e ordenar (apenas para modo lista)
-  const jogosSorted = [...(jogos || [])]
-    .filter((jogo) => jogo.status !== "finalizado")
-    .sort((a, b) => {
-      const dateA = new Date(a.data_hora).getTime();
-      const dateB = new Date(b.data_hora).getTime();
-      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-    });
+  // Ordenação Inteligente de Jogos
+  const jogosSorted = [...(jogos || [])].sort((a, b) => {
+    const resultadoA = resultados?.find(r => r.jogo_id === a.id);
+    const resultadoB = resultados?.find(r => r.jogo_id === b.id);
+    
+    // Verificar se tem estatísticas preenchidas
+    // O hook useResultados agora retorna estatisticas_partida: [{ count: number }]
+    const hasStatsA = resultadoA && resultadoA.estatisticas_partida && resultadoA.estatisticas_partida[0]?.count > 0;
+    const hasStatsB = resultadoB && resultadoB.estatisticas_partida && resultadoB.estatisticas_partida[0]?.count > 0;
 
-  const openCreateDialog = () => {
+    // Critério 1: Jogos Finalizados E com Resultado E com Estatísticas vão para o final
+    // Jogos pendentes de qualquer requisito ficam no topo para chamar atenção
+    const isCompletedA = a.status === 'finalizado' && !!resultadoA && !!hasStatsA;
+    const isCompletedB = b.status === 'finalizado' && !!resultadoB && !!hasStatsB;
+
+    if (isCompletedA !== isCompletedB) {
+      return isCompletedA ? 1 : -1; // Concluídos vão para o final
+    }
+
+    const dateA = new Date(a.data_hora).getTime();
+    const dateB = new Date(b.data_hora).getTime();
+
+    // Critério 2: Ordenação interna
+    if (!isCompletedA) {
+      // Grupo Pendentes: Ordenar por Data Crescente (Próximos compromissos primeiro)
+      return dateA - dateB;
+    } else {
+      // Grupo Concluídos: Ordenar por Data Decrescente (Histórico recente primeiro)
+      return dateB - dateA;
+    }
+  });
+
+  const openCreateDialog = (date?: Date) => {
     setEditingJogo(null);
-    setFormData(initialFormData);
+    if (date) {
+      setFormData({
+        ...initialFormData,
+        data_hora: `${format(date, "yyyy-MM-dd")}T19:00`,
+      });
+    } else {
+      setFormData(initialFormData);
+    }
     setIsDialogOpen(true);
   };
 
@@ -105,6 +160,25 @@ export default function AdminJogos() {
       observacoes: jogo.observacoes || "",
     });
     setIsDialogOpen(true);
+  };
+
+  const openResultDialog = (jogo: Jogo, resultado?: Resultado) => {
+    if (resultado) {
+      setEditingResult(resultado);
+      setResultFormData({
+        jogo_id: resultado.jogo_id,
+        gols_favor: resultado.gols_favor.toString(),
+        gols_contra: resultado.gols_contra.toString(),
+        observacoes: resultado.observacoes || "",
+      });
+    } else {
+      setEditingResult(null);
+      setResultFormData({
+        ...initialResultFormData,
+        jogo_id: jogo.id
+      });
+    }
+    setIsResultDialogOpen(true);
   };
 
   const handleTimeChange = (timeId: string) => {
@@ -127,7 +201,6 @@ export default function AdminJogos() {
     setIsSubmitting(true);
 
     try {
-      // Converter data_hora local para ISO string (UTC)
       const dataHoraISO = new Date(formData.data_hora).toISOString();
 
       if (editingJogo) {
@@ -173,6 +246,53 @@ export default function AdminJogos() {
     }
   };
 
+  const handleResultSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const data = {
+        jogo_id: resultFormData.jogo_id,
+        gols_favor: parseInt(resultFormData.gols_favor),
+        gols_contra: parseInt(resultFormData.gols_contra),
+        observacoes: resultFormData.observacoes || null,
+        team_id: profile?.team_id,
+      };
+
+      if (editingResult) {
+        const { error } = await supabase
+          .from("resultados")
+          .update(data)
+          .eq("id", editingResult.id);
+
+        if (error) throw error;
+        toast({ title: "Resultado atualizado com sucesso!" });
+      } else {
+        const { error } = await supabase.from("resultados").insert(data);
+        if (error) throw error;
+        toast({ title: "Resultado registrado com sucesso!" });
+        
+        // Atualizar status do jogo para finalizado se for novo resultado
+        await supabase
+          .from("jogos")
+          .update({ status: "finalizado" })
+          .eq("id", resultFormData.jogo_id);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["resultados"] });
+      queryClient.invalidateQueries({ queryKey: ["jogos"] });
+      setIsResultDialogOpen(false);
+    } catch (error: unknown) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Ocorreu um erro",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza que deseja excluir este jogo?")) return;
 
@@ -189,6 +309,24 @@ export default function AdminJogos() {
       });
     }
   };
+  
+  const handleUpdateStatus = async (jogoId: string, newStatus: GameStatus) => {
+    try {
+      const { error } = await supabase
+        .from("jogos")
+        .update({ status: newStatus })
+        .eq("id", jogoId);
+
+      if (error) throw error;
+      toast({ title: "Status atualizado!" });
+      queryClient.invalidateQueries({ queryKey: ["jogos"] });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar status",
+      });
+    }
+  };
 
   const handleDayClick = (day: Date) => {
     setSelectedDate(isSameDay(day, selectedDate || new Date(0)) ? null : day);
@@ -201,11 +339,11 @@ export default function AdminJogos() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">Jogos</h2>
-            <p className="text-muted-foreground">Gerencie a agenda de jogos</p>
+            <p className="text-muted-foreground">Gerencie a agenda e resultados</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={openCreateDialog} size="sm" className="shrink-0">
+              <Button onClick={() => openCreateDialog()} size="sm" className="shrink-0">
                 <Plus className="mr-1 h-4 w-4" />
                 <span className="hidden sm:inline">Novo Jogo</span>
                 <span className="sm:hidden">Novo</span>
@@ -352,18 +490,7 @@ export default function AdminJogos() {
             </ToggleGroupItem>
           </ToggleGroup>
 
-          {viewMode === "list" && (
-            <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "asc" | "desc")}>
-              <SelectTrigger className="w-[140px] sm:w-[160px]">
-                <ArrowUpDown className="mr-2 h-4 w-4" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="asc">Próximos</SelectItem>
-                <SelectItem value="desc">Mais distantes</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
+
         </div>
       </div>
 
@@ -377,18 +504,29 @@ export default function AdminJogos() {
         // Modo Lista
         jogosSorted.length > 0 ? (
           <div className="space-y-4">
-            {jogosSorted.map((jogo) => (
-              <JogoCard
-                key={jogo.id}
-                jogo={jogo}
-                onEdit={openEditDialog}
-                onDelete={handleDelete}
-                onViewConfirmacoes={(id) => {
-                  setSelectedJogoId(id);
-                  setConfirmDialogOpen(true);
-                }}
-              />
-            ))}
+            {jogosSorted.map((jogo) => {
+              const resultado = resultados?.find(r => r.jogo_id === jogo.id);
+              return (
+                <JogoCard
+                  key={jogo.id}
+                  jogo={jogo}
+                  resultado={resultado}
+                  onEdit={openEditDialog}
+                  onDelete={handleDelete}
+                  onViewConfirmacoes={(id) => {
+                    setSelectedJogoId(id);
+                    setConfirmDialogOpen(true);
+                  }}
+                  onStatusChange={handleUpdateStatus}
+                  onRegisterResult={(jogo) => openResultDialog(jogo)}
+                  onEditResult={(jogo, res) => openResultDialog(jogo, res)}
+                  onViewStats={(resId) => {
+                    setSelectedResultadoId(resId);
+                    setStatsDialogOpen(true);
+                  }}
+                />
+              );
+            })}
           </div>
         ) : (
           <Card>
@@ -501,29 +639,42 @@ export default function AdminJogos() {
 
           {/* Lista de jogos do dia selecionado */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">
-              {selectedDate
-                ? `Jogos em ${format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}`
-                : "Selecione um dia"
-              }
-            </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">
+                  {selectedDate
+                    ? `Jogos em ${format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}`
+                    : "Selecione um dia"
+                  }
+                </h3>
+                {selectedDate && (
+                  <Button size="sm" variant="outline" className="gap-2" onClick={() => openCreateDialog(selectedDate)}>
+                    <Plus className="h-4 w-4" />
+                    Adicionar Jogo
+                  </Button>
+                )}
+              </div>
 
             {selectedDate ? (
               jogosDoDia.length > 0 ? (
                 <div className="space-y-4">
-                  {jogosDoDia.map((jogo) => (
-                    <JogoCard
-                      key={jogo.id}
-                      jogo={jogo}
-                      onEdit={openEditDialog}
-                      onDelete={handleDelete}
-                      onViewConfirmacoes={(id) => {
-                        setSelectedJogoId(id);
-                        setConfirmDialogOpen(true);
-                      }}
-                      compact
-                    />
-                  ))}
+                  {jogosDoDia.map((jogo) => {
+                    const resultado = resultados?.find(r => r.jogo_id === jogo.id);
+                    return (
+                      <JogoCard
+                        key={jogo.id}
+                        jogo={jogo}
+                        resultado={resultado}
+                        onEdit={openEditDialog}
+                        onDelete={handleDelete}
+                        onViewConfirmacoes={(id) => {
+                          setSelectedJogoId(id);
+                          setConfirmDialogOpen(true);
+                        }}
+                        onStatusChange={handleUpdateStatus}
+                        compact
+                      />
+                    );
+                  })}
                 </div>
               ) : (
                 <Card>
@@ -552,6 +703,75 @@ export default function AdminJogos() {
           {selectedJogoId && <AdminPresencaManager jogoId={selectedJogoId} />}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog para Registro/Edição de Resultados */}
+      <Dialog open={isResultDialogOpen} onOpenChange={setIsResultDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingResult ? "Editar Resultado" : "Registrar Resultado"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleResultSubmit} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="gols_favor">Gols do Time</Label>
+                <Input
+                  id="gols_favor"
+                  type="number"
+                  min="0"
+                  value={resultFormData.gols_favor}
+                  onChange={(e) => setResultFormData({ ...resultFormData, gols_favor: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gols_contra">Gols Adversário</Label>
+                <Input
+                  id="gols_contra"
+                  type="number"
+                  min="0"
+                  value={resultFormData.gols_contra}
+                  onChange={(e) => setResultFormData({ ...resultFormData, gols_contra: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="res_observacoes">Observações</Label>
+              <Textarea
+                id="res_observacoes"
+                value={resultFormData.observacoes}
+                onChange={(e) => setResultFormData({ ...resultFormData, observacoes: e.target.value })}
+                placeholder="Destaques, gols marcados, etc."
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsResultDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para Estatísticas */}
+      <Dialog open={statsDialogOpen} onOpenChange={setStatsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Estatísticas da Partida</DialogTitle>
+          </DialogHeader>
+          {selectedResultadoId && (
+            <EstatisticasPartidaForm
+              resultadoId={selectedResultadoId}
+              onSave={() => setStatsDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -559,28 +779,72 @@ export default function AdminJogos() {
 // Componente separado para o card do jogo com contador de confirmações
 function JogoCard({
   jogo,
+  resultado,
   onEdit,
   onDelete,
   onViewConfirmacoes,
+  onStatusChange,
+  onRegisterResult,
+  onEditResult,
+  onViewStats,
   compact = false
 }: {
   jogo: Jogo;
+  resultado?: Resultado;
   onEdit: (jogo: Jogo) => void;
   onDelete: (id: string) => void;
   onViewConfirmacoes: (id: string) => void;
+  onStatusChange: (id: string, status: GameStatus) => void;
+  onRegisterResult?: (jogo: Jogo) => void;
+  onEditResult?: (jogo: Jogo, result: Resultado) => void;
+  onViewStats?: (resultId: string) => void;
   compact?: boolean;
 }) {
   const { data: contagem } = useConfirmacoesContagem(jogo.id);
   const { hasPresenca } = usePlanAccess();
 
+  const getResultColor = (golsFavor: number, golsContra: number) => {
+    if (golsFavor > golsContra) return "bg-green-100 text-green-800 border-green-200";
+    if (golsFavor < golsContra) return "bg-red-100 text-red-800 border-red-200";
+    return "bg-gray-100 text-gray-800 border-gray-200";
+  };
+
   return (
-    <Card>
+    <Card className={cn(resultado ? "border-l-4 border-l-primary" : "")}>
       <CardContent className={cn("flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between", compact ? "p-3" : "p-4")}>
         <div className="flex-1 min-w-0">
           <div className="mb-2 flex items-center gap-2">
-            <Badge variant={jogo.status === "confirmado" ? "default" : "secondary"}>
-              {statusLabels[jogo.status]}
-            </Badge>
+            
+            {/* Status Dropdown */}
+            <Popover>
+              <PopoverTrigger asChild>
+                 <Badge 
+                  variant={jogo.status === "confirmado" ? "default" : "secondary"}
+                  className="cursor-pointer hover:opacity-80"
+                 >
+                  {statusLabels[jogo.status]}
+                </Badge>
+              </PopoverTrigger>
+              <PopoverContent className="w-40 p-1" align="start">
+                <div className="grid gap-1">
+                  {Object.entries(statusLabels).map(([value, label]) => (
+                    <Button
+                      key={value}
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "justify-start text-xs", 
+                        jogo.status === value && "bg-accent"
+                      )}
+                      onClick={() => onStatusChange(jogo.id, value as GameStatus)}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
             {contagem && contagem.total > 0 && (
               <Badge variant="outline" className="gap-1">
                 <Check className="h-3 w-3 text-green-600" />
@@ -590,7 +854,18 @@ function JogoCard({
               </Badge>
             )}
           </div>
-          <h3 className={cn("font-semibold", compact && "text-sm")}>vs {jogo.adversario}</h3>
+          
+          <div className="flex items-center gap-3">
+            <h3 className={cn("font-semibold", compact && "text-sm")}>vs {jogo.adversario}</h3>
+            
+            {/* Placar em destaque */}
+            {resultado && (
+              <Badge variant="outline" className={cn("text-base font-bold", getResultColor(resultado.gols_favor, resultado.gols_contra))}>
+                {resultado.gols_favor} x {resultado.gols_contra}
+              </Badge>
+            )}
+          </div>
+
           <div className={cn("mt-1 flex flex-wrap gap-3 text-muted-foreground", compact ? "text-xs" : "text-sm")}>
             <span className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
@@ -608,13 +883,15 @@ function JogoCard({
             )}
           </div>
         </div>
-        <div className={cn("flex flex-wrap gap-2", compact && "flex-col")}>
+        
+        <div className={cn("flex flex-wrap gap-2 items-center", compact && "flex-col items-end")}>
           {hasPresenca && (
             <>
               <Button
                 variant="outline"
                 size={compact ? "icon" : "sm"}
                 onClick={() => onViewConfirmacoes(jogo.id)}
+                title="Presenças"
               >
                 <Users className={compact ? "h-4 w-4" : "mr-1 h-4 w-4"} />
                 {!compact && "Presenças"}
@@ -622,11 +899,53 @@ function JogoCard({
               <PresencaLinkDialog jogoId={jogo.id} adversario={jogo.adversario} />
             </>
           )}
-          <Button variant="outline" size="icon" onClick={() => onEdit(jogo)}>
+
+          {/* Botões de Resultado (Apenas se não for compact ou se for compact mas tiver ação necessária) */}
+          {!resultado && onRegisterResult && (
+             <Button 
+              variant="default" 
+              size={compact ? "icon" : "sm"}
+              onClick={() => onRegisterResult(jogo)}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+              title="Registrar Resultado"
+             >
+               <Trophy className={compact ? "h-4 w-4" : "mr-1 h-4 w-4"} />
+               {!compact && "Resultado"}
+             </Button>
+          )}
+
+          {resultado && (
+            <>
+               {onViewStats && (
+                <Button
+                  variant="secondary"
+                  size={compact ? "icon" : "sm"}
+                  onClick={() => onViewStats(resultado.id)}
+                  title="Estatísticas"
+                >
+                  <List className={compact ? "h-4 w-4" : "mr-1 h-4 w-4"} />
+                  {!compact && "Stats"}
+                </Button>
+               )}
+               {onEditResult && (
+                 <Button
+                   variant="ghost" 
+                   size="icon"
+                   className="h-8 w-8"
+                   onClick={() => onEditResult(jogo, resultado)}
+                   title="Editar Resultado"
+                 >
+                   <Edit className="h-4 w-4 text-muted-foreground" />
+                 </Button>
+               )}
+            </>
+          )}
+
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(jogo)}>
             <Edit className="h-4 w-4" />
           </Button>
-          <Button variant="destructive" size="icon" onClick={() => onDelete(jogo.id)}>
-            <Trash2 className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onDelete(jogo.id)}>
+            <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
         </div>
       </CardContent>

@@ -97,10 +97,10 @@ export function useResultados(teamId?: string) {
     queryKey: ["resultados", effectiveTeamId],
     enabled: !!effectiveTeamId,
     queryFn: async () => {
-      let query = supabase.from("resultados").select(`*, jogo:jogos(*)`).eq("team_id", effectiveTeamId!);
+      let query = supabase.from("resultados").select(`*, jogo:jogos(*), estatisticas_partida(count)`).eq("team_id", effectiveTeamId!);
       const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
-      return data as (Resultado & { jogo: Jogo })[];
+      return data as (Resultado & { jogo: Jogo, estatisticas_partida: { count: number }[] })[];
     },
   });
 }

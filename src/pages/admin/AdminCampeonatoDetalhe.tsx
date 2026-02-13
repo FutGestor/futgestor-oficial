@@ -266,6 +266,26 @@ function JogosTab({ leagueId }: { leagueId: string }) {
     rounds.set(m.round, list);
   }
 
+
+  // Filter available teams for the current round
+  const currentRound = parseInt(round) || 1;
+  const busyTeamIds = new Set<string>();
+  
+  if (matches) {
+    for (const m of matches) {
+      if (m.round === currentRound) {
+        busyTeamIds.add(m.team_home_id);
+        busyTeamIds.add(m.team_away_id);
+      }
+    }
+  }
+
+  // A team is available if:
+  // 1. It is NOT in the busy list for this round
+  // OR
+  // 2. It is already selected in one of the inputs (so we don't hide the current selection)
+  const availableTeams = teams?.filter(t => !busyTeamIds.has(t.id) || t.id === homeId || t.id === awayId);
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
@@ -287,14 +307,14 @@ function JogosTab({ leagueId }: { leagueId: string }) {
               <label className="mb-1 block text-sm font-medium">Time Casa</label>
               <Select value={homeId} onValueChange={setHomeId}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>{teams?.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
+                <SelectContent>{availableTeams?.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium">Time Visitante</label>
               <Select value={awayId} onValueChange={setAwayId}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>{teams?.filter(t => t.id !== homeId).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
+                <SelectContent>{availableTeams?.filter(t => t.id !== homeId).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>

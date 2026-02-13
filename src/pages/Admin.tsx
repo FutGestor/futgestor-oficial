@@ -22,7 +22,7 @@ import AdminDashboard from "./admin/AdminDashboard";
 import AdminJogos from "./admin/AdminJogos";
 import AdminJogadores from "./admin/AdminJogadores";
 import AdminTransacoes from "./admin/AdminTransacoes";
-import AdminResultados from "./admin/AdminResultados";
+
 import AdminAvisos from "./admin/AdminAvisos";
 import AdminEscalacoes from "./admin/AdminEscalacoes";
 import AdminUsuarios from "./admin/AdminUsuarios";
@@ -144,10 +144,7 @@ export default function Admin() {
       href: `${basePath}/admin/transacoes`, label: "Transações", icon: DollarSign,
       locked: !hasFinanceiro, requiredPlan: "Pro", featureName: "Gestão Financeira"
     },
-    {
-      href: `${basePath}/admin/resultados`, label: "Resultados", icon: Trophy,
-      locked: !hasResultados, requiredPlan: "Pro", featureName: "Resultados e Estatísticas"
-    },
+
     {
       href: `${basePath}/admin/campeonatos`, label: "Campeonatos", icon: Trophy,
       locked: !hasCampeonatos, requiredPlan: "Liga", featureName: "Gestor de Campeonatos"
@@ -406,7 +403,7 @@ export default function Admin() {
             <Route path="/jogadores" element={<AdminJogadores />} />
             <Route path="/usuarios" element={<AdminUsuarios />} />
             <Route path="/transacoes" element={<AdminTransacoes />} />
-            <Route path="/resultados" element={<AdminResultados />} />
+
             <Route path="/escalacoes" element={<AdminEscalacoes />} />
             <Route path="/avisos" element={<AdminAvisos />} />
             <Route path="/campeonatos" element={<AdminCampeonatos />} />

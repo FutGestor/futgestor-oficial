@@ -233,6 +233,7 @@ export function useSaveEstatisticasPartida() {
       queryClient.invalidateQueries({ queryKey: ["estatisticas-partida"] });
       queryClient.invalidateQueries({ queryKey: ["estatisticas-jogadores"] });
       queryClient.invalidateQueries({ queryKey: ["ranking"] });
+      queryClient.invalidateQueries({ queryKey: ["resultados"] });
     },
   });
 }
