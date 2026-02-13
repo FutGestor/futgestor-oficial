@@ -24,6 +24,7 @@ import PresencaPublica from "./pages/PresencaPublica";
 import PlayerDashboard from "./pages/PlayerDashboard";
 import SuperAdminVendas from "./pages/SuperAdminVendas";
 import SuperAdminAvisos from "./pages/SuperAdminAvisos";
+import SuperAdminHealth from "./pages/SuperAdminHealth";
 import { RequireApproval } from "./components/auth/RequireApproval";
 import LandingPage from "./pages/LandingPage";
 import Ligas from "./pages/Ligas";
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/super-admin/status" element={<SuperAdminStatus />} />
             <Route path="/super-admin/usuarios" element={<SuperAdminUsuarios />} />
             <Route path="/super-admin/avisos" element={<SuperAdminAvisos />} />
+            <Route path="/super-admin/health" element={<SuperAdminHealth />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
             <Route path="/player/dashboard" element={<RequireApproval />}>
               <Route index element={<PlayerDashboard />} />
