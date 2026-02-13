@@ -211,3 +211,62 @@ export function useAtualizarStatusChamado() {
     },
   });
 }
+
+// Hook para notificações
+export function useChamadosNaoLidos() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["chamados-nao-lidos", user?.id],
+    enabled: !!user,
+    refetchInterval: 30000, // Check every 30s
+    queryFn: async () => {
+      // 1. Get user tickets
+      const { data: tickets, error: ticketsError } = await supabase
+        .from("chamados")
+        .select("id")
+        .eq("user_id", user!.id);
+      
+      if (ticketsError) throw ticketsError;
+      if (!tickets || tickets.length === 0) return { count: 0, lastTicketId: null };
+
+      const ticketIds = tickets.map(t => t.id);
+
+      // 2. Get admin messages
+      const { data: messages, error: messagesError } = await supabase
+        .from("chamado_mensagens")
+        .select("id, chamado_id, criado_em")
+        .in("chamado_id", ticketIds)
+        .eq("is_admin", true);
+
+      if (messagesError) throw messagesError;
+
+      // 3. Process unread count locally
+      const readMap = JSON.parse(localStorage.getItem("futgestor_chamados_read") || "{}");
+      let unreadCount = 0;
+      let lastUnreadTicketId: string | null = null;
+      
+      const ticketLatestMsg: Record<string, string> = {};
+
+      messages.forEach(msg => {
+        if (!ticketLatestMsg[msg.chamado_id] || new Date(msg.criado_em) > new Date(ticketLatestMsg[msg.chamado_id])) {
+          ticketLatestMsg[msg.chamado_id] = msg.criado_em;
+        }
+      });
+
+      Object.entries(ticketLatestMsg).forEach(([ticketId, latestMsgTime]) => {
+        const lastReadTime = readMap[ticketId];
+        // If never read OR latest msg is newer than read time
+        if (!lastReadTime || new Date(latestMsgTime) > new Date(lastReadTime)) {
+          unreadCount++;
+          lastUnreadTicketId = ticketId;
+        }
+      });
+
+      return { 
+        count: unreadCount, 
+        lastTicketId: unreadCount === 1 ? lastUnreadTicketId : null 
+      };
+    },
+  });
+}

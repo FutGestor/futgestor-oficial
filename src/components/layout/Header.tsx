@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 import { usePlanAccess } from "@/hooks/useSubscription";
-import { useTodosChamados } from "@/hooks/useChamados";
+import { useTodosChamados, useChamadosNaoLidos } from "@/hooks/useChamados";
+import { useAvisosNaoLidos } from "@/hooks/useAvisoLeituras";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -32,6 +33,9 @@ export function Header() {
   const redesSociais = teamSlug?.team.redes_sociais || {};
   const teamId = teamSlug?.team.id || null;
   const { hasRanking, hasResultados, hasCampeonatos, hasFinanceiro, hasAvisos } = usePlanAccess(teamId);
+  
+  const { data: avisosNaoLidos } = useAvisosNaoLidos(teamId || undefined);
+  const { data: suporteNotificacoes } = useChamadosNaoLidos();
 
   // Nav items visíveis para todos (incluindo visitantes) - condicionados ao plano
   const visitorNavItems = teamSlug
@@ -54,8 +58,18 @@ export function Header() {
   const privateNavItems = teamSlug
     ? [
       ...(hasFinanceiro ? [{ href: `${basePath}/financeiro`, label: "Financeiro" }] : []),
-      ...(hasAvisos ? [{ href: `${basePath}/avisos`, label: "Avisos" }] : []),
-      { href: `${basePath}/suporte`, label: "Suporte" },
+      ...(hasAvisos ? [{ 
+        href: `${basePath}/avisos`, 
+        label: "Avisos",
+        badge: avisosNaoLidos && avisosNaoLidos > 0 ? avisosNaoLidos : undefined
+      }] : []),
+      { 
+        href: suporteNotificacoes?.lastTicketId 
+          ? `${basePath}/suporte?chamado_id=${suporteNotificacoes.lastTicketId}` 
+          : `${basePath}/suporte`, 
+        label: "Suporte",
+        badge: suporteNotificacoes?.count && suporteNotificacoes.count > 0 ? suporteNotificacoes.count : undefined
+      },
     ]
     : [];
 
@@ -94,16 +108,21 @@ export function Header() {
         <nav className="hidden items-center gap-1 md:flex">
           {navItems.map((item) => (
             <Link
-              key={item.href}
+              key={item.label} // Changed key to label as href can change
               to={item.href}
               className={cn(
-                "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive(item.href)
+                "relative rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                isActive(item.href.split('?')[0]) // Check base path specific logic
                   ? "bg-secondary text-secondary-foreground"
                   : "text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
               )}
             >
               {item.label}
+              {(item as any).badge && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
+                  {(item as any).badge}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
@@ -224,17 +243,22 @@ export function Header() {
           <nav className="container flex flex-col gap-1 px-4 py-4">
             {navItems.map((item) => (
               <Link
-                key={item.href}
+                key={item.label}
                 to={item.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className={cn(
-                  "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  isActive(item.href)
+                  "relative flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  isActive(item.href.split('?')[0])
                     ? "bg-secondary text-secondary-foreground"
                     : "text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
                 )}
               >
                 {item.label}
+                {(item as any).badge && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white">
+                    {(item as any).badge}
+                  </span>
+                )}
               </Link>
             ))}
             <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/40 pt-2">

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Headphones, Plus, MessageSquare, ArrowLeft } from "lucide-react";
@@ -224,6 +225,30 @@ function SuporteContent() {
   const { data: chamados, isLoading } = useMeusChamados();
   const [view, setView] = useState<"lista" | "novo" | "detalhe">("lista");
   const [chamadoSelecionado, setChamadoSelecionado] = useState<Chamado | null>(null);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const chamadoIdParam = queryParams.get("chamado_id");
+
+  // Efeito para auto-navegação via URL
+  useEffect(() => {
+    if (chamadoIdParam && chamados) {
+      const targetChamado = chamados.find(c => c.id === chamadoIdParam);
+      if (targetChamado) {
+        handleSelecionarChamado(targetChamado);
+      }
+    }
+  }, [chamadoIdParam, chamados]);
+
+  // Função centralizada para selecionar chamado e marcar como lido
+  const handleSelecionarChamado = (chamado: Chamado) => {
+    setChamadoSelecionado(chamado);
+    setView("detalhe");
+    
+    // Marcar como lido localmente
+    const readMap = JSON.parse(localStorage.getItem("futgestor_chamados_read") || "{}");
+    readMap[chamado.id] = new Date().toISOString();
+    localStorage.setItem("futgestor_chamados_read", JSON.stringify(readMap));
+  };
 
   if (view === "detalhe" && chamadoSelecionado) {
     return (
@@ -281,7 +306,7 @@ function SuporteContent() {
                 chamados.map((c) => (
                   <button
                     key={c.id}
-                    onClick={() => { setChamadoSelecionado(c); setView("detalhe"); }}
+                    onClick={() => handleSelecionarChamado(c)}
                     className="w-full bg-[#0F2440] border border-white/[0.06] rounded-xl p-4 text-left hover:bg-[#122d50] transition-colors"
                   >
                     <div className="flex items-center justify-between mb-1">
