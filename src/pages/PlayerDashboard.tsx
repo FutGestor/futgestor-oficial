@@ -397,7 +397,7 @@ export default function PlayerDashboard() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-white/10" />
               <DropdownMenuItem 
-                onClick={() => navigate(`${teamData?.slug ? `/time/${teamData.slug}` : ""}/admin/jogos?action=new`)}
+                onClick={() => navigate(`${teamData?.slug ? `/time/${teamData.slug}` : ""}/agenda?action=new`)}
                 className="flex items-center gap-3 p-3 focus:bg-white/10 focus:text-white cursor-pointer"
               >
                 <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -409,7 +409,7 @@ export default function PlayerDashboard() {
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => navigate(`${teamData?.slug ? `/time/${teamData.slug}` : ""}/admin/transacoes?action=new`)}
+                onClick={() => navigate(`${teamData?.slug ? `/time/${teamData.slug}` : ""}/financeiro?action=new`)}
                 className="flex items-center gap-3 p-3 focus:bg-white/10 focus:text-white cursor-pointer"
               >
                 <div className="h-8 w-8 rounded-lg bg-green-500/20 flex items-center justify-center">
@@ -421,7 +421,7 @@ export default function PlayerDashboard() {
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => navigate(`${teamData?.slug ? `/time/${teamData.slug}` : ""}/admin/avisos?action=new`)}
+                onClick={() => navigate(`${teamData?.slug ? `/time/${teamData.slug}` : ""}/avisos?action=new`)}
                 className="flex items-center gap-3 p-3 focus:bg-white/10 focus:text-white cursor-pointer"
               >
                 <div className="h-8 w-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
