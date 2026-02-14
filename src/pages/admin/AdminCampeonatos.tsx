@@ -29,7 +29,7 @@ export default function AdminCampeonatos() {
       toast({ title: "Campeonato criado!" });
       setName("");
       setDialogOpen(false);
-      navigate(`${basePath}/admin/campeonatos/${league.id}`);
+      navigate(`${basePath}/ligas/gerenciar/${league.id}`);
     } catch {
       toast({ variant: "destructive", title: "Erro ao criar campeonato" });
     }
@@ -97,7 +97,7 @@ export default function AdminCampeonatos() {
           <Card
             key={league.id}
             className="cursor-pointer transition-shadow hover:shadow-lg"
-            onClick={() => navigate(`${basePath}/admin/campeonatos/${league.id}`)}
+            onClick={() => navigate(`${basePath}/ligas/gerenciar/${league.id}`)}
           >
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <CardTitle className="flex items-center gap-2">
