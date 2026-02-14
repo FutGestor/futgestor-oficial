@@ -53,7 +53,7 @@ export default function SuperAdminHealth() {
         queryKey: ["super-admin-health-metrics"],
         enabled: !!isSuperAdmin,
         queryFn: async () => {
-            const { data, error } = await supabase.rpc("get_teams_health_metrics");
+            const { data, error } = await supabase.rpc("get_teams_health_metrics" as any);
             if (error) throw error;
             // O novo RPC retorna o JSON direto (ou nulo se vazio)
             return (data || []) as TeamHealth[];

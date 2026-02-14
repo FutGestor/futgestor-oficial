@@ -33,6 +33,7 @@ import SuperAdminSuporte from "./pages/SuperAdminSuporte";
 import SuperAdminStatus from "./pages/SuperAdminStatus";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SuperAdminUsuarios from "./pages/SuperAdminUsuarios";
+import GameDetails from "./pages/GameDetails";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,7 @@ const App = () => (
                 <Route path="ligas" element={<Ligas />} />
                 <Route path="avisos" element={<Avisos />} />
                 <Route path="suporte" element={<Suporte />} />
+                <Route path="jogo/:id" element={<GameDetails />} />
                 <Route path="admin/*" element={<Admin />} />
               </Route>
             </Route>

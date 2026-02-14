@@ -162,7 +162,7 @@ function FinanceiroContent() {
               isLoading={isLoading}
             />
             <SummaryCard
-              label="Runway (Caixa)"
+              label="Fôlego de Caixa"
               value={financialHealth?.runway === Infinity ? '∞' : Math.floor(financialHealth?.runway || 0)}
               suffix="meses"
               color={financialHealth?.runway && financialHealth.runway < 3 ? "text-red-500" : "text-blue-400"}
@@ -177,7 +177,7 @@ function FinanceiroContent() {
               isLoading={isLoading}
             />
             <SummaryCard
-              label="Burn Rate (Mensal)"
+              label="Média de Gastos"
               value={financialHealth?.monthlyBurnRate ?? 0}
               color="text-red-400"
               icon={AlertTriangle}
@@ -186,7 +186,7 @@ function FinanceiroContent() {
           </div>
 
           {/* Projection Chart */}
-            <div className="mb-8 bg-[#0F2440] border border-white/[0.06] rounded-xl p-5 relative overflow-hidden">
+            <div className="mb-8 bg-[#0F2440] border border-white/[0.06] rounded-xl p-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                     <TrendingUp size={100} className="text-indigo-500" />
                 </div>
@@ -200,7 +200,7 @@ function FinanceiroContent() {
                     <Skeleton className="h-64 w-full bg-white/5" />
                 ) : financialHealth?.projectionData ? (
                     <ResponsiveContainer width="100%" height={250}>
-                        <AreaChart data={financialHealth.projectionData}>
+                        <AreaChart data={financialHealth.projectionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorSaldo" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
@@ -232,14 +232,14 @@ function FinanceiroContent() {
           {/* Charts */}
           <div className="mb-8 grid gap-6 lg:grid-cols-5">
             {/* Bar Chart */}
-            <div className="lg:col-span-3 bg-[#0F2440] border border-white/[0.06] rounded-xl p-5">
+            <div className="lg:col-span-3 bg-[#0F2440] border border-white/[0.06] rounded-xl p-6">
               <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold mb-4">Entradas vs Saídas por Mês</p>
               {isLoading ? (
                 <Skeleton className="h-56 w-full bg-white/5" />
               ) : barChartData.length > 0 ? (
                 <>
                   <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={barChartData} barGap={2}>
+                    <BarChart data={barChartData} barGap={2} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis dataKey="month" tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -259,7 +259,7 @@ function FinanceiroContent() {
             </div>
 
             {/* Pie Chart */}
-            <div className="lg:col-span-2 bg-[#0F2440] border border-white/[0.06] rounded-xl p-5">
+            <div className="lg:col-span-2 bg-[#0F2440] border border-white/[0.06] rounded-xl p-6">
               <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold mb-4">Gastos por Categoria</p>
               {isLoading ? (
                 <Skeleton className="h-56 w-full bg-white/5" />
@@ -299,13 +299,13 @@ function FinanceiroContent() {
           </div>
 
           {/* Balance Evolution */}
-          <div className="mb-8 bg-[#0F2440] border border-white/[0.06] rounded-xl p-5">
+          <div className="mb-8 bg-[#0F2440] border border-white/[0.06] rounded-xl p-6">
             <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold mb-4">Evolução do Saldo</p>
             {isLoading ? (
               <Skeleton className="h-56 w-full bg-white/5" />
             ) : balanceData && balanceData.length > 0 ? (
               <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={balanceData}>
+                <LineChart data={balanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="data" tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -319,7 +319,7 @@ function FinanceiroContent() {
           </div>
 
           {/* Transactions grouped by month */}
-          <div>
+          <div className="mb-24">
             <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold mb-4">Transações por Mês</p>
             {isLoading ? (
               <div className="space-y-2">

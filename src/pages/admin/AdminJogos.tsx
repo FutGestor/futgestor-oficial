@@ -111,8 +111,8 @@ export default function AdminJogos() {
     
     // Verificar se tem estatísticas preenchidas
     // O hook useResultados agora retorna estatisticas_partida: [{ count: number }]
-    const hasStatsA = resultadoA && resultadoA.estatisticas_partida && resultadoA.estatisticas_partida[0]?.count > 0;
-    const hasStatsB = resultadoB && resultadoB.estatisticas_partida && resultadoB.estatisticas_partida[0]?.count > 0;
+    const hasStatsA = resultadoA && resultadoA.estatisticas_partida && resultadoA.estatisticas_partida.length > 0;
+    const hasStatsB = resultadoB && resultadoB.estatisticas_partida && resultadoB.estatisticas_partida.length > 0;
 
     // Critério 1: Jogos Finalizados E com Resultado E com Estatísticas vão para o final
     // Jogos pendentes de qualquer requisito ficam no topo para chamar atenção
@@ -395,7 +395,7 @@ export default function AdminJogos() {
                     />
                   </div>
                 )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Data</Label>
                     <DatePickerPopover
@@ -460,11 +460,11 @@ export default function AdminJogos() {
                     onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
                   />
                 </div>
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="h-11 sm:h-10">
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={isSubmitting}>
+                  <Button type="submit" disabled={isSubmitting} className="h-11 sm:h-10">
                     {isSubmitting ? "Salvando..." : "Salvar"}
                   </Button>
                 </div>
@@ -746,11 +746,11 @@ export default function AdminJogos() {
                 placeholder="Destaques, gols marcados, etc."
               />
             </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsResultDialogOpen(false)}>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setIsResultDialogOpen(false)} className="h-11 sm:h-10">
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} className="h-11 sm:h-10">
                 {isSubmitting ? "Salvando..." : "Salvar"}
               </Button>
             </div>

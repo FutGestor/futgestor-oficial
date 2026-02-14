@@ -164,9 +164,9 @@ export default function Auth() {
       if (isAdmin) {
         toast({
           title: "Login realizado!",
-          description: "Bem-vindo ao painel administrativo.",
+          description: "Bem-vindo de volta!",
         });
-        navigate(`${teamBase}/admin`);
+        navigate(teamBase);
       } else if (profile?.jogador_id) {
         // Player - redirect to team page (can navigate freely)
         toast({

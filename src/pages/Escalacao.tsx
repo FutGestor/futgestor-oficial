@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Users, Calendar } from "lucide-react";
+import { Users, Calendar, Shield } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +56,12 @@ function EscalacaoContent() {
 
   const currentEscalacao = escalacoes?.find((e) => e.id === currentId) || proximaEscalacao;
 
+  console.log('Debug Escalacao:', { 
+    currentEscalacao, 
+    jogo: currentEscalacao?.jogo, 
+    time_adversario: currentEscalacao?.jogo?.time_adversario 
+  });
+
   return (
     <Layout>
       <div className="container py-8 px-4 md:px-6">
@@ -68,32 +74,72 @@ function EscalacaoContent() {
           {/* Soccer Field */}
           <div className="lg:col-span-2">
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
+              <CardHeader className="pb-2">
+                {currentEscalacao ? (
+                  <div className="flex flex-col gap-6">
+                    <div className="flex items-start justify-between sm:px-8">
+                      {/* Meu Time */}
+                      <div className="flex flex-1 flex-col items-center gap-2">
+                        {team.escudo_url ? (
+                          <img 
+                            src={team.escudo_url} 
+                            alt={team.nome} 
+                            className="h-16 w-16 object-contain md:h-20 md:w-20" 
+                          />
+                        ) : (
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 md:h-20 md:w-20">
+                            <Users className="h-8 w-8 text-primary" />
+                          </div>
+                        )}
+                        <span className="text-center font-bold leading-tight md:text-lg">
+                          {team.nome}
+                        </span>
+                      </div>
+
+                      {/* VS */}
+                      <div className="flex flex-col items-center gap-1 pt-4">
+                        <span className="text-3xl font-black text-muted-foreground/30 md:text-5xl">X</span>
+                      </div>
+
+                      {/* Adversário */}
+                      <div className="flex flex-1 flex-col items-center gap-2">
+                        {currentEscalacao.jogo?.time_adversario?.escudo_url ? (
+                          <img 
+                            src={currentEscalacao.jogo.time_adversario.escudo_url} 
+                            alt={currentEscalacao.jogo.time_adversario.nome} 
+                            className="h-16 w-16 object-contain md:h-20 md:w-20" 
+                          />
+                        ) : (
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted md:h-20 md:w-20">
+                            <Shield className="h-8 w-8 text-muted-foreground/50" />
+                          </div>
+                        )}
+                        <span className="text-center font-bold leading-tight md:text-lg">
+                          {currentEscalacao.jogo?.time_adversario?.nome || currentEscalacao.jogo?.adversario || "Adversário"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Info Bar */}
+                    <div className="flex flex-col items-center justify-center gap-2 border-t border-border/50 pt-4 text-sm text-muted-foreground sm:flex-row sm:gap-6">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <Calendar className="h-4 w-4" />
+                        {currentEscalacao.jogo && format(new Date(currentEscalacao.jogo.data_hora), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                      </span>
+                      
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">{currentEscalacao.formacao}</Badge>
+                        <Badge variant="outline">
+                          {modalityLabels[(currentEscalacao as any).modalidade as GameModality] || 'Society 6x6'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    {currentEscalacao ? (
-                      <>
-                        vs {currentEscalacao.jogo?.adversario}
-                      </>
-                    ) : (
-                      "Escalação"
-                    )}
+                    Escalação
                   </CardTitle>
-                  {currentEscalacao && (
-                    <div className="flex gap-2">
-                      <Badge variant="secondary">{currentEscalacao.formacao}</Badge>
-                      <Badge variant="outline">
-                        {modalityLabels[(currentEscalacao as any).modalidade as GameModality] || 'Society 6x6'}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-                {currentEscalacao?.jogo && (
-                  <p className="text-sm text-muted-foreground">
-                    <Calendar className="mr-1 inline h-4 w-4" />
-                    {format(new Date(currentEscalacao.jogo.data_hora), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                  </p>
                 )}
               </CardHeader>
               <CardContent>

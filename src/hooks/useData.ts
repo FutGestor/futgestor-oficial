@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Jogador, JogadorPublico, Jogo, Resultado, Transacao, Escalacao, EscalacaoJogador, Aviso, FinancialSummary, EstatisticaPartida } from "@/lib/types";
+import type { Jogador, JogadorPublico, Jogo, Resultado, Transacao, Escalacao, EscalacaoJogador, Aviso, FinancialSummary, EstatisticaPartida, Time } from "@/lib/types";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 
 // Jogadores (authenticated - full data)
@@ -61,6 +61,41 @@ export function useJogos(teamId?: string) {
   });
 }
 
+export function useJogo(jogoId?: string) {
+  return useQuery({
+    queryKey: ["jogo", jogoId],
+    enabled: !!jogoId,
+    queryFn: async () => {
+      // Fetch game and result in parallel
+      const [jogoResponse, resultadoResponse] = await Promise.all([
+        supabase
+          .from("jogos")
+          .select("*, time_adversario:times(*)")
+          .eq("id", jogoId!)
+          .single(),
+        supabase
+          .from("resultados")
+          .select("*, estatisticas_partida(*, jogador:jogadores(nome, apelido))")
+          .eq("jogo_id", jogoId!)
+          .maybeSingle()
+      ]);
+
+      if (jogoResponse.error) throw jogoResponse.error;
+      // Result error is ignored if just "not found" (maybeSingle handles 0 rows, but we check specific error)
+
+      return {
+        ...jogoResponse.data,
+        resultado: resultadoResponse.data
+      } as unknown as Jogo & { 
+        time_adversario?: Time | null; 
+        resultado?: (Resultado & { 
+          estatisticas_partida: (EstatisticaPartida & { jogador?: { nome: string; apelido: string | null } })[] 
+        }) | null;
+      };
+    },
+  });
+}
+
 export function useProximoJogo(teamId?: string) {
   const context = useOptionalTeamSlug();
   const effectiveTeamId = teamId || context?.team.id;
@@ -75,7 +110,7 @@ export function useProximoJogo(teamId?: string) {
 
       const { data, error } = await supabase
         .from("jogos")
-        .select("*")
+        .select("*, time_adversario:times(*)")
         .eq("team_id", effectiveTeamId!)
         .gte("data_hora", today.toISOString())
         .in("status", ["agendado", "confirmado"])
@@ -97,10 +132,21 @@ export function useResultados(teamId?: string) {
     queryKey: ["resultados", effectiveTeamId],
     enabled: !!effectiveTeamId,
     queryFn: async () => {
-      let query = supabase.from("resultados").select(`*, jogo:jogos(*), estatisticas_partida(count)`).eq("team_id", effectiveTeamId!);
+      let query = supabase.from("resultados")
+        .select(`
+          *, 
+          jogo:jogos(*, time_adversario:times(*)), 
+          estatisticas_partida(*, jogador:jogadores(nome, apelido))
+        `)
+        .eq("team_id", effectiveTeamId!);
       const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
-      return data as (Resultado & { jogo: Jogo, estatisticas_partida: { count: number }[] })[];
+      
+      // Use unknown cast to avoid complex type mismatch errors with deep nesting
+      return (data as unknown) as (Resultado & { 
+        jogo: Jogo & { time_adversario?: Time | null }, 
+        estatisticas_partida: (EstatisticaPartida & { jogador?: { nome: string; apelido: string | null } })[] 
+      })[];
     },
   });
 }
@@ -159,12 +205,31 @@ export function useEscalacoes(teamId?: string) {
         .from("escalacoes")
         .select(`
           *,
-          jogo:jogos(*)
+          jogo:jogos(*, time_adversario:times(*))
         `)
         .eq("team_id", effectiveTeamId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as (Escalacao & { jogo: Jogo })[];
+    },
+  });
+}
+
+export function useEscalacaoByJogoId(jogoId?: string) {
+  return useQuery({
+    queryKey: ["escalacao-jogo", jogoId],
+    enabled: !!jogoId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("escalacoes")
+        .select(`
+          *,
+          jogo:jogos(*, time_adversario:times(*))
+        `)
+        .eq("jogo_id", jogoId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data as (Escalacao & { jogo: Jogo }) | null;
     },
   });
 }
@@ -200,7 +265,7 @@ export function useProximaEscalacao(teamId?: string) {
         .from("escalacoes")
         .select(`
           *,
-          jogo:jogos(*)
+          jogo:jogos(*, time_adversario:times(*))
         `)
         .eq("team_id", effectiveTeamId!)
         .eq("publicada", true)

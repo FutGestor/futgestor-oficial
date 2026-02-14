@@ -300,7 +300,7 @@ export default function AdminUsuarios() {
     setIsUpdating(userToUpdatePlan.id);
     try {
       const { error } = await supabase
-        .rpc("admin_set_plan", {
+        .rpc("admin_set_plan" as any, {
           _team_id: userToUpdatePlan.team_id,
           _plan_type: selectedPlan
         });

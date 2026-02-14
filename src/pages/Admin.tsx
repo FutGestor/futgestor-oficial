@@ -3,7 +3,7 @@ import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom"
 import { User, Session } from "@supabase/supabase-js";
 import {
   LayoutDashboard, Calendar, Users, DollarSign, Trophy, Bell, ClipboardList,
-  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon, Lock, Crown, TrendingUp, BookOpen, Headphones, BarChart3, ShieldAlert
+  LogOut, Menu, Home, UserCog, CalendarPlus, Shield, Settings, LucideIcon, Lock, Crown, TrendingUp, BookOpen, Headphones, BarChart3, ShieldAlert, ChevronLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -74,13 +74,13 @@ function NavMenu({
                 onLockedClick(item.requiredPlan || "Pro", item.featureName || item.label);
               }}
               className={cn(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex w-full items-center justify-start gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 "text-sidebar-foreground/50 hover:bg-sidebar-accent/30"
               )}
             >
-              <item.icon className="h-5 w-5" />
-              {item.label}
-              <Lock className="ml-auto h-4 w-4 text-yellow-500" />
+              <item.icon className="h-5 w-5 shrink-0" />
+              <span className="truncate">{item.label}</span>
+              <Lock className="ml-auto h-4 w-4 shrink-0 text-yellow-500" />
             </button>
           );
         }
@@ -91,14 +91,14 @@ function NavMenu({
             to={item.href}
             onClick={() => setSidebarOpen(false)}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center justify-start gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               isActive
                 ? "bg-sidebar-accent text-sidebar-accent-foreground"
                 : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
             )}
           >
-            <item.icon className="h-5 w-5" />
-            {item.label}
+            <item.icon className="h-5 w-5 shrink-0" />
+            <span className="truncate">{item.label}</span>
             {item.hasBadge && pendingCount && pendingCount > 0 ? (
               <Badge variant="destructive" className="ml-auto h-5 min-w-5 px-1.5 text-xs">
                 {pendingCount}
@@ -130,39 +130,30 @@ export default function Admin() {
   // Build sidebar items with lock state
   const sidebarItems: SidebarItem[] = [
     { href: `${basePath}/admin`, label: "Dashboard", icon: LayoutDashboard },
+    { href: `${basePath}/admin/jogadores`, label: "Jogadores", icon: Users },
     { href: `${basePath}/admin/planos`, label: "Planos", icon: Crown },
-    { href: `${basePath}/admin/jogos`, label: "Jogos", icon: Calendar },
     {
       href: `${basePath}/admin/solicitacoes`, label: "Solicitações", icon: CalendarPlus, hasBadge: true,
       locked: !hasSolicitacoes, requiredPlan: "Pro", featureName: "Solicitações de Amistosos"
     },
     { href: `${basePath}/admin/times`, label: "Times", icon: Shield },
-    { href: `${basePath}/admin/jogadores`, label: "Jogadores", icon: Users },
-    // Apenas Super Admin vê o menu de Usuários (leads do SaaS)
-    ...(user?.email === "futgestor@gmail.com" || isAdmin ? [{ href: `${basePath}/admin/usuarios`, label: "Usuários", icon: UserCog }] : []),
     {
       href: `${basePath}/admin/transacoes`, label: "Transações", icon: DollarSign,
       locked: !hasFinanceiro, requiredPlan: "Pro", featureName: "Gestão Financeira"
     },
-
     {
       href: `${basePath}/admin/campeonatos`, label: "Campeonatos", icon: Trophy,
       locked: !hasCampeonatos, requiredPlan: "Liga", featureName: "Gestor de Campeonatos"
     },
-    { href: `${basePath}/admin/escalacoes`, label: "Escalações", icon: ClipboardList },
-    {
-      href: `${basePath}/admin/avisos`, label: "Avisos", icon: Bell,
-      locked: !hasAvisos, requiredPlan: "Pro", featureName: "Gestão de Avisos"
-    },
     { href: `${basePath}/admin/configuracoes`, label: "Configurações", icon: Settings },
     { href: `${basePath}/admin/guia`, label: "Guia", icon: BookOpen },
-  ].filter(item => {
-    // Menu Usuários é restrito ao Super Admin (email ou role)
-    if (item.label === "Usuários") {
-      return user?.email === "futgestor@gmail.com" || isSuperAdmin;
-    }
-    return true;
-  });
+  ].filter(item => true);
+
+  // Adicionar menu Usuários condicionalmente
+  if (user?.email === "futgestor@gmail.com" || isSuperAdmin) {
+    // Inserir após Times (índice 4 no novo array: Dashboard, Jogadores, Planos, Solicitações, Times)
+    sidebarItems.splice(5, 0, { href: `${basePath}/admin/usuarios`, label: "Usuários", icon: UserCog });
+  }
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -299,7 +290,7 @@ export default function Admin() {
                 variant="ghost"
                 size="icon"
                 className="text-sidebar-foreground hover:bg-sidebar-accent"
-                onClick={() => navigate(basePath)}
+                onClick={() => navigate("/")}
                 title="Ir para o Site"
               >
                 <Home className="h-4 w-4" />
@@ -329,34 +320,34 @@ export default function Admin() {
               <Link
                 to="/super-admin"
                 onClick={() => setSidebarOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+                className="flex items-center justify-start gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
               >
-                <ShieldAlert className="h-5 w-5 text-yellow-500" />
-                Painel Master
+                <ShieldAlert className="h-5 w-5 shrink-0 text-yellow-500" />
+                <span className="truncate">Painel Master</span>
               </Link>
               <Link
                 to="/super-admin/vendas"
                 onClick={() => setSidebarOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+                className="flex items-center justify-start gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
               >
-                <TrendingUp className="h-5 w-5 text-yellow-500" />
-                Vendas SaaS
+                <TrendingUp className="h-5 w-5 shrink-0 text-yellow-500" />
+                <span className="truncate">Vendas SaaS</span>
               </Link>
               <Link
                 to="/super-admin/suporte"
                 onClick={() => setSidebarOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+                className="flex items-center justify-start gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
               >
-                <Headphones className="h-5 w-5 text-yellow-500" />
-                Suporte Global
+                <Headphones className="h-5 w-5 shrink-0 text-yellow-500" />
+                <span className="truncate">Suporte Global</span>
               </Link>
               <Link
                 to="/super-admin/status"
                 onClick={() => setSidebarOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+                className="flex items-center justify-start gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
               >
-                <BarChart3 className="h-5 w-5 text-yellow-500" />
-                Status do Site
+                <BarChart3 className="h-5 w-5 shrink-0 text-yellow-500" />
+                <span className="truncate">Status do Site</span>
               </Link>
             </div>
           )}
@@ -388,6 +379,19 @@ export default function Admin() {
           >
             <Menu className="h-6 w-6" />
           </Button>
+
+          {location.pathname !== `${basePath}/admin` && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 px-2 -ml-2 text-muted-foreground hover:text-foreground"
+              onClick={() => navigate(`${basePath}/admin`)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="font-semibold">Voltar</span>
+            </Button>
+          )}
+
           <h1 className="text-lg font-semibold">
             {sidebarItems.find((i) => i.href === location.pathname)?.label || "Admin"}
           </h1>

@@ -71,3 +71,7 @@ USING (team_id IN (
 - NEVER store passwords or sensitive payment data in plain text
 - All user-facing error messages must be in Portuguese (pt-BR)
 - Always validate inputs with Zod schemas before sending to Supabase
+
+## 6. Idioma
+
+- O agente deve sempre responder e planejar em **Português (PT-BR)**.

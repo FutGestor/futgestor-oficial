@@ -9,9 +9,10 @@ import { toast } from "sonner";
 
 interface StickerAlbumProps {
   teamId: string;
+  layout?: 'grid' | 'carousel';
 }
 
-export function StickerAlbum({ teamId }: StickerAlbumProps) {
+export function StickerAlbum({ teamId, layout = 'grid' }: StickerAlbumProps) {
   const { data: jogadores, isLoading } = useJogadoresPublicos(teamId);
   const { hasAlbumFigurinhas } = usePlanAccess(teamId);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -72,34 +73,59 @@ export function StickerAlbum({ teamId }: StickerAlbumProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
-        {jogadores?.map((jogador) => (
-          <div key={jogador.id} className="flex flex-col items-center gap-3 group">
-            <div ref={(el) => (cardRefs.current[jogador.id] = el)}>
-              <StickerCard 
-                jogador={jogador} 
-                className="transform transition-transform group-hover:-translate-y-2 duration-300"
-                variant="gold" // Could be dynamic based on stats logic
-              />
+      {layout === 'grid' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
+          {jogadores?.map((jogador) => (
+            <div key={jogador.id} className="flex flex-col items-center gap-3 group">
+              <div ref={(el) => (cardRefs.current[jogador.id] = el)}>
+                <StickerCard 
+                  jogador={jogador} 
+                  className="transform transition-transform group-hover:-translate-y-2 duration-300"
+                  variant="gold" 
+                />
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2 w-full max-w-[12rem]"
+                onClick={() => handleDownload(jogador.id, jogador.apelido || jogador.nome)}
+              >
+                <Download className="h-4 w-4" />
+                Baixar Card PNG
+              </Button>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-2 w-full max-w-[12rem]"
-              onClick={() => handleDownload(jogador.id, jogador.apelido || jogador.nome)}
-            >
-              <Download className="h-4 w-4" />
-              Baixar Card PNG
-            </Button>
-          </div>
-        ))}
+          ))}
+        </div>
+      ) : (
+        <div className="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory px-4 -mx-4 scrollbar-hide">
+          {jogadores?.map((jogador) => (
+            <div key={jogador.id} className="flex-none snap-center flex flex-col items-center gap-3 group">
+              <div ref={(el) => (cardRefs.current[jogador.id] = el)}>
+                <StickerCard 
+                  jogador={jogador} 
+                  className="transform transition-transform group-hover:-translate-y-2 duration-300 scale-90 sm:scale-100 origin-top"
+                  variant="gold" 
+                />
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2 w-full max-w-[12rem]"
+                onClick={() => handleDownload(jogador.id, jogador.apelido || jogador.nome)}
+              >
+                <Download className="h-4 w-4" />
+                Baixar
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
 
-        {jogadores?.length === 0 && (
-          <div className="col-span-full text-center py-12 text-muted-foreground">
-            Nenhum jogador cadastrado no elenco.
-          </div>
-        )}
-      </div>
+      {jogadores?.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          Nenhum jogador cadastrado no elenco.
+        </div>
+      )}
     </div>
   );
 }

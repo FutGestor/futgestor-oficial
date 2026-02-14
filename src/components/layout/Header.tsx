@@ -225,11 +225,11 @@ export function Header() {
             </Link>
           )}
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Hidden as we now use Bottom Nav */}
           <Button
             variant="ghost"
             size="icon"
-            className="text-primary-foreground md:hidden"
+            className="hidden" // Changed from md:hidden to hidden
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -237,8 +237,8 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      {mobileMenuOpen && (
+      {/* Mobile Navigation - Hidden as we now use Bottom Nav */}
+      {false && mobileMenuOpen && (
         <div className="border-t border-border/40 bg-primary md:hidden">
           <nav className="container flex flex-col gap-1 px-4 py-4">
             {navItems.map((item) => (
