@@ -61,7 +61,7 @@ export function MeuPlanoSection() {
           </div>
         )}
 
-        <Link to={`${basePath}/admin/planos`}>
+        <Link to={`${basePath}/gestao`}>
           <Button className="w-full" variant={isActive ? "outline" : "default"}>
             <Crown className="mr-2 h-4 w-4" />
             {isActive ? "Alterar Plano" : "Escolher Plano"}

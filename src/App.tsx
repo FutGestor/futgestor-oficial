@@ -121,6 +121,7 @@ const App = () => (
                   <Route path="configuracoes" element={<AdminConfiguracoes />} />
                   <Route path="solicitacoes" element={<AdminSolicitacoes />} />
                   <Route path="usuarios" element={<AdminUsuarios />} />
+                  <Route path="avisos/gerenciar" element={<AdminAvisos />} />
                 </Route>
 
               </Route>

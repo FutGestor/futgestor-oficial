@@ -140,7 +140,7 @@ export default function Onboarding() {
       await refreshProfile();
 
       toast({ title: "Time criado!", description: "Agora escolha seu plano para começar." });
-      navigate(`/time/${data.slug}/admin/planos`);
+      navigate(`/time/${data.slug}/gestao`);
     } catch (err: any) {
       console.error("Onboarding error:", err);
       toast({ variant: "destructive", title: "Erro ao criar time", description: err.message });

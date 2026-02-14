@@ -71,7 +71,7 @@ export default function LigasPage() {
           
           {isAdmin && (
             <Button 
-              onClick={() => navigate(`${basePath}/admin/campeonatos`)}
+              onClick={() => navigate(`${basePath}/ligas/gerenciar`)}
               className="gap-2"
             >
               <Settings2 className="h-4 w-4" />

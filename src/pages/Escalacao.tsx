@@ -101,7 +101,7 @@ function EscalacaoContent() {
           
           {isAdmin && (
             <Button 
-              onClick={() => navigate(`${basePath}/admin/escalacoes`)}
+              onClick={() => navigate(`${basePath}/escalacao/gerenciar`)}
               className="gap-2"
             >
               <Settings2 className="h-4 w-4" />

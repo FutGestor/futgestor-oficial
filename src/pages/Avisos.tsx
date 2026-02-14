@@ -83,7 +83,7 @@ function AvisosContent() {
           <div className="flex flex-wrap items-center gap-2">
             {isAdmin && (
               <Button 
-                onClick={() => navigate(`${basePath}/admin/avisos`)}
+                onClick={() => navigate(`${basePath}/avisos/gerenciar`)}
                 className="gap-2"
               >
                 <Settings2 className="h-4 w-4" />

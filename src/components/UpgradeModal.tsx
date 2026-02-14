@@ -43,7 +43,7 @@ export function UpgradeModal({ open, onOpenChange, requiredPlan, featureName }: 
             className="flex-1 bg-yellow-500 text-white hover:bg-yellow-600"
             onClick={() => {
               onOpenChange(false);
-              navigate(`${basePath}/admin/planos`);
+              navigate(`${basePath}/gestao`);
             }}
           >
             <Crown className="mr-2 h-4 w-4" />
