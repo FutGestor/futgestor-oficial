@@ -12,6 +12,10 @@ import { useTimeCasa } from "@/hooks/useTimes";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { statusLabels, type Jogo, type Time, type Resultado } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { useNavigate } from "react-router-dom";
+import { Settings2 } from "lucide-react";
 
 
 function GameCard({ jogo, timeCasa, resultado }: { jogo: Jogo; timeCasa?: Time | null; resultado?: Resultado | null }) {
@@ -109,7 +113,9 @@ function GameCard({ jogo, timeCasa, resultado }: { jogo: Jogo; timeCasa?: Time |
 function AgendaContent() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const { team } = useTeamConfig();
+  const { team, basePath } = useTeamSlug();
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   const { data: jogos, isLoading } = useJogos(team.id || undefined);
   const { data: resultados } = useResultados(team.id || undefined);
   const { data: timeCasa } = useTimeCasa(team.id || undefined);
@@ -136,9 +142,21 @@ function AgendaContent() {
   return (
     <Layout>
       <div className="container py-8 px-4 md:px-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Agenda</h1>
-          <p className="text-muted-foreground">Calendário de jogos do time</p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Agenda</h1>
+            <p className="text-muted-foreground">Calendário de jogos do time</p>
+          </div>
+          
+          {isAdmin && (
+            <Button 
+              onClick={() => navigate(`${basePath}/agenda/gerenciar`)}
+              className="gap-2"
+            >
+              <Settings2 className="h-4 w-4" />
+              Gerenciar Agenda
+            </Button>
+          )}
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">

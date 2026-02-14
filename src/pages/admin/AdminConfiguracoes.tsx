@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
@@ -14,10 +16,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MeuPlanoSection } from "@/components/MeuPlanoSection";
 import { useCurrentPlan } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 export default function AdminConfiguracoes() {
   const { profile, user } = useAuth();
   const { team, isLoading: teamLoading } = useTeamConfig();
+  const { basePath } = useTeamSlug();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -34,6 +39,12 @@ export default function AdminConfiguracoes() {
   const [bioTextAlign, setBioTextAlign] = useState("text-center");
   const [bioFontFamily, setBioFontFamily] = useState("font-sans");
   const [titleColor, setTitleColor] = useState("#FFFFFF");
+  const [titleStroke, setTitleStroke] = useState(false);
+  const [titleStrokeColor, setTitleStrokeColor] = useState("#000000");
+  const [titleStrokeWidth, setTitleStrokeWidth] = useState(2);
+  const [bioStroke, setBioStroke] = useState(false);
+  const [bioStrokeColor, setBioStrokeColor] = useState("#000000");
+  const [bioStrokeWidth, setBioStrokeWidth] = useState(2);
   const [saving, setSaving] = useState(false);
   const [uploadingEscudo, setUploadingEscudo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
@@ -60,6 +71,12 @@ export default function AdminConfiguracoes() {
     setBioTextAlign(bioConfig?.textAlign || "text-center");
     setBioFontFamily(bioConfig?.fontFamily || "font-sans");
     setTitleColor(bioConfig?.titleColor || "#FFFFFF");
+    setTitleStroke(bioConfig?.titleStroke || false);
+    setTitleStrokeColor(bioConfig?.titleStrokeColor || "#000000");
+    setTitleStrokeWidth(bioConfig?.titleStrokeWidth || 2);
+    setBioStroke(bioConfig?.bioStroke || false);
+    setBioStrokeColor(bioConfig?.bioStrokeColor || "#000000");
+    setBioStrokeWidth(bioConfig?.bioStrokeWidth || 2);
 
     setInitialized(true);
   }
@@ -139,7 +156,13 @@ export default function AdminConfiguracoes() {
             fontWeight: bioFontWeight,
             textAlign: bioTextAlign,
             fontFamily: bioFontFamily,
-            titleColor: titleColor
+            titleColor: titleColor,
+            titleStroke: titleStroke,
+            titleStrokeColor: titleStrokeColor,
+            titleStrokeWidth: titleStrokeWidth,
+            bioStroke: bioStroke,
+            bioStrokeColor: bioStrokeColor,
+            bioStrokeWidth: bioStrokeWidth
           }
         })
         .eq("id", teamId);
@@ -175,6 +198,11 @@ export default function AdminConfiguracoes() {
 
   return (
     <div className="space-y-6">
+      <ManagementHeader 
+        title="Configurações do Time" 
+        subtitle="Gerencie a identidade, redes sociais e plano do seu time." 
+      />
+
       {/* Identidade do Time */}
       <Card>
         <CardHeader>
@@ -335,6 +363,68 @@ export default function AdminConfiguracoes() {
             </p>
           </div>
 
+          {/* Contorno (Stroke) */}
+          <div className="rounded-lg bg-zinc-900/50 p-4 border border-zinc-800">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="titleStroke" className="text-sm font-semibold">Adicionar Contorno (Stroke)</Label>
+                <p className="text-[10px] text-muted-foreground">
+                  Cria uma borda ao redor das letras para facilitar a leitura.
+                </p>
+              </div>
+              <Switch
+                id="titleStroke"
+                checked={titleStroke}
+                onCheckedChange={setTitleStroke}
+              />
+            </div>
+
+            {titleStroke && (
+              <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {/* Cor do Contorno */}
+                  <div>
+                    <Label htmlFor="titleStrokeColor" className="text-xs">Cor do Contorno</Label>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <div
+                        className="h-8 w-8 rounded-full border border-border shadow-sm"
+                        style={{ backgroundColor: titleStrokeColor }}
+                      />
+                      <Input
+                        id="titleStrokeColor"
+                        type="color"
+                        value={titleStrokeColor}
+                        onChange={(e) => setTitleStrokeColor(e.target.value)}
+                        className="h-8 w-16 p-1 cursor-pointer"
+                      />
+                      <Input
+                        value={titleStrokeColor}
+                        onChange={(e) => setTitleStrokeColor(e.target.value)}
+                        placeholder="#000000"
+                        className="h-8 w-24 font-mono text-xs uppercase"
+                        maxLength={7}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Largura do Contorno */}
+                  <div>
+                    <Label className="text-xs">Largura do Contorno: {titleStrokeWidth}px</Label>
+                    <div className="mt-3">
+                      <Slider
+                        value={[titleStrokeWidth]}
+                        onValueChange={(val) => setTitleStrokeWidth(val[0])}
+                        min={1}
+                        max={5}
+                        step={1}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div>
             <Label htmlFor="bio">Texto da Bio / Descrição</Label>
             <Textarea
@@ -454,6 +544,68 @@ export default function AdminConfiguracoes() {
             </div>
           </div>
 
+          {/* Contorno da Bio (Stroke) */}
+          <div className="rounded-lg bg-zinc-900/50 p-4 border border-zinc-800">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="bioStroke" className="text-sm font-semibold">Adicionar Contorno na Bio</Label>
+                <p className="text-[10px] text-muted-foreground">
+                  Melhora a leitura da descrição sobre fundos complexos.
+                </p>
+              </div>
+              <Switch
+                id="bioStroke"
+                checked={bioStroke}
+                onCheckedChange={setBioStroke}
+              />
+            </div>
+
+            {bioStroke && (
+              <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {/* Cor do Contorno */}
+                  <div>
+                    <Label htmlFor="bioStrokeColor" className="text-xs">Cor do Contorno</Label>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <div
+                        className="h-8 w-8 rounded-full border border-border shadow-sm"
+                        style={{ backgroundColor: bioStrokeColor }}
+                      />
+                      <Input
+                        id="bioStrokeColor"
+                        type="color"
+                        value={bioStrokeColor}
+                        onChange={(e) => setBioStrokeColor(e.target.value)}
+                        className="h-8 w-16 p-1 cursor-pointer"
+                      />
+                      <Input
+                        value={bioStrokeColor}
+                        onChange={(e) => setBioStrokeColor(e.target.value)}
+                        placeholder="#000000"
+                        className="h-8 w-24 font-mono text-xs uppercase"
+                        maxLength={7}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Largura do Contorno */}
+                  <div>
+                    <Label className="text-xs">Largura do Contorno: {bioStrokeWidth}px</Label>
+                    <div className="mt-3">
+                      <Slider
+                        value={[bioStrokeWidth]}
+                        onValueChange={(val) => setBioStrokeWidth(val[0])}
+                        min={1}
+                        max={5}
+                        step={1}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Preview */}
           <div className="rounded-lg border bg-muted p-4">
             <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground font-semibold">Preview na Capa</Label>
@@ -467,12 +619,29 @@ export default function AdminConfiguracoes() {
             >
               <div className="absolute inset-0 bg-black/40" />
               <div className="relative z-10 w-full flex flex-col items-center">
-                <h2 className="mb-2 text-3xl font-bold drop-shadow-lg" style={{ color: titleColor }}>
+                <h2 
+                  className="mb-2 text-3xl font-bold drop-shadow-lg" 
+                  style={{ 
+                    color: titleColor,
+                    WebkitTextStroke: titleStroke ? `${titleStrokeWidth}px ${titleStrokeColor}` : 'none',
+                    paintOrder: 'stroke fill'
+                  }}
+                >
                   {nome || "NOME DO TIME"}
                 </h2>
                 <p
-                  className={cn("w-full max-w-2xl shadow-sm drop-shadow-md", bioFontSize, bioFontWeight, bioTextAlign, bioFontFamily)}
-                  style={{ color: bioColor }}
+                  className={cn(
+                    "w-full max-w-2xl shadow-sm drop-shadow-md",
+                    bioFontSize,
+                    bioFontWeight,
+                    bioTextAlign,
+                    bioFontFamily
+                  )}
+                  style={{
+                    color: bioColor,
+                    WebkitTextStroke: bioStroke ? `${bioStrokeWidth}px ${bioStrokeColor}` : 'none',
+                    paintOrder: 'stroke fill'
+                  }}
                 >
                   {bio || "Bem-vindo à página do time. Gerencie seu time de futebol em um só lugar."}
                 </p>

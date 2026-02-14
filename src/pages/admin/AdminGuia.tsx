@@ -17,7 +17,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Check, X } from "lucide-react";
+import { Check, X, Settings2 } from "lucide-react";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 /* ───────────── helpers ───────────── */
 
@@ -61,6 +63,7 @@ const planFeatures = [
 /* ───────────── component ───────────── */
 
 export default function AdminGuia() {
+  const { basePath } = useTeamSlug();
   const printRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadPDF = () => {
@@ -90,18 +93,14 @@ export default function AdminGuia() {
       `}</style>
 
       <div className="space-y-6 max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-primary" />
-              Guia Completo do FutGestor
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Manual detalhado de todas as funcionalidades do sistema
-            </p>
-          </div>
-          <Button onClick={handleDownloadPDF} className="no-print gap-2">
+        <ManagementHeader 
+          title="Guia Completo do FutGestor" 
+          subtitle="Manual detalhado de todas as funcionalidades do sistema." 
+        />
+        
+        {/* Header Actions */}
+        <div className="flex justify-end no-print">
+          <Button onClick={handleDownloadPDF} className="gap-2">
             <FileDown className="h-4 w-4" />
             Baixar em PDF
           </Button>

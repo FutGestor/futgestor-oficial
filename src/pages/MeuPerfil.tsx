@@ -13,11 +13,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 import { supabase } from "@/integrations/supabase/client";
-import { positionLabels } from "@/lib/types";
+import { positionLabels, type Jogador } from "@/lib/types";
 import type { Database } from "@/integrations/supabase/types";
 import { MeuPlanoSection } from "@/components/MeuPlanoSection";
+import { StickerCard } from "@/components/public/StickerCard";
+import { usePlayerPerformance } from "@/hooks/useEstatisticas";
+import { Trophy, Target, Shield, Zap, History, Edit3, CheckCircle2, AlertCircle } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 type PlayerPosition = Database["public"]["Enums"]["player_position"];
 
@@ -34,14 +40,19 @@ type FormData = z.infer<typeof formSchema>;
 export default function MeuPerfil() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, profile, isApproved, isLoading: authLoading, refreshProfile } = useAuth();
-  const { basePath } = useTeamSlug();
+  const { user, profile, isAdmin, isApproved, isLoading: authLoading, refreshProfile, signOut } = useAuth();
+  const teamSlug = useOptionalTeamSlug();
+  const basePath = teamSlug?.basePath || "";
   
   const [jogador, setJogador] = useState<any>(null);
   const [isLoadingJogador, setIsLoadingJogador] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  // Performance data
+  const { data: performance } = usePlayerPerformance(profile?.jogador_id || undefined, profile?.team_id || undefined);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -65,9 +76,13 @@ export default function MeuPerfil() {
         description: "Seu cadastro ainda está pendente de aprovação.",
         variant: "destructive",
       });
-      navigate(basePath);
+      if (basePath) {
+        navigate(basePath);
+      } else {
+        navigate("/");
+      }
     }
-  }, [authLoading, user, isApproved, navigate, toast]);
+  }, [authLoading, user, isApproved, navigate, toast, basePath]);
 
   // Load jogador data if exists
   useEffect(() => {
@@ -180,6 +195,7 @@ export default function MeuPerfil() {
           title: "Perfil atualizado",
           description: "Suas informações foram salvas com sucesso!",
         });
+        setIsEditDialogOpen(false);
       } else {
         // Create new jogador
         const { data: newJogador, error: insertError } = await supabase
@@ -210,6 +226,7 @@ export default function MeuPerfil() {
 
         setJogador(newJogador);
         await refreshProfile();
+        setIsEditDialogOpen(false);
 
         toast({
           title: "Perfil criado",
@@ -242,197 +259,234 @@ export default function MeuPerfil() {
     return null;
   }
 
+  // Calculate stats summary
+  const statsSummary = performance?.playerStats ? {
+    jogos: performance.playerStats.filter(s => s.participou).length,
+    gols: performance.playerStats.reduce((acc, s) => acc + (s.gols || 0), 0),
+    assistencias: performance.playerStats.reduce((acc, s) => acc + (s.assistencias || 0), 0),
+    mvp: performance.playerStats.filter(s => s.resultado?.mvp_jogador_id === profile?.jogador_id).length,
+    amarelos: performance.playerStats.filter(s => s.cartao_amarelo).length,
+    vermelhos: performance.playerStats.filter(s => s.cartao_vermelho).length,
+  } : { jogos: 0, gols: 0, assistencias: 0, mvp: 0, amarelos: 0, vermelhos: 0 };
+
+  // Last 5 games
+  const lastGames = performance?.playerStats 
+    ? [...performance.playerStats]
+        .sort((a, b) => new Date(b.resultado?.jogo?.data_hora).getTime() - new Date(a.resultado?.jogo?.data_hora).getTime())
+        .slice(0, 5)
+    : [];
+
   return (
     <Layout>
-      <div className="container max-w-2xl py-8 px-4 md:px-6 space-y-6">
-        {/* Seção Meu Plano */}
-        <MeuPlanoSection />
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Meu Perfil de Jogador
-              </div>
+      <div className="min-h-screen bg-slate-950 text-white pb-20">
+        <div className="container max-w-4xl py-8 px-4 space-y-8">
+          
+          {/* Header Section - Identity */}
+          <section className="flex flex-col items-center gap-6 pt-4 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-blue-500/50 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
               {jogador && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary animate-pulse"
-                  onClick={() => navigate("/player/dashboard")}
-                >
-                  📈 Ver Meu Desempenho
-                </Button>
+                <StickerCard 
+                  jogador={jogador} 
+                  stats={statsSummary}
+                  variant={statsSummary.mvp > 5 ? "gold" : (statsSummary.gols > 10 ? "silver" : "bronze")}
+                  className="scale-110 md:scale-125"
+                />
               )}
-            </CardTitle>
-            <CardDescription>
-              {jogador 
-                ? "Atualize suas informações de atleta"
-                : "Preencha seu perfil para aparecer na galeria de jogadores"
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* Photo Upload */}
-                <div className="flex flex-col items-center gap-4">
-                  <div className="relative">
-                    <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-primary/20 bg-muted">
-                      {fotoUrl ? (
-                        <img
-                          src={fotoUrl}
-                          alt="Sua foto"
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center">
-                          <User className="h-16 w-16 text-muted-foreground" />
+            </div>
+
+            <div className="flex flex-col items-center gap-2 mt-4">
+              <h1 className="text-3xl font-black uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400">
+                {jogador?.apelido || jogador?.nome || "Jogador"}
+              </h1>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="bg-white/5 border-white/10 text-slate-300 font-bold px-3 py-1">
+                  #{jogador?.numero || "--"}
+                </Badge>
+                <Badge variant="outline" className="bg-primary/20 border-primary/30 text-primary font-bold px-3 py-1 uppercase tracking-wider">
+                  {jogador?.posicao ? positionLabels[jogador.posicao as keyof typeof positionLabels] : "---"}
+                </Badge>
+              </div>
+              
+              {isAdmin && (
+                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="mt-2 text-slate-400 hover:text-white hover:bg-white/5 gap-2 border border-white/5">
+                      <Edit3 className="h-4 w-4" />
+                      Editar Perfil
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md bg-slate-900/95 border-white/10 text-white backdrop-blur-xl">
+                    <DialogHeader>
+                      <DialogTitle>Editar Informações do Atleta</DialogTitle>
+                    </DialogHeader>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        {/* Photo Upload inside Dialog */}
+                        <div className="flex flex-col items-center gap-2 mb-4">
+                          <div className="relative">
+                            <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-primary/50 bg-slate-800">
+                              {fotoUrl ? (
+                                <img src={fotoUrl} alt="Foto" className="h-full w-full object-cover" />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center">
+                                  <User className="h-10 w-10 text-slate-600" />
+                                </div>
+                              )}
+                            </div>
+                            <label htmlFor="photo-upload" className="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 active:scale-95 transition-all">
+                              {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                            </label>
+                            <input id="photo-upload" type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={isUploading} />
+                          </div>
                         </div>
-                      )}
+
+                        <FormField
+                          control={form.control}
+                          name="nome"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nome Completo</FormLabel>
+                              <FormControl>
+                                <Input className="bg-white/5 border-white/10" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="apelido"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Apelido</FormLabel>
+                              <FormControl>
+                                <Input className="bg-white/5 border-white/10" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="posicao"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Posição</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="bg-white/5 border-white/10">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="bg-slate-900 border-white/10 text-white">
+                                  {Object.entries(positionLabels).map(([value, label]) => (
+                                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <Button type="submit" className="w-full mt-4" disabled={isSaving}>
+                          {isSaving ? "Salvando..." : "Salvar Alterações"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
+          </section>
+
+          {/* Stats Grid - Bento Box Style */}
+          <section className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
+            <StatsCard label="Jogos" value={statsSummary.jogos} icon={<Zap className="h-5 w-5 text-yellow-500" />} />
+            <StatsCard label="Gols" value={statsSummary.gols} icon={<Target className="h-5 w-5 text-primary" />} />
+            <StatsCard label="Assists" value={statsSummary.assistencias} icon={<Target className="h-5 w-5 text-blue-500" />} />
+            <StatsCard label="MVPs" value={statsSummary.mvp} icon={<Trophy className="h-5 w-5 text-orange-500" />} />
+            <StatsCard label="Amarelos" value={statsSummary.amarelos} icon={<div className="h-5 w-4 bg-yellow-400 rounded-sm" />} />
+            <StatsCard label="Vermelhos" value={statsSummary.vermelhos} icon={<div className="h-5 w-4 bg-red-600 rounded-sm" />} />
+          </section>
+
+          {/* Timeline - Last Games */}
+          <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
+            <h2 className="text-xl font-bold flex items-center gap-2 px-1">
+              <History className="h-5 w-5 text-primary" />
+              Histórico Recente
+            </h2>
+            
+            <div className="space-y-3">
+              {lastGames.length > 0 ? lastGames.map((stat, i) => (
+                <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-slate-200 uppercase tracking-tighter">
+                      {stat.resultado?.jogo?.data_hora 
+                        ? format(new Date(stat.resultado.jogo.data_hora), "dd 'de' MMMM", { locale: ptBR })
+                        : "Partida Antiga"}
+                    </span>
+                    <span className="text-xs text-slate-400">Participação Confirmada</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5 bg-green-500/10 text-green-500 px-2 py-1 rounded-md text-xs font-bold">
+                      <Target className="h-3 w-3" />
+                      {stat.gols || 0} G
                     </div>
-                    <label
-                      htmlFor="photo-upload"
-                      className="absolute bottom-0 right-0 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105"
-                    >
-                      {isUploading ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <Camera className="h-5 w-5" />
-                      )}
-                    </label>
-                    <input
-                      id="photo-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handlePhotoUpload}
-                      disabled={isUploading}
-                    />
+                    <div className="flex items-center gap-1.5 bg-blue-500/10 text-blue-500 px-2 py-1 rounded-md text-xs font-bold">
+                       <Zap className="h-3 w-3" />
+                      {stat.assistencias || 0} A
+                    </div>
+                    {stat.resultado?.mvp_jogador_id === profile?.jogador_id && (
+                      <Trophy className="h-5 w-5 text-orange-500" />
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Clique no ícone para enviar sua foto
-                  </p>
                 </div>
+              )) : (
+                <div className="text-center py-12 rounded-2xl border-2 border-dashed border-white/5 bg-white/[0.02]">
+                  <p className="text-slate-500 font-medium">Nenhum histórico disponível nesta temporada.</p>
+                </div>
+              )}
+            </div>
+          </section>
 
-                {/* Número (read-only if exists) */}
-                {jogador?.numero && (
-                  <div className="flex items-center justify-center gap-2">
-                    <Badge variant="secondary" className="text-lg px-4 py-1">
-                      Camisa #{jogador.numero}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">(definido pelo admin)</span>
-                  </div>
-                )}
+          {/* Footer Navigation */}
+          <div className="pt-8 border-t border-white/5 flex flex-col gap-4">
+             <Button 
+                variant="outline" 
+                className="w-full bg-white/5 border-white/10 hover:bg-white/10"
+                onClick={() => navigate(basePath || "/")}
+             >
+               🏠 Voltar para o Início
+             </Button>
+            <Button 
+               variant="ghost" 
+               className="text-red-400 hover:text-red-300 hover:bg-red-900/10"
+               onClick={signOut}
+            >
+              Sair da minha conta
+            </Button>
+          </div>
 
-                <FormField
-                  control={form.control}
-                  name="nome"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome Completo *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Seu nome completo" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="apelido"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Apelido</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Como você é conhecido" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Opcional - será exibido na galeria de jogadores
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="posicao"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Posição *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione sua posição" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.entries(positionLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="telefone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="(00) 00000-0000" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Opcional - para contato interno do time
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="seu@email.com" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Opcional - para comunicados do time
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button type="submit" className="w-full" disabled={isSaving}>
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : jogador ? (
-                    "Atualizar Perfil"
-                  ) : (
-                    "Criar Perfil"
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+        </div>
       </div>
     </Layout>
+  );
+}
+
+function StatsCard({ label, value, icon }: { label: string; value: number | string; icon: React.ReactNode }) {
+  return (
+    <div className="relative group overflow-hidden rounded-2xl bg-slate-900/50 border border-white/5 p-4 flex flex-col gap-2 transition-all hover:bg-slate-900 shadow-2xl">
+      <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500 group-hover:rotate-12 translate-x-2 -translate-y-2">
+        {icon}
+      </div>
+      <span className="text-3xl font-black text-white tracking-tighter">{value}</span>
+      <span className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-none">{label}</span>
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+    </div>
   );
 }

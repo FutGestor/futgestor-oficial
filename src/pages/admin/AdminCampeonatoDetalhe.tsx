@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { supabase } from "@/integrations/supabase/client";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { LeagueStandingsTable } from "@/components/LeagueStandingsTable";
 import {
   useLeague,
@@ -449,12 +450,10 @@ export default function AdminCampeonatoDetalhe() {
 
   return (
     <div className="space-y-6 overflow-hidden">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate(`${basePath}/admin/campeonatos`)}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h2 className="text-2xl font-bold">{league?.name}</h2>
-      </div>
+      <ManagementHeader 
+        title={league?.name || "Campeonato"} 
+        subtitle="Gerencie times, rodadas e acompanhe a classificação." 
+      />
 
       <Tabs defaultValue="classificacao">
         <TabsList>

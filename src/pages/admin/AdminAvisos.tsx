@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { Plus, Edit, Trash2, Bell, AlertTriangle, DollarSign, Trophy, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAvisos } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { categoryLabels, type Aviso, type NoticeCategory } from "@/lib/types";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 type AvisoFormData = {
   titulo: string;
@@ -54,7 +57,14 @@ export default function AdminAvisos() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get all notices including unpublished for admin
-  const { team } = useTeamConfig();
+  const { team, basePath } = useTeamSlug();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("action") === "new") {
+      openCreateDialog();
+    }
+  }, [searchParams]);
   const { data: avisos, isLoading } = useAvisos(undefined, team.id);
   const { profile } = useAuth();
   const queryClient = useQueryClient();
@@ -136,11 +146,12 @@ export default function AdminAvisos() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Avisos</h2>
-          <p className="text-muted-foreground">Publique comunicados para o time</p>
-        </div>
+      <ManagementHeader 
+        title="Gerenciar Mural de Avisos" 
+        subtitle="Publique comunicados e informações importantes para o time." 
+      />
+
+      <div className="flex items-center justify-end">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog}>

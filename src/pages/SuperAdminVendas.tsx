@@ -74,7 +74,7 @@ export default function SuperAdminVendas() {
 
     // Fetch team names separately
     const teamIds = [...new Set(paymentsList.map(p => p.team_id).filter(Boolean))] as string[];
-    let namesMap: Record<string, string> = {};
+    const namesMap: Record<string, string> = {};
     if (teamIds.length > 0) {
       // Fetch team names
       const { data: teamsData, error: teamsError } = await supabase

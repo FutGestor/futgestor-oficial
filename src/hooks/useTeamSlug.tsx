@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import NotFound from "@/pages/NotFound";
 import { Skeleton } from "@/components/ui/skeleton";
+import { applyTeamTheme } from "@/lib/colors";
 
 export interface TeamSlugData {
   id: string;
@@ -56,68 +57,7 @@ export function TeamSlugLayout() {
     }
   }, [slug]);
 
-  // Apply team theme
-  useEffect(() => {
-    const cores = teamData?.cores as any;
-    if (cores?.primary) {
-      const primaryColor = cores.primary;
-
-      // Helper to convert hex to HSL for Tailwind
-      const hexToHSL = (hex: string) => {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        if (!result) return null;
-
-        let r = parseInt(result[1], 16);
-        let g = parseInt(result[2], 16);
-        let b = parseInt(result[3], 16);
-
-        r /= 255;
-        g /= 255;
-        b /= 255;
-
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        let h = 0, s, l = (max + min) / 2;
-
-        if (max === min) {
-          h = s = 0; // achromatic
-        } else {
-          const d = max - min;
-          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-          switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-          }
-          h /= 6;
-        }
-
-        return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
-      };
-
-      const primaryHSL = hexToHSL(primaryColor);
-
-      if (primaryHSL) {
-        document.documentElement.style.setProperty('--primary', primaryHSL);
-
-        // Calculate contrast for foreground
-        // Formula for luminance: 0.299*R + 0.587*G + 0.114*B
-        const rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(primaryColor);
-        if (rgb) {
-          const r = parseInt(rgb[1], 16);
-          const g = parseInt(rgb[2], 16);
-          const b = parseInt(rgb[3], 16);
-
-          const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-          // If dark background (low luminance), use light text. Else use dark text.
-          // Using strict 0.5 cutoff.
-          const foregroundHSL = luminance > 0.5 ? "210 52% 10%" : "0 0% 100%"; // Dark navy or White
-
-          document.documentElement.style.setProperty('--primary-foreground', foregroundHSL);
-        }
-      }
-    }
-  }, [teamData]);
+  // Theme is now handled globaly by useTeamConfig
 
 
   if (isLoading) {

@@ -98,7 +98,11 @@ export function VotacaoDestaque({ resultadoId }: VotacaoDestaqueProps) {
         )}
         
         <CollapsibleTrigger asChild>
-          <Button variant="outline" size="sm" className="ml-auto shrink-0 gap-1">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="ml-auto shrink-0 gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+          >
             <Star className="h-4 w-4" />
             {jaVotou ? "Alterar Voto" : "Votar Destaque"}
           </Button>
@@ -189,6 +193,7 @@ export function VotacaoDestaque({ resultadoId }: VotacaoDestaqueProps) {
               onClick={handleVotar}
               disabled={!selectedJogador || votando}
               size="sm"
+              className="bg-white text-slate-900 hover:bg-white/90"
             >
               {votando ? "Votando..." : jaVotou ? "Atualizar Voto" : "Confirmar Voto"}
             </Button>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Bell, AlertTriangle, DollarSign, Trophy, Megaphone, CheckCheck, Eye } from "lucide-react";
+import { Bell, AlertTriangle, DollarSign, Trophy, Megaphone, CheckCheck, Eye, Settings2 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,9 @@ import { useAvisoLeituras, useMarcarAvisoLido, useMarcarTodosLidos } from "@/hoo
 import { categoryLabels, type NoticeCategory } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { RequireTeam } from "@/components/RequireTeam";
+import { useAuth } from "@/hooks/useAuth";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { useNavigate } from "react-router-dom";
 
 type FilterType = "todos" | "nao_lidos" | "lidos";
 
@@ -34,6 +37,9 @@ function getCategoryColor(categoria: NoticeCategory) {
 }
 
 function AvisosContent() {
+  const { isAdmin } = useAuth();
+  const { basePath } = useTeamSlug();
+  const navigate = useNavigate();
   const { data: avisos, isLoading } = useAvisos();
   const { data: lidos } = useAvisoLeituras();
   const marcarLido = useMarcarAvisoLido();
@@ -74,17 +80,28 @@ function AvisosContent() {
             <h1 className="text-3xl font-bold text-foreground">Avisos</h1>
             <p className="text-muted-foreground">Comunicados e informações importantes do time</p>
           </div>
-          {naoLidosCount > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleMarcarTodos}
-              disabled={marcarTodos.isPending}
-            >
-              <CheckCheck className="mr-1 h-4 w-4" />
-              Marcar todos como lidos
-            </Button>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {isAdmin && (
+              <Button 
+                onClick={() => navigate(`${basePath}/admin/avisos`)}
+                className="gap-2"
+              >
+                <Settings2 className="h-4 w-4" />
+                Gerenciar Mural
+              </Button>
+            )}
+            {naoLidosCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleMarcarTodos}
+                disabled={marcarTodos.isPending}
+              >
+                <CheckCheck className="mr-1 h-4 w-4" />
+                Marcar todos como lidos
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Filtros */}

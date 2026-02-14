@@ -13,7 +13,11 @@ import {
   User, 
   LogOut, 
   Instagram, 
-  MessageCircle 
+  MessageCircle,
+  Settings,
+  ShieldCheck,
+  CalendarPlus,
+  BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAvisosNaoLidos } from "@/hooks/useAvisoLeituras";
@@ -58,6 +62,12 @@ export function MobileBottomNav() {
     { href: `${basePath}/escalacao`, label: "Escalação", icon: ClipboardList },
     ...(hasAvisos ? [{ href: `${basePath}/avisos`, label: "Avisos", icon: Bell }] : []),
     { href: `${basePath}/suporte`, label: "Suporte", icon: Headphones },
+    { href: `${basePath}/guia`, label: "Guia", icon: BookOpen },
+  ];
+
+  const adminMenuItems = [
+    { href: `${basePath}/solicitacoes`, label: "Solicitações", icon: CalendarPlus },
+    { href: `${basePath}/configuracoes`, label: "Configurações", icon: Settings },
   ];
 
   const notificationCount = naoLidos ?? 0;
@@ -152,6 +162,37 @@ export function MobileBottomNav() {
                   );
                 })}
 
+                {isAdmin && (
+                  <>
+                    <div className="my-4 border-t" />
+                    <p className="text-sm font-medium text-muted-foreground px-2 mb-2 flex items-center gap-2">
+                       <ShieldCheck className="h-4 w-4 text-primary" />
+                       Gestão
+                    </p>
+                    {adminMenuItems.map((item) => {
+                      const isActive = location.pathname === item.href;
+                      const Icon = item.icon;
+
+                      return (
+                        <Link
+                          key={item.href}
+                          to={item.href}
+                          onClick={() => setOpen(false)}
+                          className={cn(
+                            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                            isActive
+                              ? "bg-primary/10 text-primary font-bold"
+                              : "hover:bg-secondary/50"
+                          )}
+                        >
+                          <Icon className="h-5 w-5" />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </>
+                )}
+
                 <div className="my-4 border-t" />
                 <p className="text-sm font-medium text-muted-foreground px-2 mb-2">Conta</p>
 
@@ -165,7 +206,7 @@ export function MobileBottomNav() {
                 )}
                 
                 {isPlayer && (
-                  <Link to="/player/dashboard" onClick={() => setOpen(false)}>
+                  <Link to={`${basePath}/meu-perfil`} onClick={() => setOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start gap-3 px-3">
                       <User className="h-5 w-5" />
                       Minha Área
@@ -173,14 +214,7 @@ export function MobileBottomNav() {
                   </Link>
                 )}
 
-                {isAdmin && (
-                  <Link to={`${basePath}/admin`} onClick={() => setOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start gap-3 px-3">
-                      <User className="h-5 w-5" />
-                      Admin
-                    </Button>
-                  </Link>
-                )}
+
 
                 <Button variant="ghost" className="w-full justify-start gap-3 px-3 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleSignOut}>
                   <LogOut className="h-5 w-5" />

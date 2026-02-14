@@ -29,6 +29,8 @@ import {
 } from "@/lib/types";
 import { SocietyField } from "@/components/SocietyField";
 import { useTacticalAssistant } from "@/hooks/useTacticalAssistant";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 type EscalacaoFormData = {
   jogo_id: string;
@@ -59,6 +61,7 @@ export default function AdminEscalacoes() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { team } = useTeamConfig();
+  const { basePath } = useTeamSlug();
   const { data: escalacoes, isLoading } = useEscalacoes(team.id);
   const { data: jogos } = useJogos(team.id);
   const { data: jogadores } = useJogadores(true, team.id);
@@ -421,11 +424,12 @@ export default function AdminEscalacoes() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Escalações</h2>
-          <p className="text-muted-foreground">Monte a escalação para os jogos</p>
-        </div>
+      <ManagementHeader 
+        title="Gerenciar Escalações" 
+        subtitle="Monte táticas, defina titulares e use o assistente de IA." 
+      />
+
+      <div className="flex justify-end">
         <div className="flex gap-2">
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>

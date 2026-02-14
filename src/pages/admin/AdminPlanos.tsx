@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentPlan, useCreateMpPreference, PlanType } from "@/hooks/useSubscription";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 interface PlanCard {
   id: PlanType;
@@ -59,6 +61,7 @@ const PLANS: PlanCard[] = [
 
 export default function AdminPlanos() {
   const { profile } = useAuth();
+  const { basePath } = useTeamSlug();
   const { plan, isLoading, isActive } = useCurrentPlan();
   const createPreference = useCreateMpPreference();
   const { toast } = useToast();
@@ -101,14 +104,12 @@ export default function AdminPlanos() {
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold">Escolha seu Plano</h2>
-        <p className="mt-2 text-muted-foreground">
-          {isActive
-            ? `Seu plano atual: ${plan.charAt(0).toUpperCase() + plan.slice(1)}`
-            : "Selecione um plano para liberar o acesso ao painel"}
-        </p>
-      </div>
+      <ManagementHeader 
+        title="Escolha seu Plano" 
+        subtitle={isActive
+          ? `Seu plano atual: ${plan.charAt(0).toUpperCase() + plan.slice(1)}`
+          : "Selecione um plano para liberar o acesso ao painel"} 
+      />
 
       <div className="grid gap-6 md:grid-cols-3">
         {PLANS.map((p) => {

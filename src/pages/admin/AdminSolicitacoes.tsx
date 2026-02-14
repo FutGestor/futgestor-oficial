@@ -70,6 +70,8 @@ const statusColors: Record<RequestStatus, string> = {
 };
 
 import { useTeamConfig } from "@/hooks/useTeamConfig";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 export default function AdminSolicitacoes() {
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
@@ -83,6 +85,7 @@ export default function AdminSolicitacoes() {
   });
 
   const { team } = useTeamConfig();
+  const { basePath } = useTeamSlug();
   const { data: solicitacoes, isLoading } = useSolicitacoes(
     statusFilter === "all" ? undefined : statusFilter,
     team.id
@@ -180,8 +183,12 @@ export default function AdminSolicitacoes() {
 
   return (
     <div className="space-y-6">
+      <ManagementHeader 
+        title="Solicitações de Jogos" 
+        subtitle="Gerencie convites de outros times para partidas." 
+      />
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold">Solicitações de Jogos</h2>
         <Select
           value={statusFilter}
           onValueChange={(v) => setStatusFilter(v as RequestStatus | "all")}

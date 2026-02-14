@@ -8,6 +8,10 @@ import { useEstatisticasJogadores } from "@/hooks/useEstatisticas";
 import { JogadorStats } from "@/components/JogadorStats";
 import { positionLabels, type JogadorPublico } from "@/lib/types";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Users, UserCheck, Settings2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function JogadorCard({ jogador, stats }: { jogador: JogadorPublico; stats: any }) {
   return (
@@ -51,7 +55,9 @@ function JogadorCard({ jogador, stats }: { jogador: JogadorPublico; stats: any }
 }
 
 export default function JogadoresPage() {
-  const { team } = useTeamSlug();
+  const { team, basePath } = useTeamSlug();
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   const { data: jogadores, isLoading } = useJogadoresPublicos(team?.id);
   const { data: estatisticas } = useEstatisticasJogadores();
 
@@ -66,10 +72,49 @@ export default function JogadoresPage() {
   return (
     <Layout>
       <div className="container py-8 px-4 md:px-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Jogadores</h1>
-          <p className="text-muted-foreground">Conheça o elenco do time</p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Jogadores</h1>
+            <p className="text-muted-foreground">Conheça o elenco do time</p>
+          </div>
+          
+          {isAdmin && (
+            <Button 
+              onClick={() => navigate(`${basePath}/jogadores/gerenciar`)}
+              className="gap-2"
+            >
+              <Settings2 className="h-4 w-4" />
+              Gerenciar Elenco
+            </Button>
+          )}
         </div>
+
+        {isAdmin && jogadores && (
+          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="bg-primary/5 border-primary/10">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase font-semibold">Total Elenco</p>
+                  <p className="text-2xl font-bold">{jogadores.length}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-green-500/5 border-green-500/10">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <UserCheck className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase font-semibold">Jogadores Ativos</p>
+                  <p className="text-2xl font-bold">{jogadores.filter(j => j.ativo).length}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">

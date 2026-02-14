@@ -15,7 +15,8 @@ import Ranking from "./pages/Ranking";
 import Resultados from "./pages/Resultados";
 import Avisos from "./pages/Avisos";
 import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 import TeamPublicPage from "./pages/TeamPublicPage";
@@ -26,6 +27,7 @@ import SuperAdminVendas from "./pages/SuperAdminVendas";
 import SuperAdminAvisos from "./pages/SuperAdminAvisos";
 import SuperAdminHealth from "./pages/SuperAdminHealth";
 import { RequireApproval } from "./components/auth/RequireApproval";
+import { RequireAdmin } from "./components/auth/RequireAdmin";
 import LandingPage from "./pages/LandingPage";
 import Ligas from "./pages/Ligas";
 import Suporte from "./pages/Suporte";
@@ -33,6 +35,16 @@ import SuperAdminSuporte from "./pages/SuperAdminSuporte";
 import SuperAdminStatus from "./pages/SuperAdminStatus";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SuperAdminUsuarios from "./pages/SuperAdminUsuarios";
+import AdminGuia from "./pages/admin/AdminGuia";
+import AdminJogos from "./pages/admin/AdminJogos";
+import AdminJogadores from "./pages/admin/AdminJogadores";
+import AdminTransacoes from "./pages/admin/AdminTransacoes";
+import AdminAvisos from "./pages/admin/AdminAvisos";
+import AdminEscalacoes from "./pages/admin/AdminEscalacoes";
+import AdminConfiguracoes from "./pages/admin/AdminConfiguracoes";
+import AdminSolicitacoes from "./pages/admin/AdminSolicitacoes";
+import AdminCampeonatos from "./pages/admin/AdminCampeonatos";
+import AdminCampeonatoDetalhe from "./pages/admin/AdminCampeonatoDetalhe";
 import GameDetails from "./pages/GameDetails";
 
 const queryClient = new QueryClient();
@@ -59,7 +71,7 @@ const App = () => (
             <Route path="/super-admin/health" element={<SuperAdminHealth />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
             <Route path="/player/dashboard" element={<RequireApproval />}>
-              <Route index element={<PlayerDashboard />} />
+              <Route index element={<MeuPerfil />} />
             </Route>
 
             <Route path="/time/:slug" element={<TeamSlugLayout />}>
@@ -67,17 +79,50 @@ const App = () => (
 
               <Route element={<RequireApproval />}>
                 <Route path="agenda" element={<Agenda />} />
+                <Route path="agenda/gerenciar" element={<RequireAdmin />}>
+                  <Route index element={<AdminJogos />} />
+                </Route>
+                
                 <Route path="financeiro" element={<Financeiro />} />
+                <Route path="financeiro/gerenciar" element={<RequireAdmin />}>
+                  <Route index element={<AdminTransacoes />} />
+                </Route>
+
                 <Route path="escalacao" element={<Escalacao />} />
+                <Route path="escalacao/gerenciar" element={<RequireAdmin />}>
+                  <Route index element={<AdminEscalacoes />} />
+                </Route>
+
                 <Route path="jogadores" element={<Jogadores />} />
+                <Route path="jogadores/gerenciar" element={<RequireAdmin />}>
+                  <Route index element={<AdminJogadores />} />
+                </Route>
+
                 <Route path="meu-perfil" element={<MeuPerfil />} />
                 <Route path="ranking" element={<Ranking />} />
                 <Route path="resultados" element={<Resultados />} />
                 <Route path="ligas" element={<Ligas />} />
                 <Route path="avisos" element={<Avisos />} />
                 <Route path="suporte" element={<Suporte />} />
+                <Route path="guia" element={<AdminGuia />} />
                 <Route path="jogo/:id" element={<GameDetails />} />
-                <Route path="admin/*" element={<Admin />} />
+
+                {/* Rotas de Gestão (Admin Only) */}
+                <Route element={<RequireAdmin />}>
+                  <Route path="agenda/gerenciar" element={<AdminJogos />} />
+                  <Route path="financeiro/gerenciar" element={<AdminTransacoes />} />
+                  <Route path="escalacao/gerenciar" element={<AdminEscalacoes />} />
+                  <Route path="jogadores/gerenciar" element={<AdminJogadores />} />
+                  <Route path="ligas/gerenciar">
+                    <Route index element={<AdminCampeonatos />} />
+                    <Route path=":leagueId" element={<AdminCampeonatoDetalhe />} />
+                  </Route>
+                  <Route path="gestao" element={<AdminDashboard />} />
+                  <Route path="configuracoes" element={<AdminConfiguracoes />} />
+                  <Route path="solicitacoes" element={<AdminSolicitacoes />} />
+                  <Route path="usuarios" element={<AdminUsuarios />} />
+                </Route>
+
               </Route>
             </Route>
             <Route path="*" element={<NotFound />} />

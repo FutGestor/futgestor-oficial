@@ -53,7 +53,7 @@ export function useJogos(teamId?: string) {
     queryKey: ["jogos", effectiveTeamId],
     enabled: !!effectiveTeamId,
     queryFn: async () => {
-      let query = supabase.from("jogos").select(`*, time_adversario:times(*)`).eq("team_id", effectiveTeamId!);
+      const query = supabase.from("jogos").select(`*, time_adversario:times(*)`).eq("team_id", effectiveTeamId!);
       const { data, error } = await query.order("data_hora", { ascending: false });
       if (error) throw error;
       return data as Jogo[];
@@ -132,7 +132,7 @@ export function useResultados(teamId?: string) {
     queryKey: ["resultados", effectiveTeamId],
     enabled: !!effectiveTeamId,
     queryFn: async () => {
-      let query = supabase.from("resultados")
+      const query = supabase.from("resultados")
         .select(`
           *, 
           jogo:jogos(*, time_adversario:times(*)), 
@@ -289,13 +289,13 @@ export function useUltimoResultado(teamId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("resultados")
-        .select(`*, jogo:jogos(*)`)
+        .select(`*, jogo:jogos(*, time_adversario:times(*))`)
         .eq("team_id", effectiveTeamId!)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as (Resultado & { jogo: Jogo }) | null;
+      return data as (Resultado & { jogo: Jogo & { time_adversario?: Time | null } }) | null;
     },
   });
 }

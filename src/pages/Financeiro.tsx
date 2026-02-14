@@ -8,6 +8,11 @@ import { useTransacoes, useFinancialSummary } from "@/hooks/useData";
 import { MonthlyTransactionGroup } from "@/components/financeiro/MonthlyTransactionGroup";
 import { RequireTeam } from "@/components/RequireTeam";
 import { RequireProPlan } from "@/components/RequireProPlan";
+import { useAuth } from "@/hooks/useAuth";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { Button } from "@/components/ui/button";
+import { Settings2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const PIE_COLORS = ["#22c55e", "#f87171", "#D4A84B", "#60a5fa", "#a78bfa"];
 
@@ -53,6 +58,9 @@ const darkTooltipStyle = {
 function FinanceiroContent() {
   const { data: transacoes, isLoading } = useTransacoes();
   const { data: summary } = useFinancialSummary();
+  const { isAdmin } = useAuth();
+  const { basePath } = useTeamSlug();
+  const navigate = useNavigate();
 
   // Cálculos de Projeção (Runway e Burn Rate)
   const financialHealth = (() => {
@@ -146,10 +154,22 @@ function FinanceiroContent() {
       <div className="min-h-screen bg-[#0A1628]">
         <div className="container py-8 px-4 md:px-6">
           {/* Header */}
-          <div className="mb-8">
-            <p className="text-xs font-semibold text-[#D4A84B] uppercase tracking-[3px] mb-2">💰 Financeiro</p>
-            <h1 className="text-3xl md:text-4xl font-bold text-white">Dashboard Financeiro</h1>
-            <p className="text-gray-500 mt-1">Acompanhe as finanças do time</p>
+          <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold text-[#D4A84B] uppercase tracking-[3px] mb-2">💰 Financeiro</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-white">Dashboard Financeiro</h1>
+              <p className="text-gray-500 mt-1">Acompanhe as finanças do time</p>
+            </div>
+            
+            {isAdmin && (
+              <Button 
+                onClick={() => navigate(`${basePath}/financeiro/gerenciar`)}
+                className="gap-2 bg-primary hover:bg-primary/90"
+              >
+                <Settings2 className="h-4 w-4" />
+                Gerenciar Lançamentos
+              </Button>
+            )}
           </div>
 
           {/* Summary Cards */}
@@ -157,7 +177,7 @@ function FinanceiroContent() {
             <SummaryCard
               label="Saldo Atual"
               value={summary?.saldoAtual ?? 0}
-              color="text-[#D4A84B]"
+              color="text-primary"
               icon={Wallet}
               isLoading={isLoading}
             />
@@ -186,18 +206,18 @@ function FinanceiroContent() {
           </div>
 
           {/* Projection Chart */}
-            <div className="mb-8 bg-[#0F2440] border border-white/[0.06] rounded-xl p-6 relative overflow-hidden">
+            <div className="mb-8 bg-card border border-border rounded-xl p-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                     <TrendingUp size={100} className="text-indigo-500" />
                 </div>
                 <div className="mb-4">
-                    <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold">Inteligência Financeira</p>
-                    <h3 className="text-lg font-bold text-white">Projeção de Fluxo de Caixa (6 Meses)</h3>
-                    <p className="text-xs text-gray-400">Baseado na média de gastos e receitas dos últimos 90 dias.</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-[2px] font-semibold">Inteligência Financeira</p>
+                    <h3 className="text-lg font-bold text-foreground">Projeção de Fluxo de Caixa (6 Meses)</h3>
+                    <p className="text-xs text-muted-foreground">Baseado na média de gastos e receitas dos últimos 90 dias.</p>
                 </div>
                 
                 {isLoading ? (
-                    <Skeleton className="h-64 w-full bg-white/5" />
+                    <Skeleton className="h-64 w-full bg-muted" />
                 ) : financialHealth?.projectionData ? (
                     <ResponsiveContainer width="100%" height={250}>
                         <AreaChart data={financialHealth.projectionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -207,9 +227,9 @@ function FinanceiroContent() {
                                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                            <XAxis dataKey="month" tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis dataKey="month" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
                             <Tooltip formatter={formatCurrency} {...darkTooltipStyle} />
                             <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
                             <Area 
@@ -223,7 +243,7 @@ function FinanceiroContent() {
                         </AreaChart>
                     </ResponsiveContainer>
                 ) : (
-                    <div className="h-64 flex items-center justify-center text-gray-500 text-sm">
+                    <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">
                         Dados insuficientes para projeção.
                     </div>
                 )}
@@ -232,29 +252,29 @@ function FinanceiroContent() {
           {/* Charts */}
           <div className="mb-8 grid gap-6 lg:grid-cols-5">
             {/* Bar Chart */}
-            <div className="lg:col-span-3 bg-[#0F2440] border border-white/[0.06] rounded-xl p-6">
-              <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold mb-4">Entradas vs Saídas por Mês</p>
+            <div className="lg:col-span-3 bg-card border border-border rounded-xl p-6">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-[2px] font-semibold mb-4">Entradas vs Saídas por Mês</p>
               {isLoading ? (
-                <Skeleton className="h-56 w-full bg-white/5" />
+                <Skeleton className="h-56 w-full bg-muted" />
               ) : barChartData.length > 0 ? (
                 <>
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={barChartData} barGap={2} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                      <XAxis dataKey="month" tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="month" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
                       <Tooltip formatter={formatCurrency} {...darkTooltipStyle} />
                       <Bar dataKey="entrada" name="Entradas" fill="rgba(34,197,94,0.6)" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="saida" name="Saídas" fill="rgba(248,113,113,0.6)" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
-                  <div className="flex gap-4 mt-3 text-[10px] text-gray-500">
+                  <div className="flex gap-4 mt-3 text-[10px] text-muted-foreground">
                     <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-green-500/60" /> Entradas</span>
                     <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-red-400/60" /> Saídas</span>
                   </div>
                 </>
               ) : (
-                <p className="py-12 text-center text-gray-500 text-sm">Nenhuma transação registrada.</p>
+                <p className="py-12 text-center text-muted-foreground text-sm">Nenhuma transação registrada.</p>
               )}
             </div>
 

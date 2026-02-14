@@ -37,6 +37,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 interface ProfileWithEmail {
   id: string;
@@ -60,6 +62,7 @@ export default function AdminUsuarios() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { profile: authProfile, isSuperAdmin } = useAuth();
+  const { basePath } = useTeamSlug();
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<ProfileWithEmail | null>(null);
@@ -90,7 +93,7 @@ export default function AdminUsuarios() {
 
       // Buscar info adicional de jogadores
       const jogadorIds = (profilesData || []).filter(p => p.jogador_id).map(p => p.jogador_id);
-      let jogadoresMap: Record<string, { nome: string, apelido: string | null }> = {};
+      const jogadoresMap: Record<string, { nome: string, apelido: string | null }> = {};
 
       if (jogadorIds.length > 0) {
         const { data: jogadoresData } = await supabase
@@ -115,7 +118,7 @@ export default function AdminUsuarios() {
 
       // Buscar nomes dos times separadamente
       const teamIds = [...new Set((profilesData || []).map(p => p.team_id).filter(Boolean))] as string[];
-      let teamNamesMap: Record<string, string> = {};
+      const teamNamesMap: Record<string, string> = {};
       if (teamIds.length > 0) {
         const { data: teamsData } = await supabase
           .from("teams")
@@ -347,10 +350,10 @@ export default function AdminUsuarios() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Usuários</h2>
-        <p className="text-muted-foreground">Gerencie usuários e aprovações</p>
-      </div>
+      <ManagementHeader 
+        title="Gestão de Membros" 
+        subtitle="Controle quem tem acesso ao time e defina administradores." 
+      />
 
       <Tabs defaultValue="pendentes">
         <TabsList>

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { Plus, Edit, Trash2, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTransacoes, useFinancialSummary } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { type Transacao, type TransactionType } from "@/lib/types";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 const categorias = [
   "Mensalidade",
@@ -52,6 +55,14 @@ export default function AdminTransacoes() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { team } = useTeamConfig();
+  const { basePath } = useTeamSlug();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("action") === "new") {
+      openCreateDialog();
+    }
+  }, [searchParams]);
   const { data: transacoes, isLoading } = useTransacoes(team.id);
   const { data: summary } = useFinancialSummary(team.id);
   const { profile } = useAuth();
@@ -138,11 +149,12 @@ export default function AdminTransacoes() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Transações</h2>
-          <p className="text-muted-foreground">Gerencie as finanças do time</p>
-        </div>
+      <ManagementHeader 
+        title="Gerenciar Transações" 
+        subtitle="Controle entradas, saídas e categorias financeiras." 
+      />
+
+      <div className="flex justify-end">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog}>

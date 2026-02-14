@@ -1,16 +1,22 @@
-import { format } from "date-fns";
+import { format, subMonths, addMonths, isSameMonth, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Users, Calendar, Shield } from "lucide-react";
+import { Users, Calendar, Shield, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEscalacoes, useEscalacaoJogadores, useProximaEscalacao } from "@/hooks/useData";
 import { positionLabels, modalityLabels, type GameModality } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { SocietyField } from "@/components/SocietyField";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
+import { useAuth } from "@/hooks/useAuth";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { Settings2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function EscalacaoCard({ escalacao, isSelected, onClick }: {
   escalacao: { id: string; jogo: { adversario: string; data_hora: string } | null; formacao: string };
@@ -46,28 +52,62 @@ function EscalacaoCard({ escalacao, isSelected, onClick }: {
 
 function EscalacaoContent() {
   const { team } = useTeamConfig();
+  const { isAdmin } = useAuth();
+  const { basePath } = useTeamSlug();
+  const navigate = useNavigate();
   const teamId = team.id || undefined;
   const { data: escalacoes, isLoading: loadingEscalacoes } = useEscalacoes(teamId);
   const { data: proximaEscalacao } = useProximaEscalacao(teamId);
   const [selectedId, setSelectedId] = useState<string | undefined>();
+  const [filterMonth, setFilterMonth] = useState<string>(format(new Date(), "yyyy-MM"));
+
+  // Gerar opções de meses dinâmicas baseadas nos jogos
+  const monthOptions = useMemo(() => {
+    if (!escalacoes) return [];
+    
+    const months = new Set<string>();
+    escalacoes.forEach(esc => {
+      if (esc.jogo?.data_hora) {
+        months.add(format(new Date(esc.jogo.data_hora), "yyyy-MM"));
+      }
+    });
+
+    return Array.from(months).sort().reverse();
+  }, [escalacoes]);
+
+  const filteredEscalacoes = useMemo(() => {
+    if (!escalacoes) return [];
+    if (filterMonth === "all") return escalacoes;
+    
+    return escalacoes.filter((esc) => {
+      if (!esc.jogo?.data_hora) return false;
+      return format(new Date(esc.jogo.data_hora), "yyyy-MM") === filterMonth;
+    });
+  }, [escalacoes, filterMonth]);
 
   const currentId = selectedId || proximaEscalacao?.id;
   const { data: jogadores, isLoading: loadingJogadores } = useEscalacaoJogadores(currentId);
 
   const currentEscalacao = escalacoes?.find((e) => e.id === currentId) || proximaEscalacao;
 
-  console.log('Debug Escalacao:', { 
-    currentEscalacao, 
-    jogo: currentEscalacao?.jogo, 
-    time_adversario: currentEscalacao?.jogo?.time_adversario 
-  });
-
   return (
     <Layout>
       <div className="container py-8 px-4 md:px-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Escalação</h1>
-          <p className="text-muted-foreground">Veja a escalação do time para os jogos</p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Escalação</h1>
+            <p className="text-muted-foreground">Veja a escalação do time para os jogos</p>
+          </div>
+          
+          {isAdmin && (
+            <Button 
+              onClick={() => navigate(`${basePath}/admin/escalacoes`)}
+              className="gap-2"
+            >
+              <Settings2 className="h-4 w-4" />
+              Gerenciar Escalações
+            </Button>
+          )}
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
@@ -236,16 +276,35 @@ function EscalacaoContent() {
 
           {/* Histórico de escalações */}
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Escalações</h2>
+            <div className="flex flex-col gap-3">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                Escalações
+              </h2>
+              
+              <Select value={filterMonth} onValueChange={setFilterMonth}>
+                <SelectTrigger className="w-full bg-background border-border">
+                  <SelectValue placeholder="Selecionar mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as escalações</SelectItem>
+                  {monthOptions.map((month) => (
+                    <SelectItem key={month} value={month}>
+                      {format(new Date(month + "-02"), "MMMM yyyy", { locale: ptBR })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {loadingEscalacoes ? (
               <div className="space-y-3">
                 <Skeleton className="h-20 w-full" />
                 <Skeleton className="h-20 w-full" />
               </div>
-            ) : escalacoes && escalacoes.length > 0 ? (
+            ) : filteredEscalacoes.length > 0 ? (
               <div className="space-y-3">
-                {escalacoes.map((esc) => (
+                {filteredEscalacoes.map((esc) => (
                   <EscalacaoCard
                     key={esc.id}
                     escalacao={{
@@ -259,9 +318,15 @@ function EscalacaoContent() {
                 ))}
               </div>
             ) : (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  Nenhuma escalação publicada.
+              <Card className="border-dashed">
+                <CardContent className="py-12 text-center">
+                  <Filter className="h-10 w-10 text-muted-foreground/20 mx-auto mb-4" />
+                  <p className="text-muted-foreground font-medium">Nenhuma escalação encontrada</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">
+                    {filterMonth === "all" 
+                      ? "Ainda não foram publicadas escalações." 
+                      : `Não há jogos cadastrados em ${format(new Date(filterMonth + "-02"), "MMMM 'de' yyyy", { locale: ptBR })}.`}
+                  </p>
                 </CardContent>
               </Card>
             )}

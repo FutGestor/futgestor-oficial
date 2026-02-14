@@ -17,6 +17,8 @@ import { useJogadores } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { positionLabels, type Jogador, type PlayerPosition } from "@/lib/types";
 import { usePlanAccess } from "@/hooks/useSubscription";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 type JogadorFormData = {
   nome: string;
@@ -56,6 +58,7 @@ export default function AdminJogadores() {
   const [isCreatingAccess, setIsCreatingAccess] = useState(false);
 
   const { team } = useTeamConfig();
+  const { basePath } = useTeamSlug();
   const { data: jogadores, isLoading } = useJogadores(false, team.id);
   const { profile } = useAuth();
   const { hasLoginJogadores } = usePlanAccess();
@@ -265,11 +268,12 @@ export default function AdminJogadores() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Jogadores</h2>
-          <p className="text-muted-foreground">Gerencie o elenco do time</p>
-        </div>
+      <ManagementHeader 
+        title="Gerenciar Elenco" 
+        subtitle="Adicione jogadores, edite informações e gerencie acessos." 
+      />
+
+      <div className="flex justify-end">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog}>

@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTimes, useCreateTime, useUpdateTime, useDeleteTime } from "@/hooks/useTimes";
 import { useAuth } from "@/hooks/useAuth";
 import type { Time } from "@/lib/types";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 
 type TimeFormData = {
   nome: string;
@@ -46,6 +48,7 @@ export default function AdminTimes() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { profile } = useAuth();
+  const { team, basePath } = useTeamSlug();
   const { data: times, isLoading } = useTimes(profile?.team_id);
   const createTime = useCreateTime();
   const updateTime = useUpdateTime();
@@ -198,11 +201,12 @@ export default function AdminTimes() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Times</h2>
-          <p className="text-muted-foreground">Gerencie os perfis de times</p>
-        </div>
+      <ManagementHeader 
+        title="Gerenciar Times" 
+        subtitle="Cadastre seu próprio time e os adversários para histórico de jogos." 
+      />
+
+      <div className="flex items-center justify-end">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog}>

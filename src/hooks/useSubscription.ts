@@ -57,56 +57,47 @@ export function useCurrentPlan(teamId?: string | null): {
 } {
   const { data: subscription, isLoading } = useSubscription(teamId);
 
-  const isActive = subscription?.status === "active";
-  const plan: PlanType = isActive ? (subscription?.plano as PlanType) ?? "free" : "free";
+  // Forza plano liga para todos (Acesso Total)
+  const isActive = true;
+  const plan: PlanType = "liga";
 
   return { plan, isLoading, subscription, isActive };
 }
 
 /** Check if a feature is accessible for the current plan */
 export function usePlanAccess(teamId?: string | null) {
-  const { plan, isLoading, isActive } = useCurrentPlan(teamId);
-
-  const PLAN_HIERARCHY: Record<PlanType, number> = {
-    free: 0,
-    basico: 1,
-    pro: 2,
-    liga: 3,
-  };
-
-  const planLevel = PLAN_HIERARCHY[plan] ?? 0;
+  const { isLoading } = useCurrentPlan(teamId);
 
   return {
-    plan,
+    plan: "liga" as PlanType,
     isLoading,
-    isActive,
-    // Feature checks
-    hasDashboard: planLevel >= 1,
-    hasJogos: planLevel >= 1,
-    hasEscalacao: planLevel >= 1,
-    hasResultados: planLevel >= 2, // pro+
-    hasRanking: planLevel >= 2, // pro+
-    hasPresenca: planLevel >= 2, // pro+
-    hasSolicitacoes: planLevel >= 2, // pro+
-    hasEstatisticasAvancadas: planLevel >= 2, // pro+
-    hasFinanceiro: planLevel >= 2, // pro+
-    hasAvisos: planLevel >= 2, // pro+
-    hasConvidarJogador: planLevel >= 3, // liga
-    hasLoginJogadores: planLevel >= 3, // liga
-    hasCampeonatos: planLevel >= 3, // liga
-    hasSaldoCard: planLevel >= 2, // pro+
-    hasVotacaoCraque: planLevel >= 2, // pro+
-    hasAlbumFigurinhas: planLevel >= 3, // liga
+    isActive: true,
+    // Feature checks - All true for Total Access
+    hasDashboard: true,
+    hasJogos: true,
+    hasEscalacao: true,
+    hasResultados: true,
+    hasRanking: true,
+    hasPresenca: true,
+    hasSolicitacoes: true,
+    hasEstatisticasAvancadas: true,
+    hasFinanceiro: true,
+    hasAvisos: true,
+    hasConvidarJogador: true,
+    hasLoginJogadores: true,
+    hasCampeonatos: true,
+    hasSaldoCard: true,
+    hasVotacaoCraque: true,
+    hasAlbumFigurinhas: true,
     // Utility
-    canAccess: (requiredPlan: PlanType) => planLevel >= (PLAN_HIERARCHY[requiredPlan] ?? 0),
+    canAccess: () => true,
   };
 }
 
 // Keep backward compat
 export function useIsProPlan(teamId?: string | null) {
-  const { plan, isLoading, subscription } = useCurrentPlan(teamId);
-  const isPro = plan === "pro" || plan === "liga";
-  return { isPro, isLoading, subscription };
+  const { isLoading, subscription } = useCurrentPlan(teamId);
+  return { isPro: true, isLoading, subscription };
 }
 
 export function useCreateMpPreference() {

@@ -4,9 +4,12 @@ import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { useLeagues, useLeagueTeams, useLeagueMatches, computeStandings } from "@/hooks/useLeagues";
 import { LeagueStandingsTable } from "@/components/LeagueStandingsTable";
 import { LeagueRoundMatches } from "@/components/LeagueRoundMatches";
-import { Trophy } from "lucide-react";
+import { Trophy, Settings2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 function LeagueCard({ leagueId, leagueName }: { leagueId: string; leagueName: string }) {
   const { data: teams } = useLeagueTeams(leagueId);
@@ -40,7 +43,9 @@ function LeagueCard({ leagueId, leagueName }: { leagueId: string; leagueName: st
 }
 
 export default function LigasPage() {
-  const { team } = useTeamSlug();
+  const { team, basePath } = useTeamSlug();
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   const { data: leagues } = useLeagues(team.id);
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>("");
 
@@ -58,9 +63,21 @@ export default function LigasPage() {
   return (
     <Layout>
       <div className="container py-8 px-4 md:px-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Campeonatos</h1>
-          <p className="text-muted-foreground">Acompanhe os campeonatos do time</p>
+        <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Campeonatos</h1>
+            <p className="text-muted-foreground">Acompanhe os campeonatos do time</p>
+          </div>
+          
+          {isAdmin && (
+            <Button 
+              onClick={() => navigate(`${basePath}/admin/campeonatos`)}
+              className="gap-2"
+            >
+              <Settings2 className="h-4 w-4" />
+              Gerenciar Ligas
+            </Button>
+          )}
         </div>
 
         {leagues && leagues.length > 0 ? (

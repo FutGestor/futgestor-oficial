@@ -195,7 +195,7 @@ export function SocietyField({
               <span className="rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm leading-none">
                 {label}
               </span>
-              <span className="mt-0.5 rounded bg-white/90 px-1 text-[9px] font-medium text-black shadow-sm">
+              <span className="mt-0.5 rounded bg-card/90 px-1 text-[9px] font-medium text-card-foreground shadow-sm">
                 {jogador.apelido || jogador.nome.split(" ")[0]}
               </span>
             </div>

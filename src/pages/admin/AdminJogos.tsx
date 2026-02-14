@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Plus, Edit, Trash2, Calendar, MapPin, Clock, Users, Check, X, Shield, List, ChevronLeft, ChevronRight, ArrowUpDown, Trophy } from "lucide-react";
@@ -28,6 +29,8 @@ import { usePlanAccess } from "@/hooks/useSubscription";
 import { DatePickerPopover } from "@/components/ui/date-picker-popover";
 import { TimePickerSelect } from "@/components/ui/time-picker-select";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type JogoFormData = {
@@ -83,6 +86,7 @@ export default function AdminJogos() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const { team } = useTeamConfig();
+  const { basePath } = useTeamSlug();
   const { data: jogos, isLoading: loadingJogos } = useJogos(team.id);
   const { data: resultados, isLoading: loadingResultados } = useResultados(team.id);
   
@@ -90,6 +94,13 @@ export default function AdminJogos() {
   const { data: times } = useTimesAtivos(profile?.team_id);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("action") === "new") {
+      openCreateDialog();
+    }
+  }, [searchParams]);
 
   const isLoading = loadingJogos || loadingResultados;
 
@@ -279,9 +290,25 @@ export default function AdminJogos() {
           .eq("id", resultFormData.jogo_id);
       }
 
-      queryClient.invalidateQueries({ queryKey: ["resultados"] });
-      queryClient.invalidateQueries({ queryKey: ["jogos"] });
+      await queryClient.invalidateQueries({ queryKey: ["resultados"] });
+      await queryClient.invalidateQueries({ queryKey: ["jogos"] });
+      
       setIsResultDialogOpen(false);
+
+      // Abrir automaticamente modal de estatísticas após registrar resultado
+      const resId = editingResult?.id || ""; // Caso seja edição
+      // Se for novo, precisamos do ID do resultado recém criado.
+      // Vou buscar o resultado associado ao jogo.
+      const { data: newRes } = await supabase
+        .from("resultados")
+        .select("id")
+        .eq("jogo_id", resultFormData.jogo_id)
+        .maybeSingle();
+
+      if (newRes?.id) {
+        setSelectedResultadoId(newRes.id);
+        setStatsDialogOpen(true);
+      }
     } catch (error: unknown) {
       toast({
         variant: "destructive",
@@ -334,13 +361,14 @@ export default function AdminJogos() {
 
   return (
     <div className="space-y-6">
+      <ManagementHeader 
+        title="Gerenciar Agenda" 
+        subtitle="Agende partidas, registre resultados e controle presenças." 
+      />
+
       <div className="space-y-4">
         {/* Linha 1: Título + Botão Novo Jogo */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold">Jogos</h2>
-            <p className="text-muted-foreground">Gerencie a agenda e resultados</p>
-          </div>
+        <div className="flex items-start justify-end gap-4">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => openCreateDialog()} size="sm" className="shrink-0">
@@ -751,7 +779,7 @@ export default function AdminJogos() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting} className="h-11 sm:h-10">
-                {isSubmitting ? "Salvando..." : "Salvar"}
+                {isSubmitting ? "Salvando..." : editingResult ? "Salvar" : "Salvar e Preencher Estatísticas"}
               </Button>
             </div>
           </form>
@@ -767,6 +795,7 @@ export default function AdminJogos() {
           {selectedResultadoId && (
             <EstatisticasPartidaForm
               resultadoId={selectedResultadoId}
+              jogoId={jogos?.find(j => resultados?.find(r => r.id === selectedResultadoId)?.jogo_id === j.id)?.id}
               onSave={() => setStatsDialogOpen(false)}
             />
           )}

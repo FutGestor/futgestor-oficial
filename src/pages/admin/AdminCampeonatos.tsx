@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useLeagues, useCreateLeague, useDeleteLeague } from "@/hooks/useLeagues";
 
 export default function AdminCampeonatos() {
@@ -49,8 +50,12 @@ export default function AdminCampeonatos() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Campeonatos</h2>
+      <ManagementHeader 
+        title="Gerenciar Ligas" 
+        subtitle="Crie campeonatos, adicione times e acompanhe a tabela." 
+      />
+
+      <div className="flex items-center justify-end">
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2"><Plus className="h-4 w-4" /> Criar Campeonato</Button>

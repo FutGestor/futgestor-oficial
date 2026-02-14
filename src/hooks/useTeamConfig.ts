@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
+import { useEffect } from "react";
+import { applyTeamTheme } from "@/lib/colors";
 
 export interface TeamConfig {
   id: string | null;
@@ -27,6 +29,12 @@ export interface TeamConfig {
     textAlign: string;
     fontFamily: string;
     titleColor?: string;
+    titleStroke?: boolean;
+    titleStrokeColor?: string;
+    titleStrokeWidth?: number;
+    bioStroke?: boolean;
+    bioStrokeColor?: string;
+    bioStrokeWidth?: number;
   };
 }
 
@@ -59,6 +67,14 @@ export function useTeamConfig() {
     staleTime: 1000 * 60 * 30, // 30 minutes
     gcTime: 1000 * 60 * 60, // 1 hour
   });
+
+  // Apply team theme globaly
+  useEffect(() => {
+    const primaryColor = teamSlug?.team.cores?.primary || teamData?.cores?.primary;
+    if (primaryColor) {
+      applyTeamTheme(primaryColor);
+    }
+  }, [teamSlug?.team.cores?.primary, teamData?.cores?.primary]);
 
   if (teamSlug?.team) {
     return {

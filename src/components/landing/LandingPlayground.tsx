@@ -140,7 +140,7 @@ export function LandingPlayground() {
                     
                     // 1. Identificar vagas disponíveis na nova formação
                     // Fazemos uma cópia para ir removendo as vagas conforme são preenchidas
-                    let vagasDisponiveis = [...(positionSlotsByFormation[novaFormacao] || [])];
+                    const vagasDisponiveis = [...(positionSlotsByFormation[novaFormacao] || [])];
                     
                     // Resetar posições customizadas
                     setPosicoesCustomizadas({});

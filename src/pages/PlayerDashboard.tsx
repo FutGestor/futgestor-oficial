@@ -1,8 +1,11 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Calendar, MapPin, CheckCircle2, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
+import { 
+  LogOut, Calendar, MapPin, CheckCircle2, AlertCircle, 
+  Loader2, ArrowLeft, Trophy, Star, Plus, DollarSign, Bell 
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +15,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FutGestorLogo } from "@/components/FutGestorLogo";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { VotacaoDestaque } from "@/components/VotacaoDestaque";
+import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function usePlayerData() {
   const { profile } = useAuth();
@@ -87,6 +100,24 @@ function usePlayerData() {
     },
   });
 
+  // Fetch last finished game
+  const ultimoJogo = useQuery({
+    queryKey: ["player-ultimo-jogo", teamId],
+    enabled: !!teamId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("jogos")
+        .select("*, resultados(*)")
+        .eq("team_id", teamId!)
+        .eq("status", "finalizado")
+        .order("data_hora", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+  });
+
   // Fetch player's confirmation for next game
   const confirmacao = useQuery({
     queryKey: ["player-confirmacao", proximoJogo.data?.id, jogadorId],
@@ -103,15 +134,15 @@ function usePlayerData() {
     },
   });
 
-  return { jogador, team, financeiro, proximoJogo, confirmacao, jogadorId, teamId };
+  return { jogador, team, financeiro, proximoJogo, ultimoJogo, confirmacao, jogadorId, teamId };
 }
 
 export default function PlayerDashboard() {
-  const { user, profile, isLoading: authLoading } = useAuth();
+  const { user, profile, isAdmin, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { jogador, team, financeiro, proximoJogo, confirmacao, jogadorId, teamId } = usePlayerData();
+  const { jogador, team, financeiro, proximoJogo, ultimoJogo, confirmacao, jogadorId, teamId } = usePlayerData();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -213,7 +244,60 @@ export default function PlayerDashboard() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 space-y-4 p-4">
+      <main className="flex-1 space-y-6 p-4 pb-20">
+        {/* Card Último Jogo (Destaque) */}
+        {ultimoJogo.data && (
+          <Card className="overflow-hidden border-none bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-md">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-slate-400">🏁 Último Resultado</CardTitle>
+                <Trophy className="h-4 w-4 text-yellow-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center justify-center space-y-4 py-2">
+                <div className="flex w-full items-center justify-between px-4">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="h-14 w-14 rounded-full bg-white/10 p-2 flex items-center justify-center backdrop-blur-sm border border-white/5">
+                       {teamData?.escudo_url ? (
+                         <img src={teamData.escudo_url} alt="" className="h-full w-full object-contain" />
+                       ) : <FutGestorLogo className="h-full w-full opacity-50" />}
+                    </div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Seu Time</span>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <span className="text-4xl font-black text-white">{ultimoJogo.data.resultados?.[0]?.gols_favor ?? 0}</span>
+                    <span className="text-lg font-bold text-slate-500">X</span>
+                    <span className="text-4xl font-black text-white">{ultimoJogo.data.resultados?.[0]?.gols_contra ?? 0}</span>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="h-14 w-14 rounded-full bg-white/10 p-2 flex items-center justify-center backdrop-blur-sm border border-white/5">
+                      <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white uppercase italic">
+                        {ultimoJogo.data.adversario.substring(0, 2)}
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300 truncate max-w-[80px]">
+                      {ultimoJogo.data.adversario}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="w-full border-t border-white/5 pt-4">
+                  <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+                    <Calendar className="h-3 w-3" />
+                    {format(new Date(ultimoJogo.data.data_hora), "dd 'de' MMMM", { locale: ptBR })}
+                  </div>
+                  
+                  {ultimoJogo.data.resultados?.[0]?.id && (
+                    <VotacaoDestaque resultadoId={ultimoJogo.data.resultados[0].id} />
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         {/* Card Financeiro */}
         <Card>
           <CardContent className="p-4">
@@ -294,6 +378,64 @@ export default function PlayerDashboard() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Admin FAB */}
+      {isAdmin && (
+        <div className="fixed bottom-20 right-4 z-40 md:bottom-6 md:right-6">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                size="icon" 
+                className="h-12 w-12 rounded-full shadow-2xl bg-primary hover:bg-primary/90 transition-all hover:scale-110 active:scale-95 ring-2 ring-white/20"
+              >
+                <Plus className="h-6 w-6 text-primary-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 border-white/20 bg-slate-900/90 text-white backdrop-blur-xl mb-2">
+              <DropdownMenuLabel className="font-bold flex items-center gap-2">
+                <Plus className="h-4 w-4" /> Gestão Rápida
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem 
+                onClick={() => navigate(`${teamData?.slug ? `/time/${teamData.slug}` : ""}/admin/jogos?action=new`)}
+                className="flex items-center gap-3 p-3 focus:bg-white/10 focus:text-white cursor-pointer"
+              >
+                <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-bold">Novo Jogo</span>
+                  <span className="text-[10px] text-slate-400">Agendar partida</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => navigate(`${teamData?.slug ? `/time/${teamData.slug}` : ""}/admin/transacoes?action=new`)}
+                className="flex items-center gap-3 p-3 focus:bg-white/10 focus:text-white cursor-pointer"
+              >
+                <div className="h-8 w-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                  <DollarSign className="h-4 w-4 text-green-500" />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-bold">Lançar Caixa</span>
+                  <span className="text-[10px] text-slate-400">Finanças</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => navigate(`${teamData?.slug ? `/time/${teamData.slug}` : ""}/admin/avisos?action=new`)}
+                className="flex items-center gap-3 p-3 focus:bg-white/10 focus:text-white cursor-pointer"
+              >
+                <div className="h-8 w-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                  <Bell className="h-4 w-4 text-yellow-500" />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-bold">Novo Aviso</span>
+                  <span className="text-[10px] text-slate-400">Publicar mural</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
     </div>
   );
 }

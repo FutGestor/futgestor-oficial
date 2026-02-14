@@ -115,7 +115,7 @@ export default function SuperAdminUsuarios() {
 
             // Team Names
             const teamIds = [...new Set((profilesData || []).map(p => p.team_id).filter(Boolean))] as string[];
-            let teamNamesMap: Record<string, string> = {};
+            const teamNamesMap: Record<string, string> = {};
             if (teamIds.length > 0) {
                 const { data: teamsData } = await supabase
                     .from("teams")

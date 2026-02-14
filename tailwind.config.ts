@@ -107,6 +107,10 @@ export default {
         display: ['Outfit', 'sans-serif'],
         sans: ['DM Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
+      boxShadow: {
+        'soft': '0 4px 6px -1px rgba(45, 42, 38, 0.08), 0 2px 4px -2px rgba(45, 42, 38, 0.08)',
+        'blue-soft': '0 10px 15px -3px rgba(45, 42, 38, 0.1), 0 4px 6px -4px rgba(45, 42, 38, 0.1)',
+      }
     },
   },
   plugins: [require("tailwindcss-animate")],

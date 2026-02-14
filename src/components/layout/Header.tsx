@@ -70,11 +70,18 @@ export function Header() {
         label: "Suporte",
         badge: suporteNotificacoes?.count && suporteNotificacoes.count > 0 ? suporteNotificacoes.count : undefined
       },
+      { href: `${basePath}/guia`, label: "Guia" },
+    ]
+    : [];
+
+  const adminNavItems = isAdmin && teamSlug
+    ? [
+      { href: `${basePath}/gestao`, label: "Gestão" },
     ]
     : [];
 
   const navItems = user
-    ? [...visitorNavItems, ...memberNavItems, ...privateNavItems]
+    ? [...visitorNavItems, ...memberNavItems, ...privateNavItems, ...adminNavItems]
     : visitorNavItems;
 
   const handleSignOut = async () => {
@@ -89,8 +96,16 @@ export function Header() {
     return location.pathname.startsWith(href);
   };
 
+  const teamPrimaryColor = teamSlug?.team.cores?.primary || "#0F2440";
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-primary shadow-lg">
+    <header 
+      className="sticky top-0 z-50 w-full border-b border-border/40 shadow-lg"
+      style={{ 
+        backgroundColor: "hsl(var(--team-primary))",
+        color: "hsl(var(--team-primary-foreground))"
+      }}
+    >
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link to={basePath || "/"} className="flex items-center gap-3">
@@ -99,7 +114,7 @@ export function Header() {
           ) : (
             <img src={logoFutgestor} alt="FutGestor" className="h-12 w-12 object-contain" />
           )}
-          <span className="hidden truncate max-w-[120px] lg:max-w-[200px] xl:max-w-none text-lg font-bold text-primary-foreground md:inline-block">
+          <span className="hidden truncate max-w-[120px] lg:max-w-[200px] xl:max-w-none text-lg font-bold md:inline-block" style={{ color: "inherit" }}>
             {teamName}
           </span>
         </Link>
@@ -112,10 +127,11 @@ export function Header() {
               to={item.href}
               className={cn(
                 "relative rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive(item.href.split('?')[0]) // Check base path specific logic
+                isActive(item.href.split('?')[0])
                   ? "bg-secondary text-secondary-foreground"
-                  : "text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                  : "hover:bg-white/10"
               )}
+              style={{ color: !isActive(item.href.split('?')[0]) ? "inherit" : undefined }}
             >
               {item.label}
               {(item as any).badge && (
@@ -134,7 +150,8 @@ export function Header() {
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            className="hover:bg-white/10"
+            style={{ color: "inherit" }}
           >
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
@@ -185,7 +202,8 @@ export function Header() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="hidden text-primary-foreground hover:bg-primary-foreground/10 md:inline-flex"
+                    className="hidden hover:bg-white/10 md:inline-flex"
+                    style={{ color: "inherit" }}
                   >
                     <User className="mr-1 h-4 w-4" />
                     Meu Perfil
@@ -193,25 +211,20 @@ export function Header() {
                 </Link>
               )}
               {isPlayer && (
-                <Link to="/player/dashboard">
+                <Link to={`${basePath}/meu-perfil`}>
                   <Button variant="secondary" size="sm" className="hidden md:inline-flex">
                     <User className="mr-1 h-4 w-4" />
                     Minha Área
                   </Button>
                 </Link>
               )}
-              {isAdmin && teamSlug && (
-                <Link to={`${basePath}/admin`}>
-                  <Button variant="secondary" size="sm" className="hidden md:inline-flex">
-                    Admin
-                  </Button>
-                </Link>
-              )}
+
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleSignOut}
-                className="hidden text-primary-foreground hover:bg-primary-foreground/10 md:inline-flex"
+                className="hidden hover:bg-white/10 md:inline-flex"
+                style={{ color: "inherit" }}
               >
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -287,7 +300,7 @@ export function Header() {
               {user ? (
                 <div className="ml-auto flex flex-wrap gap-2">
                   {isPlayer && (
-                    <Link to="/player/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                    <Link to={`${basePath}/meu-perfil`} onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="secondary" size="sm">
                         <User className="mr-1 h-4 w-4" />
                         Minha Área
@@ -303,8 +316,8 @@ export function Header() {
                     </Link>
                   )}
                   {isAdmin && teamSlug && (
-                    <Link to={`${basePath}/admin`} onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="secondary" size="sm">Admin</Button>
+                    <Link to={`${basePath}/gestao`} onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="secondary" size="sm">Gestão</Button>
                     </Link>
                   )}
                   {isSuperAdmin && (

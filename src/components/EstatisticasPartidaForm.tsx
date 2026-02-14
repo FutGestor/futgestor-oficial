@@ -26,10 +26,11 @@ type JogadorStats = {
 
 interface EstatisticasPartidaFormProps {
   resultadoId: string;
+  jogoId?: string; // Adicionado para buscar confirmações
   onSave?: () => void;
 }
 
-export default function EstatisticasPartidaForm({ resultadoId, onSave }: EstatisticasPartidaFormProps) {
+export default function EstatisticasPartidaForm({ resultadoId, jogoId, onSave }: EstatisticasPartidaFormProps) {
   const [stats, setStats] = useState<Record<string, JogadorStats>>({});
   const [mvpJogadorId, setMvpJogadorId] = useState<string>("");
 
@@ -65,6 +66,29 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
       });
   }, [jogadores]);
 
+  // Buscar confirmações de presença para pré-seleção
+  const [confirmadosIds, setConfirmadosIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!jogoId) return;
+
+    const fetchConfirmacoes = async () => {
+      const { data, error } = await supabase
+        .from("confirmacoes_presenca")
+        .select("jogador_id, status")
+        .eq("jogo_id", jogoId); // Vou filtrar manualmente os status para evitar erro de tipo na query
+
+      if (!error && data) {
+        const confirmados = data
+          .filter(c => c.status === "confirmado" || (c.status as string) === "confirmado_admin")
+          .map(c => c.jogador_id);
+        setConfirmadosIds(new Set(confirmados));
+      }
+    };
+
+    fetchConfirmacoes();
+  }, [jogoId]);
+
   // Carregar MVP existente
   useEffect(() => {
     if (!resultadoId) return;
@@ -86,6 +110,9 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
 
     for (const jogador of jogadoresAtivos) {
       const existente = estatisticasExistentes?.find(e => e.jogador_id === jogador.id);
+      
+      // Se não há estatística salva, verifica se o jogador confirmou presença
+      const participouOriginal = confirmadosIds.has(jogador.id);
 
       initialStats[jogador.id] = existente
         ? {
@@ -98,7 +125,7 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
         }
         : {
           jogador_id: jogador.id,
-          participou: false,
+          participou: participouOriginal,
           gols: 0,
           assistencias: 0,
           cartao_amarelo: false,
@@ -107,7 +134,7 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
     }
 
     setStats(initialStats);
-  }, [jogadoresAtivos, estatisticasExistentes]);
+  }, [jogadoresAtivos, estatisticasExistentes, confirmadosIds]);
 
   const updateStats = (jogadorId: string, field: keyof JogadorStats, value: boolean | number) => {
     setStats(prev => ({
@@ -155,7 +182,7 @@ export default function EstatisticasPartidaForm({ resultadoId, onSave }: Estatis
       // Salvar MVP
       await supabase
         .from("resultados")
-        .update({ mvp_jogador_id: (mvpJogadorId && mvpJogadorId !== "none") ? mvpJogadorId : null } as any)
+        .update({ mvp_jogador_id: (mvpJogadorId && mvpJogadorId !== "none") ? mvpJogadorId : null })
         .eq("id", resultadoId);
 
       toast({ title: "Estatísticas salvas com sucesso!" });

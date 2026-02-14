@@ -6,8 +6,16 @@ import logoFutgestor from "@/assets/logo-futgestor.png";
 export function Footer() {
   const { team } = useTeamConfig();
 
+  const teamPrimaryColor = team.cores?.primary || "#0F2440";
+
   return (
-    <footer className="border-t border-border bg-primary py-8">
+    <footer 
+      className="border-t border-border py-8"
+      style={{ 
+        backgroundColor: "hsl(var(--team-primary))",
+        color: "hsl(var(--team-primary-foreground))"
+      }}
+    >
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex items-center gap-3">
@@ -21,8 +29,8 @@ export function Footer() {
               <img src={logoFutgestor} alt="FutGestor" className="h-10 w-10 object-contain" />
             )}
             <div>
-              <p className="font-bold text-primary-foreground">{team.nome}</p>
-              <p className="text-sm text-primary-foreground/70">
+              <p className="font-bold" style={{ color: "inherit" }}>{team.nome}</p>
+              <p className="text-sm opacity-70" style={{ color: "inherit" }}>
                 Time de Futebol
               </p>
             </div>
@@ -34,7 +42,8 @@ export function Footer() {
                 href={team.redes_sociais.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/10"
+                style={{ color: "inherit" }}
               >
                 <Instagram className="h-5 w-5" />
                 Instagram
@@ -45,7 +54,8 @@ export function Footer() {
                 href={team.redes_sociais.youtube}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/10"
+                style={{ color: "inherit" }}
               >
                 <Youtube className="h-5 w-5" />
                 YouTube
@@ -56,7 +66,8 @@ export function Footer() {
                 href={team.redes_sociais.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/10"
+                style={{ color: "inherit" }}
               >
                 <Facebook className="h-5 w-5" />
                 Facebook
@@ -67,7 +78,8 @@ export function Footer() {
                 href={team.redes_sociais.whatsapp.startsWith('http') ? team.redes_sociais.whatsapp : `https://${team.redes_sociais.whatsapp}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-foreground/80 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/10"
+                style={{ color: "inherit" }}
               >
                 <MessageCircle className="h-5 w-5" />
                 WhatsApp
@@ -77,11 +89,11 @@ export function Footer() {
         </div>
 
         <div className="mt-6 border-t border-border/40 pt-4 flex flex-col items-center gap-2 md:flex-row md:justify-between">
-          <p className="text-sm text-primary-foreground/60">
+          <p className="text-sm opacity-60" style={{ color: "inherit" }}>
             © {new Date().getFullYear()} {team.nome}. Todos os direitos
             reservados.
           </p>
-          <Link to="/site" className="text-sm text-primary-foreground/60 hover:text-primary-foreground transition-colors">
+          <Link to="/site" className="text-sm opacity-60 hover:opacity-100 transition-colors" style={{ color: "inherit" }}>
             Conheça o FutGestor
           </Link>
         </div>

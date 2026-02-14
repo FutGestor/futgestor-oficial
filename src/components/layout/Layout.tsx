@@ -5,6 +5,7 @@ import { MobileBottomNav } from "./MobileBottomNav";
 import { GlobalNoticeBanner } from "./GlobalNoticeBanner";
 import { SupportModeBanner } from "./SupportModeBanner";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,6 +13,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const teamSlug = useOptionalTeamSlug();
+  const { team } = useTeamConfig(); // This hook now applies the team theme globaly via useEffect
 
   return (
     <div className="flex min-h-screen flex-col">
