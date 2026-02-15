@@ -38,8 +38,7 @@ export function FutGestorLogo({
         <img 
           src={logoFutgestor} 
           alt="FutGestor" 
-          className={cn(className || currentSize, "object-contain transition-transform hover:scale-110")}
-          style={{ filter: 'brightness(1.5) sepia(1) hue-rotate(-15deg) saturate(5) drop-shadow(0 0 10px rgba(230,179,37,0.4))' }} 
+          className={cn(className || currentSize, "object-contain transition-transform hover:scale-110 drop-shadow-[0_0_10px_rgba(230,179,37,0.3)]")}
         />
       )}
       
@@ -52,8 +51,8 @@ export function FutGestorLogo({
           size === "xl" && "text-6xl md:text-8xl",
           textClassName
         )}>
-          <span className="text-white drop-shadow-[0_4px_12px_rgba(255,255,255,0.4)]">Fut</span>
-          <span className="text-primary drop-shadow-[0_4px_12px_rgba(230,179,37,0.4)]">Gestor</span>
+          <span className="text-white drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)]">Fut</span>
+          <span className="text-primary drop-shadow-[0_4px_12px_rgba(230,179,37,0.3)]">Gestor</span>
         </span>
       )}
     </div>

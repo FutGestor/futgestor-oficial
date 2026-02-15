@@ -8,28 +8,28 @@
   :root {
     /* FutGestor Premium Dark Theme (Always Active) */
     --background: 222 47% 4%; /* Preto Profundo #040810 */
-    --foreground: 210 40% 98%; /* Texto Gelo #F8FAFC */
+    --foreground: 0 0% 100%; /* Branco Puro #FFFFFF para máxima força */
 
     --card: 222 47% 6%; /* Card quase preto */
-    --card-foreground: 210 40% 98%;
+    --card-foreground: 0 0% 100%;
 
     --popover: 222 47% 5%;
-    --popover-foreground: 210 40% 98%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 43 90% 50%; /* Dourado Mais Vibrante #E6B325 adaptado */
+    --primary: 45 100% 50%; /* Dourado Puro #FFC107 adaptado */
     --primary-foreground: 222 47% 4%;
 
     --secondary: 222 47% 8%; /* Cinza Escuro Premium */
-    --secondary-foreground: 210 40% 98%;
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 222 47% 10%;
-    --muted-foreground: 215 20% 65%;
+    --muted-foreground: 210 15% 85%; /* Cinza muito mais claro, quase branco */
 
     --accent: 40 76% 52%;
     --accent-foreground: 222 47% 4%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 222 47% 12%;
     --input: 222 47% 12%;
@@ -45,18 +45,18 @@
     
     /* Sidebar */
     --sidebar-background: 222 47% 3%;
-    --sidebar-foreground: 210 40% 98%;
+    --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 40 76% 52%;
     --sidebar-primary-foreground: 222 47% 4%;
     --sidebar-accent: 222 47% 10%;
-    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 222 47% 8%;
     --sidebar-ring: 40 76% 52%;
   }
 
   .dark {
     --background: 222 47% 4%;
-    --foreground: 210 40% 98%;
+    --foreground: 0 0% 100%;
     --primary: 40 76% 52%;
     --card: 222 47% 6%;
     --border: 222 47% 15%;
@@ -68,13 +68,18 @@
     @apply border-border;
   }
 
+  html,
   body {
     @apply bg-transparent text-foreground antialiased selection:bg-primary/10;
     font-family: 'DM Sans', 'Inter', 'Outfit', system-ui, -apple-system, sans-serif;
   }
 
+  h1, h2, h3, h4, h1, h2, h3, h4, h5, h6 {
+    @apply text-foreground tracking-tight text-relief;
+  }
+
   h1, h2 {
-    @apply text-foreground font-black uppercase italic tracking-tight;
+    @apply font-black uppercase italic;
   }
 
   h1 {
@@ -112,6 +117,32 @@
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary) / 0.8);
+  }
+
+  .text-muted-foreground {
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+    @apply transition-colors duration-200;
+  }
+
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  }
+  
+  .text-shadow-md {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 1);
+  }
+
+  .text-relief {
+    text-shadow: 
+      -1px -1px 0 #000,  
+       1px -1px 0 #000,
+      -1px  1px 0 #000,
+       1px  1px 0 #000,
+       0px  2px 4px rgba(0,0,0,0.8);
   }
 }
 

@@ -33,7 +33,7 @@ function EscalacaoCard({ escalacao, isSelected, onClick }: {
     >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
-          <div style={{ backgroundColor: 'transparent' }}>
+          <div>
             <p className="font-medium">
               {escalacao.jogo ? `vs ${escalacao.jogo.adversario}` : "Jogo não encontrado"}
             </p>
@@ -94,12 +94,11 @@ function EscalacaoContent() {
     <Layout>
       <div 
         className="container py-8 px-4 md:px-6"
-        style={{ backgroundColor: 'transparent' }}
       >
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Escalação</h1>
-            <p className="text-muted-foreground">Veja a escalação do time para os jogos</p>
+            <p className="text-muted-foreground text-shadow-sm font-medium">Veja a escalação do time para os jogos</p>
           </div>
           
           {isAdmin && (

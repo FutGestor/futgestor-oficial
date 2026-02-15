@@ -23,9 +23,9 @@ export function StickerCard({ jogador, stats, className, variant = "gold", size 
   };
 
   const textColors = {
-    gold: "text-yellow-900",
-    silver: "text-gray-900",
-    bronze: "text-orange-950",
+    gold: "text-black",
+    silver: "text-black",
+    bronze: "text-black",
   };
 
   const sizes = {
@@ -100,9 +100,9 @@ export function StickerCard({ jogador, stats, className, variant = "gold", size 
 
       {/* Name */}
       <div className="text-center w-full mb-1">
-        <h3 className={cn("font-bold uppercase truncate leading-tight", currentSize.name, textColors[variant])}>
+        <div className={cn("font-bold uppercase truncate leading-tight", currentSize.name, textColors[variant])}>
           {jogador.apelido || jogador.nome}
-        </h3>
+        </div>
         <div className="h-[1px] w-full bg-black/10 my-0.5" />
       </div>
 

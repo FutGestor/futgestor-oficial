@@ -82,7 +82,7 @@ export default function LigasPage() {
         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Campeonatos</h1>
-            <p className="text-muted-foreground">Acompanhe os campeonatos do time</p>
+            <p className="text-muted-foreground text-shadow-sm font-medium">Veja a escalação do time para os jogos</p>
           </div>
           
           {isAdmin && (

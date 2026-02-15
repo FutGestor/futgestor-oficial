@@ -26,7 +26,7 @@ function SummaryCard({ label, value, color, icon: Icon, isLoading, suffix = "" }
 }) {
   return (
     <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-5 text-center relative overflow-hidden">
-      <div style={{ backgroundColor: 'transparent' }} className="flex items-center justify-center gap-2 mb-2">
+      <div className="flex items-center justify-center gap-2 mb-2">
         <Icon className="h-4 w-4 text-gray-500" />
         <p className="text-[10px] text-muted-foreground uppercase tracking-[2px] font-semibold">{label}</p>
       </div>
@@ -156,9 +156,9 @@ function FinanceiroContent() {
           {/* Header */}
           <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold text-[#D4A84B] uppercase tracking-[3px] mb-2">💰 Financeiro</p>
+              <p className="text-xs font-semibold text-[#D4A84B] uppercase tracking-[3px] mb-2 text-shadow-sm">💰 Financeiro</p>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground">Dashboard Financeiro</h1>
-              <p className="text-muted-foreground mt-1">Acompanhe as finanças do time</p>
+              <p className="text-muted-foreground mt-1 text-shadow-sm font-medium">Acompanhe as finanças do time</p>
             </div>
             
             {isAdmin && (

@@ -29,7 +29,7 @@ function PodiumItem({
 
   return (
     <div className={cn("flex flex-col items-center", orders[position])}>
-      <div style={{ backgroundColor: 'transparent' }} className="relative mb-2">
+      <div className="relative z-10 p-4 md:p-8">
         {foto ? (
           <img
             src={foto}
@@ -194,13 +194,10 @@ function RankingContent() {
 
   return (
     <Layout>
-      <div 
-        className="container py-8 px-4 md:px-6"
-        style={{ backgroundColor: 'transparent' }}
-      >
+      <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Ranking</h1>
-          <p className="text-muted-foreground">Artilharia e estatísticas do time</p>
+          <p className="text-muted-foreground text-shadow-sm font-medium">Artilharia e estatísticas do time</p>
         </div>
 
         {isLoading || isLoadingDestaques ? (

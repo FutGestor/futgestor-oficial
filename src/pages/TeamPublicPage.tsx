@@ -102,7 +102,7 @@ function FeaturedGameCard({ teamId }: { teamId: string }) {
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col items-center gap-2">
                 <img src={team.escudo_url || ESCUDO_PADRAO} alt={team.nome} className="h-16 w-16 object-contain md:h-20 md:w-20" />
-                <span className="text-sm font-bold md:text-base text-center max-w-[80px] leading-tight">{team.nome}</span>
+                <span className="text-sm font-bold md:text-base text-center max-w-[80px] leading-tight text-shadow-sm">{team.nome}</span>
               </div>
 
               <div className="flex flex-col items-center text-center">
@@ -112,9 +112,9 @@ function FeaturedGameCard({ teamId }: { teamId: string }) {
 
               <div className="flex flex-col items-center gap-2">
                 <img src={proximoJogo.time_adversario?.escudo_url || ESCUDO_PADRAO} alt={proximoJogo.time_adversario?.nome || proximoJogo.adversario} className="h-16 w-16 object-contain md:h-20 md:w-20" />
-                <span className="text-sm font-bold md:text-base text-center max-w-[80px] leading-tight">
-                  {proximoJogo.time_adversario?.nome || proximoJogo.adversario || "Adversário"}
-                </span>
+                  <span className="text-sm font-bold md:text-base text-center max-w-[80px] leading-tight text-shadow-sm">
+                    {proximoJogo.time_adversario?.nome || proximoJogo.adversario || "Adversário"}
+                  </span>
               </div>
             </div>
 
@@ -275,7 +275,7 @@ function MemberArea({ teamId, hasFinanceiro, hasAvisos }: { teamId: string, hasF
                                     </p>
                                 </div>
                             ) : (
-                                <p className="text-sm text-muted-foreground">Nenhum aviso irrelevante.</p>
+                                <p className="text-sm text-muted-foreground">Nenhum aviso no momento.</p>
                             )}
                         </CardContent>
                     </Card>
@@ -311,7 +311,7 @@ export default function TeamPublicPage() {
           </h1>
         </div>
         
-        <p className="max-w-2xl text-muted-foreground text-lg md:text-xl font-medium leading-relaxed mb-8 mt-4">
+        <p className="max-w-2xl text-muted-foreground text-lg md:text-xl font-medium leading-relaxed mb-8 mt-4 text-shadow-sm">
           {team.bio_config?.text || "Vai encarar? Agende um jogo hoje mesmo"}
         </p>
 

@@ -32,8 +32,8 @@ export function ManagementHeader({ title, subtitle, backPath }: ManagementHeader
       </Button>
       
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
-        {subtitle && <p className="text-muted-foreground">{subtitle}</p>}
+        <h1 className="text-3xl font-bold tracking-tight text-foreground text-shadow-md">{title}</h1>
+        {subtitle && <p className="text-muted-foreground text-shadow-sm font-medium">{subtitle}</p>}
       </div>
     </div>
   );

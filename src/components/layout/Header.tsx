@@ -182,7 +182,7 @@ export function Header() {
                     : "text-white/80 hover:bg-primary hover:text-black hover:shadow-lg hover:shadow-primary/20"
                 )}
               >
-                {item.label}
+                <span className="text-shadow-sm">{item.label}</span>
                 {(item as any).badge && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
                     {(item as any).badge}
@@ -227,7 +227,7 @@ export function Header() {
                     style={{ color: "inherit" }}
                   >
                     <User className="mr-1 h-4 w-4" />
-                    Meu Perfil
+                    <span className="text-shadow-sm">Meu Perfil</span>
                   </Button>
                 </Link>
               )}
@@ -235,7 +235,7 @@ export function Header() {
                 <Link to={`${basePath}/meu-perfil`}>
                   <Button variant="secondary" size="sm" className="hidden md:inline-flex">
                     <User className="mr-1 h-4 w-4" />
-                    Minha Área
+                    <span className="text-shadow-sm">Minha Área</span>
                   </Button>
                 </Link>
               )}

@@ -29,12 +29,12 @@ const Step = ({ n, children }: { n: number; children: React.ReactNode }) => (
     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
       {n}
     </span>
-    <span className="text-sm leading-relaxed">{children}</span>
+    <span className="text-sm leading-relaxed text-shadow-sm font-medium">{children}</span>
   </div>
 );
 
 const Tip = ({ children }: { children: React.ReactNode }) => (
-  <div className="mt-2 rounded-md border border-primary/20 bg-primary/5 p-3 text-sm">
+  <div className="mt-2 rounded-md border border-primary/20 bg-primary/5 p-3 text-sm text-shadow-sm font-medium">
     💡 <strong>Dica:</strong> {children}
   </div>
 );

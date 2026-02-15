@@ -17,18 +17,20 @@ export function Layout({ children }: LayoutProps) {
   const { team } = useTeamConfig(); // This hook now applies the team theme globaly via useEffect
 
   return (
-    <div className="flex min-h-screen flex-col selection:bg-primary/20">
+    <div className="relative flex min-h-screen flex-col selection:bg-primary/20">
       <DynamicBackground />
-      <SupportModeBanner />
-      <GlobalNoticeBanner />
-      <Header />
-      <main className={`flex-1 md:pb-0 ${teamSlug ? "pb-16" : ""}`}>
-        <div className="relative px-0 bg-transparent">
-          {children}
-        </div>
-      </main>
-      <Footer />
-      {teamSlug && <MobileBottomNav />}
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <SupportModeBanner />
+        <GlobalNoticeBanner />
+        <Header />
+        <main className={`flex-1 md:pb-0 ${teamSlug ? "pb-16" : ""}`}>
+          <div className="relative px-0">
+            {children}
+          </div>
+        </main>
+        <Footer />
+        {teamSlug && <MobileBottomNav />}
+      </div>
     </div>
   );
 }

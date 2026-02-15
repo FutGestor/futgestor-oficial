@@ -83,7 +83,7 @@ export default function MeuPerfil() {
   const escudoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (team) {
+    if (team && !teamNome) { // Only load if not already set or first time
       setTeamNome(team.nome || "");
       setCidade(team.cidade || "");
       setEstado(team.estado || "");
@@ -92,7 +92,7 @@ export default function MeuPerfil() {
       setFacebook(team.redes_sociais?.facebook || "");
       setWhatsapp(team.redes_sociais?.whatsapp || "");
     }
-  }, [team]);
+  }, [team, teamNome]);
 
   // Performance data
   const { data: performance } = usePlayerPerformance(profile?.jogador_id || undefined, profile?.team_id || undefined);
