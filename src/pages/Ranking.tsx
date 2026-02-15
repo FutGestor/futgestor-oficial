@@ -29,15 +29,15 @@ function PodiumItem({
 
   return (
     <div className={cn("flex flex-col items-center", orders[position])}>
-      <div className="relative mb-2">
+      <div style={{ backgroundColor: 'transparent' }} className="relative mb-2">
         {foto ? (
           <img
             src={foto}
             alt={nome}
-            className="h-16 w-16 rounded-full border-4 border-background object-cover shadow-lg"
+            className="h-16 w-16 rounded-full border-4 border-white/10 object-cover shadow-lg"
           />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-background bg-primary/10 text-xl font-bold shadow-lg">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-white/10 bg-primary/10 text-xl font-bold shadow-lg">
             {nome.charAt(0)}
           </div>
         )}
@@ -81,7 +81,7 @@ function RankingTable({
 }) {
   if (data.length === 0) {
     return (
-      <Card>
+      <Card className="bg-black/40 backdrop-blur-xl border-white/10">
         <CardContent className="py-8 text-center text-muted-foreground">
           <Icon className="mx-auto mb-2 h-8 w-8 opacity-50" />
           <p>Nenhum dado disponível ainda.</p>
@@ -97,7 +97,7 @@ function RankingTable({
     <div className="space-y-6">
       {/* Pódio */}
       {top3.length >= 3 && (
-        <Card>
+        <Card className="bg-black/40 backdrop-blur-xl border-white/10">
           <CardContent className="pt-6">
             <div className="flex items-end justify-center gap-4">
               {top3[1] && (
@@ -133,7 +133,7 @@ function RankingTable({
       )}
 
       {/* Lista completa */}
-      <Card>
+      <Card className="bg-black/40 backdrop-blur-xl border-white/10">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Icon className="h-5 w-5" />
@@ -194,7 +194,10 @@ function RankingContent() {
 
   return (
     <Layout>
-      <div className="container py-8 px-4 md:px-6">
+      <div 
+        className="container py-8 px-4 md:px-6"
+        style={{ backgroundColor: 'transparent' }}
+      >
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Ranking</h1>
           <p className="text-muted-foreground">Artilharia e estatísticas do time</p>
@@ -207,7 +210,7 @@ function RankingContent() {
           </div>
         ) : (
           <Tabs defaultValue="artilharia" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-4 bg-black/40 backdrop-blur-xl border border-white/10">
               <TabsTrigger value="artilharia" className="gap-1 text-xs sm:gap-2 sm:text-sm">
                 <Trophy className="h-4 w-4" />
                 <span className="hidden sm:inline">Artilharia</span>

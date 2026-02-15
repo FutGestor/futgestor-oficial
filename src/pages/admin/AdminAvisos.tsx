@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
@@ -20,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { categoryLabels, type Aviso, type NoticeCategory } from "@/lib/types";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { Layout } from "@/components/layout/Layout";
 
 type AvisoFormData = {
   titulo: string;
@@ -145,7 +147,8 @@ export default function AdminAvisos() {
   };
 
   return (
-    <div className="space-y-6">
+    <Layout>
+      <div className="space-y-6 container py-8 px-4 md:px-6">
       <ManagementHeader 
         title="Gerenciar Mural de Avisos" 
         subtitle="Publique comunicados e informações importantes para o time." 
@@ -235,21 +238,24 @@ export default function AdminAvisos() {
       ) : avisos && avisos.length > 0 ? (
         <div className="space-y-4">
           {avisos.map((aviso) => (
-            <Card key={aviso.id} className={!aviso.publicado ? "opacity-60" : ""}>
+            <Card key={aviso.id} className={cn(
+              "bg-black/40 backdrop-blur-xl border-white/10 transition-all hover:bg-black/50 hover:border-white/20",
+              !aviso.publicado ? "opacity-60" : ""
+            )}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="mb-2 flex items-center gap-2">
-                      <Badge variant={aviso.categoria === "urgente" ? "destructive" : "secondary"}>
+                      <Badge variant={aviso.categoria === "urgente" ? "destructive" : "secondary"} className="bg-black/20 border-white/10">
                         {getCategoryIcon(aviso.categoria)}
-                        <span className="ml-1">{categoryLabels[aviso.categoria]}</span>
+                        <span className="ml-1 uppercase tracking-widest text-[10px]">{categoryLabels[aviso.categoria]}</span>
                       </Badge>
                       {!aviso.publicado && <Badge variant="outline">Rascunho</Badge>}
                       <span className="text-sm text-muted-foreground">
                         {format(new Date(aviso.created_at), "dd/MM/yyyy HH:mm")}
                       </span>
                     </div>
-                    <h3 className="font-semibold">{aviso.titulo}</h3>
+                    <h3 className="font-black uppercase italic tracking-tight text-white">{aviso.titulo}</h3>
                     <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                       {aviso.conteudo}
                     </p>
@@ -268,13 +274,14 @@ export default function AdminAvisos() {
           ))}
         </div>
       ) : (
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            <Bell className="mx-auto mb-4 h-12 w-12 opacity-50" />
-            <p>Nenhum aviso publicado.</p>
+        <Card className="bg-black/40 backdrop-blur-xl border-white/10">
+          <CardContent className="py-16 text-center text-muted-foreground">
+            <Bell className="mx-auto mb-6 h-16 w-16 opacity-20" />
+            <p className="font-medium">Nenhum aviso publicado ainda.</p>
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </Layout>
   );
 }

@@ -15,8 +15,8 @@ import { useNavigate } from "react-router-dom";
 
 function JogadorCard({ jogador, stats }: { jogador: JogadorPublico; stats: any }) {
   return (
-    <Card className="overflow-hidden transition-shadow hover:shadow-lg">
-      <div className="aspect-square bg-muted">
+    <Card className="overflow-hidden transition-all bg-black/40 backdrop-blur-xl border-white/10">
+      <div style={{ backgroundColor: 'transparent' }} className="aspect-square bg-muted">
         {jogador.foto_url ? (
           <img
             src={jogador.foto_url}
@@ -71,7 +71,10 @@ export default function JogadoresPage() {
 
   return (
     <Layout>
-      <div className="container py-8 px-4 md:px-6">
+      <div 
+        className="container py-8 px-4 md:px-6"
+        style={{ backgroundColor: 'transparent' }}
+      >
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Jogadores</h1>
@@ -91,7 +94,7 @@ export default function JogadoresPage() {
 
         {isAdmin && jogadores && (
           <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="bg-primary/5 border-primary/10">
+            <Card className="bg-black/40 backdrop-blur-xl border-white/10">
               <CardContent className="p-4 flex items-center gap-4">
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <Users className="h-5 w-5 text-primary" />
@@ -102,7 +105,7 @@ export default function JogadoresPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-green-500/5 border-green-500/10">
+            <Card className="bg-black/40 backdrop-blur-xl border-white/10">
               <CardContent className="p-4 flex items-center gap-4">
                 <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
                   <UserCheck className="h-5 w-5 text-green-500" />
@@ -119,7 +122,7 @@ export default function JogadoresPage() {
         {isLoading ? (
           <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {[...Array(8)].map((_, i) => (
-              <Card key={i}>
+              <Card key={i} className="bg-black/40 backdrop-blur-xl border-white/10">
                 <Skeleton className="aspect-square w-full" />
                 <CardContent className="p-4">
                   <Skeleton className="mb-2 h-5 w-32" />
@@ -153,7 +156,7 @@ export default function JogadoresPage() {
             })}
           </div>
         ) : (
-          <Card>
+          <Card className="bg-black/40 backdrop-blur-xl border-white/10">
             <CardContent className="py-16 text-center text-muted-foreground">
               <User className="mx-auto mb-4 h-16 w-16 opacity-50" />
               <p className="text-lg">Nenhum jogador cadastrado ainda.</p>

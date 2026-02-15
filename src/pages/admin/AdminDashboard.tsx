@@ -8,7 +8,9 @@ import {
   Target,
   Sword,
   Shield,
-  BarChart3
+  BarChart3,
+  Copy,
+  Search
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +19,9 @@ import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { FutGestorLogo } from "@/components/FutGestorLogo";
+import { Layout } from "@/components/layout/Layout";
 import { 
   PieChart, 
   Pie, 
@@ -31,6 +36,7 @@ export default function AdminDashboard() {
   const { data: resultados, isLoading: loadingResultados } = useResultados(team.id);
   const { basePath } = useTeamSlug();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Calcular estatísticas da temporada
   const vitorias = resultados?.filter(r => (r.gols_favor ?? 0) > (r.gols_contra ?? 0)).length || 0;
@@ -46,14 +52,15 @@ export default function AdminDashboard() {
     : 0;
 
   const chartData = [
-    { name: "Vitórias", value: vitorias, color: "#10b981" },
+    { name: "Vitórias", value: vitorias, color: "hsl(var(--primary))" },
     { name: "Empates", value: empates, color: "#f59e0b" },
     { name: "Derrotas", value: derrotas, color: "#ef4444" },
   ].filter(d => d.value > 0);
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 md:p-8 animate-in fade-in duration-700">
-      {/* Header Executivo */}
+    <Layout>
+      <div className="bg-transparent text-foreground p-4 md:p-8 animate-in fade-in duration-700">
+        {/* Header Executivo */}
       <div className="max-w-7xl mx-auto mb-12 flex items-center justify-between">
         <Button 
           variant="ghost" 
@@ -65,11 +72,14 @@ export default function AdminDashboard() {
           <span className="text-xl font-bold tracking-tight">Voltar para o Início</span>
         </Button>
         <div className="text-right">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight uppercase text-foreground">
-            Painel Executivo
-          </h1>
-          <p className="text-muted-foreground font-bold uppercase tracking-[0.2em] text-[10px] md:text-sm">
-            {team.nome} • Temporada Atual
+          <FutGestorLogo 
+            teamEscudo={team.escudo_url} 
+            showText={true} 
+            size="lg" 
+            textClassName="text-3xl md:text-5xl"
+          />
+          <p className="text-muted-foreground font-black uppercase tracking-[0.2em] text-[10px] md:text-xs mt-2 opacity-60">
+            Painel Executivo • {team.nome}
           </p>
         </div>
       </div>
@@ -77,7 +87,7 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
         
         {/* Lado Esquerdo: Gráfico e Resumo */}
-        <Card className="lg:col-span-7 bg-card border-border soft-shadow overflow-hidden group">
+        <Card className="lg:col-span-7 bg-black/40 backdrop-blur-xl border-white/10 soft-shadow overflow-hidden group">
           <CardContent className="p-8 h-full flex flex-col justify-between">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
@@ -85,8 +95,8 @@ export default function AdminDashboard() {
                   <BarChart3 className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold tracking-tight text-foreground">Resumo da Temporada</h3>
-                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{totalJogos} Jogos Realizados</p>
+                  <h3 className="text-base font-black uppercase italic tracking-tight text-white">Resumo da Temporada</h3>
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">{totalJogos} Jogos Realizados</p>
                 </div>
               </div>
               <div className="text-right">
@@ -159,30 +169,59 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Lado Direito: Financeiro e Destaques */}
+        {/* Lado Direito: Link de Desafio e Financeiro */}
         <div className="lg:col-span-5 flex flex-col gap-6 lg:gap-8">
           
+          {/* Card de Link de Desafio Rápido */}
+          <Card className="bg-black/40 backdrop-blur-xl border-[#E6B325]/30 bg-[#E6B325]/5 soft-shadow overflow-hidden group">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4 text-[#E6B325]">
+                <div className="p-2 bg-[#E6B325]/20 rounded-lg">
+                  <Sword className="h-5 w-5" />
+                </div>
+                <h3 className="text-base font-black uppercase italic tracking-tight">Link de Desafio</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4 font-medium">Receba solicitações de jogos de times externos.</p>
+              <div className="flex gap-2">
+                <div className="flex-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono truncate text-white/70">
+                  {window.location.origin}/time/{team.slug}/desafio
+                </div>
+                <Button 
+                  size="sm"
+                  className="bg-[#E6B325] hover:bg-[#E6B325]/90 text-black h-8 shrink-0 font-black uppercase italic text-[10px]"
+                  onClick={() => {
+                    const url = `${window.location.origin}/time/${team.slug}/desafio`;
+                    navigator.clipboard.writeText(url);
+                    toast({ title: "Copiado!" });
+                  }}
+                >
+                  <Copy className="h-3 w-3" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Card de Saldo Neon */}
-          <Card className="flex-1 bg-card border-border soft-shadow relative overflow-hidden group">
+          <Card className="flex-1 bg-black/40 backdrop-blur-xl border-white/10 soft-shadow relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <Wallet className="h-32 w-32" />
             </div>
             <CardContent className="p-8 flex flex-col justify-between h-full min-h-[220px]">
-              <div className="flex items-center gap-3 mb-6 relative z-10">
+              <div className="flex items-center gap-3 mb-6 relative z-10 text-green-400">
                 <div className="p-2 bg-green-500/10 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-green-500" />
+                  <DollarSign className="h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold tracking-tight">Financeiro</h3>
+                <h3 className="text-base font-black uppercase italic tracking-tight">Financeiro</h3>
               </div>
               
               <div className="relative z-10">
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.3em] mb-1">Saldo em Caixa Disponível</p>
+                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] mb-1 opacity-50">Saldo em Caixa Disponível</p>
                 {loadingSummary ? (
-                  <Skeleton className="h-16 w-3/4 bg-muted" />
+                  <Skeleton className="h-16 w-3/4 bg-white/5" />
                 ) : (
                   <div className={cn(
-                    "text-6xl md:text-8xl font-black tracking-tighter transition-all",
-                    (summary?.saldoAtual ?? 0) >= 0 ? "text-green-500 drop-shadow-[0_0_15px_rgba(34,197,94,0.2)]" : "text-destructive"
+                    "text-5xl md:text-7xl font-black tracking-tighter transition-all italic",
+                    (summary?.saldoAtual ?? 0) >= 0 ? "text-green-400 drop-shadow-[0_0_15px_rgba(34,197,94,0.3)]" : "text-destructive"
                   )}>
                     R$ {(summary?.saldoAtual ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </div>
@@ -190,25 +229,43 @@ export default function AdminDashboard() {
               </div>
               
               <div className="mt-6 flex items-center gap-2 relative z-10 text-muted-foreground">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-xs font-medium uppercase tracking-wider">Status: Saudável</span>
+                <TrendingUp className="h-4 w-4 text-green-400" />
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Status: Saudável</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card de Descoberta de Novos Clubes */}
+          <Card 
+            className="bg-black/40 backdrop-blur-xl border-primary/20 hover:border-primary/50 transition-all cursor-pointer soft-shadow group overflow-hidden"
+            onClick={() => navigate(`${basePath}/descobrir`)}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
+                  <Search className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black uppercase italic tracking-tight text-white">Mercado de Desafios</h3>
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">Encontrar Adversários</p>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Card de Performance Adicional */}
-          <Card className="bg-card border-border soft-shadow group">
+          <Card className="bg-black/40 backdrop-blur-xl border-white/10 soft-shadow group">
             <CardContent className="p-6">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1 p-4 bg-muted/30 rounded-xl border border-border/50 hover:border-primary/30 transition-colors">
-                  <Target className="h-5 w-5 text-primary mb-2" />
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Gols / Jogo</p>
-                  <p className="text-3xl font-black text-foreground">{totalJogos > 0 ? (golsPro / totalJogos).toFixed(1) : "0.0"}</p>
+                <div className="space-y-1 p-4 bg-white/5 rounded-xl border border-white/5 hover:border-primary/30 transition-colors">
+                  <Target className="h-5 w-5 text-primary mb-2 shadow-primary" />
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">Gols / Jogo</p>
+                  <p className="text-3xl font-black text-white italic">{totalJogos > 0 ? (golsPro / totalJogos).toFixed(1) : "0.0"}</p>
                 </div>
-                <div className="space-y-1 p-4 bg-muted/30 rounded-xl border border-border/50 hover:border-amber-500/30 transition-colors">
-                  <Shield className="h-5 w-5 text-amber-500 mb-2" />
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Defesa / Jogo</p>
-                  <p className="text-3xl font-black text-foreground">{totalJogos > 0 ? (golsContra / totalJogos).toFixed(1) : "0.0"}</p>
+                <div className="space-y-1 p-4 bg-white/5 rounded-xl border border-white/5 hover:border-amber-500/30 transition-colors">
+                  <Shield className="h-5 w-5 text-amber-400 mb-2 shadow-amber-500" />
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">Defesa / Jogo</p>
+                  <p className="text-3xl font-black text-white italic">{totalJogos > 0 ? (golsContra / totalJogos).toFixed(1) : "0.0"}</p>
                 </div>
               </div>
             </CardContent>
@@ -218,21 +275,19 @@ export default function AdminDashboard() {
       </div>
 
       {/* Informativo no Rodapé */}
-      <div className="max-w-7xl mx-auto mt-12 text-center opacity-30">
-          <p className="text-[10px] font-bold uppercase tracking-[0.5em]">FutGestor Executivo v2.0 • Data Analytics</p>
       </div>
-    </div>
+    </Layout>
   );
 }
 
-function StatLine({ icon: Icon, label, value, color }: { icon: any, label: string, value: number, color: string }) {
+function StatLine({ icon: Icon, label, value, color }: { icon: React.ElementType, label: string, value: number, color: string }) {
   return (
-    <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+    <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
       <div className="flex items-center gap-3">
         <Icon className={cn("h-4 w-4", color)} />
-        <span className="text-sm font-bold uppercase tracking-wide text-muted-foreground">{label}</span>
+        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">{label}</span>
       </div>
-      <span className={cn("text-2xl font-black", color)}>{value}</span>
+      <span className={cn("text-2xl font-black italic", color)}>{value}</span>
     </div>
   );
 }

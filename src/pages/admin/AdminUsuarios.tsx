@@ -374,10 +374,10 @@ export default function AdminUsuarios() {
 
         <TabsContent value="pendentes" className="mt-4">
           {pendentes.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                <UserCheck className="mx-auto mb-2 h-8 w-8 opacity-50" />
-                <p>Nenhum usuário pendente de aprovação</p>
+            <Card className="bg-black/40 backdrop-blur-xl border-white/10">
+              <CardContent className="py-16 text-center text-muted-foreground">
+                <UserCheck className="mx-auto mb-6 h-16 w-16 opacity-20" />
+                <p className="font-medium">Nenhum usuário pendente de aprovação</p>
               </CardContent>
             </Card>
           ) : (
@@ -446,10 +446,10 @@ export default function AdminUsuarios() {
 
         <TabsContent value="aprovados" className="mt-4">
           {aprovados.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                <UserX className="mx-auto mb-2 h-8 w-8 opacity-50" />
-                <p>Nenhum usuário aprovado</p>
+            <Card className="bg-black/40 backdrop-blur-xl border-white/10">
+              <CardContent className="py-16 text-center text-muted-foreground">
+                <UserX className="mx-auto mb-6 h-16 w-16 opacity-20" />
+                <p className="font-medium">Nenhum usuário aprovado ainda.</p>
               </CardContent>
             </Card>
           ) : (
@@ -459,18 +459,18 @@ export default function AdminUsuarios() {
                   <CardContent className="flex items-center justify-between p-4">
                     <div>
                       <div className="flex items-center gap-2">
-                        <Badge variant="default" className="gap-1">
+                        <Badge variant="default" className="gap-1 bg-green-500/20 text-green-400 border-green-500/30">
                           <Check className="h-3 w-3" />
                           Aprovado
                         </Badge>
                         {profile.isAdmin && (
-                          <Badge variant="secondary" className="gap-1">
+                          <Badge variant="secondary" className="gap-1 bg-primary/20 text-primary border-primary/30 uppercase tracking-widest text-[10px]">
                             <Shield className="h-3 w-3" />
                             Admin
                           </Badge>
                         )}
                       </div>
-                      <p className="mt-1 font-medium">
+                      <p className="mt-2 font-black uppercase italic tracking-tight text-white">
                         {profile.nome || profile.jogador?.apelido || profile.jogador?.nome || "Sem nome"}
                       </p>
                       {profile.email && (

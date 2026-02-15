@@ -25,19 +25,19 @@ function SummaryCard({ label, value, color, icon: Icon, isLoading, suffix = "" }
   suffix?: string;
 }) {
   return (
-    <div className="bg-[#0F2440] border border-white/[0.06] rounded-xl p-5 text-center relative overflow-hidden">
-      <div className="flex items-center justify-center gap-2 mb-2">
+    <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-5 text-center relative overflow-hidden">
+      <div style={{ backgroundColor: 'transparent' }} className="flex items-center justify-center gap-2 mb-2">
         <Icon className="h-4 w-4 text-gray-500" />
-        <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold">{label}</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[2px] font-semibold">{label}</p>
       </div>
       {isLoading ? (
-        <Skeleton className="h-8 w-28 mx-auto bg-white/5" />
+        <Skeleton className="h-8 w-28 mx-auto bg-muted" />
       ) : (
         <p className={`text-2xl md:text-3xl font-bold ${color}`}>
           {typeof value === 'number' 
             ? `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
             : value}
-          {suffix && <span className="text-sm ml-1 text-gray-500 font-normal">{suffix}</span>}
+          {suffix && <span className="text-sm ml-1 text-muted-foreground font-normal">{suffix}</span>}
         </p>
       )}
     </div>
@@ -46,13 +46,13 @@ function SummaryCard({ label, value, color, icon: Icon, isLoading, suffix = "" }
 
 const darkTooltipStyle = {
   contentStyle: {
-    backgroundColor: "#0A1628",
-    border: "1px solid rgba(255,255,255,0.08)",
+    backgroundColor: "hsl(var(--card))",
+    border: "1px solid hsl(var(--border))",
     borderRadius: "8px",
-    color: "#e5e7eb",
+    color: "hsl(var(--foreground))",
     fontSize: "12px",
   },
-  itemStyle: { color: "#e5e7eb" },
+  itemStyle: { color: "hsl(var(--foreground))" },
 };
 
 function FinanceiroContent() {
@@ -151,14 +151,14 @@ function FinanceiroContent() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#0A1628]">
-        <div className="container py-8 px-4 md:px-6">
+      <div className="min-h-screen text-foreground" style={{ backgroundColor: 'transparent' }}>
+        <div className="container py-8 px-4 md:px-6" style={{ backgroundColor: 'transparent' }}>
           {/* Header */}
           <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <p className="text-xs font-semibold text-[#D4A84B] uppercase tracking-[3px] mb-2">💰 Financeiro</p>
-              <h1 className="text-3xl md:text-4xl font-bold text-white">Dashboard Financeiro</h1>
-              <p className="text-gray-500 mt-1">Acompanhe as finanças do time</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">Dashboard Financeiro</h1>
+              <p className="text-muted-foreground mt-1">Acompanhe as finanças do time</p>
             </div>
             
             {isAdmin && (
@@ -206,7 +206,7 @@ function FinanceiroContent() {
           </div>
 
           {/* Projection Chart */}
-            <div className="mb-8 bg-card border border-border rounded-xl p-6 relative overflow-hidden">
+            <div className="mb-8 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                     <TrendingUp size={100} className="text-indigo-500" />
                 </div>
@@ -252,7 +252,7 @@ function FinanceiroContent() {
           {/* Charts */}
           <div className="mb-8 grid gap-6 lg:grid-cols-5">
             {/* Bar Chart */}
-            <div className="lg:col-span-3 bg-card border border-border rounded-xl p-6">
+            <div className="lg:col-span-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-6">
               <p className="text-[10px] text-muted-foreground uppercase tracking-[2px] font-semibold mb-4">Entradas vs Saídas por Mês</p>
               {isLoading ? (
                 <Skeleton className="h-56 w-full bg-muted" />
@@ -279,10 +279,10 @@ function FinanceiroContent() {
             </div>
 
             {/* Pie Chart */}
-            <div className="lg:col-span-2 bg-[#0F2440] border border-white/[0.06] rounded-xl p-6">
-              <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold mb-4">Gastos por Categoria</p>
+            <div className="lg:col-span-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-6">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-[2px] font-semibold mb-4">Gastos por Categoria</p>
               {isLoading ? (
-                <Skeleton className="h-56 w-full bg-white/5" />
+                <Skeleton className="h-56 w-full bg-muted" />
               ) : pieChartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
@@ -303,10 +303,10 @@ function FinanceiroContent() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="py-12 text-center text-gray-500 text-sm">Nenhum gasto registrado.</p>
+                <p className="py-12 text-center text-muted-foreground text-sm">Nenhum gasto registrado.</p>
               )}
               {pieChartData.length > 0 && (
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 justify-center text-[10px] text-gray-500">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 justify-center text-[10px] text-muted-foreground">
                   {pieChartData.map((item, i) => (
                     <span key={item.name} className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-sm bg-[var(--pie-color)] opacity-70" style={{ "--pie-color": PIE_COLORS[i % PIE_COLORS.length] } as React.CSSProperties} />
@@ -319,32 +319,32 @@ function FinanceiroContent() {
           </div>
 
           {/* Balance Evolution */}
-          <div className="mb-8 bg-[#0F2440] border border-white/[0.06] rounded-xl p-6">
-            <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold mb-4">Evolução do Saldo</p>
+          <div className="mb-8 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-6">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-[2px] font-semibold mb-4">Evolução do Saldo</p>
             {isLoading ? (
-              <Skeleton className="h-56 w-full bg-white/5" />
+              <Skeleton className="h-56 w-full bg-muted" />
             ) : balanceData && balanceData.length > 0 ? (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={balanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="data" tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="data" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip formatter={formatCurrency} {...darkTooltipStyle} />
                   <Line type="monotone" dataKey="saldo" name="Saldo" stroke="#D4A84B" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <p className="py-12 text-center text-gray-500 text-sm">Nenhuma transação registrada.</p>
+              <p className="py-12 text-center text-muted-foreground text-sm">Nenhuma transação registrada.</p>
             )}
           </div>
 
           {/* Transactions grouped by month */}
           <div className="mb-24">
-            <p className="text-[10px] text-gray-500 uppercase tracking-[2px] font-semibold mb-4">Transações por Mês</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-[2px] font-semibold mb-4">Transações por Mês</p>
             {isLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full bg-white/5" />
+                  <Skeleton key={i} className="h-12 w-full bg-muted" />
                 ))}
               </div>
             ) : transacoes && transacoes.length > 0 ? (
@@ -366,7 +366,7 @@ function FinanceiroContent() {
                 })()}
               </div>
             ) : (
-              <p className="py-12 text-center text-gray-500 text-sm">Nenhuma transação registrada.</p>
+              <p className="py-12 text-center text-muted-foreground text-sm">Nenhuma transação registrada.</p>
             )}
           </div>
         </div>

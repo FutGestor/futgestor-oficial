@@ -17,9 +17,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {
-  aberto: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  em_andamento: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  resolvido: "bg-green-500/20 text-green-400 border-green-500/30",
+  aberto: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/30",
+  em_andamento: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30",
+  resolvido: "bg-green-500/10 text-green-600 border-green-500/20 dark:bg-green-500/20 dark:text-green-400 dark:border-green-500/30",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -63,18 +63,18 @@ function ChamadoDetalhe({ chamado, onVoltar }: { chamado: Chamado; onVoltar: () 
 
   return (
     <div>
-      <Button variant="ghost" onClick={onVoltar} className="mb-4 text-gray-400 hover:text-white">
+      <Button variant="ghost" onClick={onVoltar} className="mb-4 text-muted-foreground hover:text-foreground">
         <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
       </Button>
 
-      <div className="bg-[#0F2440] border border-white/[0.06] rounded-xl p-5 mb-4">
+      <div className="bg-transparent border border-border rounded-xl p-5 mb-4">
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          <h2 className="text-lg font-bold text-white">{chamado.assunto}</h2>
+          <h2 className="text-lg font-bold text-foreground">{chamado.assunto}</h2>
           <Badge variant="outline" className={STATUS_COLORS[chamado.status]}>
             {STATUS_LABELS[chamado.status]}
           </Badge>
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           Categoria: {chamado.categoria} • Aberto em{" "}
           {format(new Date(chamado.criado_em), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
         </p>
@@ -90,11 +90,11 @@ function ChamadoDetalhe({ chamado, onVoltar }: { chamado: Chamado; onVoltar: () 
               <div
                 className={`max-w-[80%] rounded-lg px-4 py-3 ${
                   msg.is_admin
-                    ? "bg-[#0F2440] border border-white/[0.06] text-gray-300"
-                    : "bg-primary/20 border border-primary/30 text-gray-200"
+                    ? "bg-muted border border-border text-foreground"
+                    : "bg-primary/10 border border-primary/20 text-foreground dark:bg-primary/20 dark:border-primary/30"
                 }`}
               >
-                <p className="text-[10px] font-semibold mb-1 text-gray-500">
+                <p className="text-[10px] font-semibold mb-1 text-muted-foreground">
                   {msg.is_admin ? "Suporte FutGestor" : "Você"} •{" "}
                   {format(new Date(msg.criado_em), "dd/MM HH:mm")}
                 </p>
@@ -126,12 +126,12 @@ function ChamadoDetalhe({ chamado, onVoltar }: { chamado: Chamado; onVoltar: () 
 
       {/* Input mensagem */}
       {chamado.status !== "resolvido" && (
-        <div className="bg-[#0F2440] border border-white/[0.06] rounded-xl p-4">
+        <div className="bg-transparent border border-border rounded-xl p-4">
           <Textarea
             value={novaMensagem}
             onChange={(e) => setNovaMensagem(e.target.value)}
             placeholder="Digite sua mensagem..."
-            className="mb-3 bg-[#0A1628] border-white/10 text-gray-200"
+            className="mb-3 bg-transparent border-border text-foreground"
             rows={3}
           />
           <div className="flex flex-wrap items-center gap-3">
@@ -140,7 +140,7 @@ function ChamadoDetalhe({ chamado, onVoltar }: { chamado: Chamado; onVoltar: () 
               accept="image/*"
               multiple
               onChange={(e) => setFiles(Array.from(e.target.files || []).slice(0, 3))}
-              className="max-w-[200px] text-xs bg-[#0A1628] border-white/10 text-gray-400"
+              className="max-w-[200px] text-xs bg-transparent border-border text-muted-foreground"
             />
             <Button
               onClick={handleEnviar}
@@ -152,7 +152,7 @@ function ChamadoDetalhe({ chamado, onVoltar }: { chamado: Chamado; onVoltar: () 
             </Button>
           </div>
           {files.length > 0 && (
-            <p className="text-[10px] text-gray-500 mt-1">{files.length} arquivo(s) selecionado(s)</p>
+            <p className="text-[10px] text-muted-foreground mt-1">{files.length} arquivo(s) selecionado(s)</p>
           )}
         </div>
       )}
@@ -181,19 +181,19 @@ function NovoChamadoForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-xs text-gray-500 block mb-1">Assunto *</label>
+        <label className="text-xs text-muted-foreground block mb-1">Assunto *</label>
         <Input
           value={assunto}
           onChange={(e) => setAssunto(e.target.value)}
           placeholder="Descreva o problema em poucas palavras"
-          className="bg-[#0A1628] border-white/10 text-gray-200"
+          className="bg-transparent border-border text-foreground"
           required
         />
       </div>
       <div>
-        <label className="text-xs text-gray-500 block mb-1">Categoria</label>
+        <label className="text-xs text-muted-foreground block mb-1">Categoria</label>
         <Select value={categoria} onValueChange={setCategoria}>
-          <SelectTrigger className="bg-[#0A1628] border-white/10 text-gray-200">
+          <SelectTrigger className="bg-transparent border-border text-foreground">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -204,12 +204,12 @@ function NovoChamadoForm({ onSuccess }: { onSuccess: () => void }) {
         </Select>
       </div>
       <div>
-        <label className="text-xs text-gray-500 block mb-1">Descrição *</label>
+        <label className="text-xs text-muted-foreground block mb-1">Descrição *</label>
         <Textarea
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
           placeholder="Descreva o problema em detalhes..."
-          className="bg-[#0A1628] border-white/10 text-gray-200"
+          className="bg-transparent border-border text-foreground"
           rows={5}
           required
         />
@@ -253,7 +253,7 @@ function SuporteContent() {
   if (view === "detalhe" && chamadoSelecionado) {
     return (
       <Layout>
-        <div className="min-h-screen bg-[#0A1628]">
+        <div className="min-h-screen bg-transparent text-foreground">
           <div className="container py-8 px-4 md:px-6">
             <ChamadoDetalhe
               chamado={chamadoSelecionado}
@@ -267,13 +267,13 @@ function SuporteContent() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#0A1628]">
+      <div className="min-h-screen bg-transparent text-foreground">
         <div className="container py-8 px-4 md:px-6">
           <div className="mb-8 flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-[#D4A84B] uppercase tracking-[3px] mb-2">🎧 Suporte</p>
-              <h1 className="text-3xl font-bold text-white">Central de Suporte</h1>
-              <p className="text-gray-500 mt-1">Envie dúvidas, bugs ou sugestões</p>
+              <h1 className="text-3xl font-bold text-foreground">Central de Suporte</h1>
+              <p className="text-muted-foreground mt-1">Envie dúvidas, bugs ou sugestões</p>
             </div>
             {view === "lista" && (
               <Button onClick={() => setView("novo")} size="sm">
@@ -283,13 +283,13 @@ function SuporteContent() {
           </div>
 
           {view === "novo" ? (
-            <Card className="bg-[#0F2440] border-white/[0.06]">
+            <Card className="bg-transparent border-border">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white flex items-center gap-2">
+                  <CardTitle className="text-foreground flex items-center gap-2">
                     <Plus className="h-5 w-5" /> Novo Chamado
                   </CardTitle>
-                  <Button variant="ghost" size="sm" onClick={() => setView("lista")} className="text-gray-400">
+                  <Button variant="ghost" size="sm" onClick={() => setView("lista")} className="text-muted-foreground">
                     Cancelar
                   </Button>
                 </div>
@@ -307,15 +307,15 @@ function SuporteContent() {
                   <button
                     key={c.id}
                     onClick={() => handleSelecionarChamado(c)}
-                    className="w-full bg-[#0F2440] border border-white/[0.06] rounded-xl p-4 text-left hover:bg-[#122d50] transition-colors"
+                    className="w-full bg-transparent border border-border rounded-xl p-4 text-left hover:bg-muted transition-colors"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-semibold text-white">{c.assunto}</span>
+                      <span className="text-sm font-semibold text-foreground">{c.assunto}</span>
                       <Badge variant="outline" className={STATUS_COLORS[c.status]}>
                         {STATUS_LABELS[c.status]}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                       <span>{c.categoria}</span>
                       <span>•</span>
                       <span>{format(new Date(c.criado_em), "dd/MM/yyyy")}</span>

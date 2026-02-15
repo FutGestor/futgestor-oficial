@@ -126,90 +126,170 @@ export function SocietyField({
   const isSociety = modalidade !== 'campo-11';
 
   return (
-    <div
-      ref={fieldRef}
-      className={cn(
-        "relative mx-auto w-full max-w-md rounded-lg bg-green-600 p-4 shadow-inner overflow-hidden select-none",
-        isSociety ? "aspect-[3/4]" : "aspect-[2/3]",
-        className
-      )}
-    >
-      {/* Campo base */}
-      <div className="absolute inset-2 rounded-lg border-2 border-white/50 pointer-events-none">
-        {/* Linha do meio */}
-        <div className="absolute left-0 right-0 top-1/2 border-t-2 border-white/50" />
-        {/* Círculo central */}
-        <div className={cn(
-          "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/50",
-          isSociety ? "h-12 w-12" : "h-16 w-16"
-        )} />
-        {/* Áreas */}
-        <div className="absolute left-1/4 right-1/4 top-0 h-12 border-2 border-t-0 border-white/50" />
-        <div className="absolute bottom-0 left-1/4 right-1/4 h-12 border-2 border-b-0 border-white/50" />
-      </div>
+    <div className={cn("relative w-full max-w-lg mx-auto py-12 px-4", className)} style={{ perspective: '2000px' }}>
+      <div
+        ref={fieldRef}
+        className={cn(
+          "relative mx-auto w-full rounded-2xl p-4 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)] select-none transition-all duration-700 ease-out",
+          "bg-black/20 backdrop-blur-md", // Fundo transparente com blur sutil
+          "border border-white/10",
+          isSociety ? "aspect-[3/4]" : "aspect-[2/3]"
+        )}
+        style={{ 
+          transform: `rotateX(25deg)`, // Aumentando a inclinação
+          transformStyle: 'preserve-3d'
+        }}
+      >
+        {/* Gramado com padrão de listras (Mowing Patterns) */}
+        <div className="absolute inset-0 pointer-events-none opacity-20">
+          <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,rgba(255,255,255,0.03)_40px,rgba(255,255,255,0.03)_80px)]" />
+          <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_40px,rgba(255,255,255,0.02)_40px,rgba(255,255,255,0.02)_80px)]" />
+        </div>
 
-      {/* Posições vazias da formação (apenas se o campo estiver vazio) */}
-      {!draggingPlayer && jogadores.length === 0 && Object.entries(basePositions).map(([posicao, coords]) => {
+        {/* Brilho Superior (Refletores de Estádio) */}
+        <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-blue-500/10 to-transparent blur-3xl pointer-events-none" />
+        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[140%] h-40 bg-white/5 blur-[100px] rounded-full pointer-events-none" />
 
-        const label = positionSlotLabels[posicao] || posicao.toUpperCase();
-        return (
-          <div
-            key={posicao}
-            className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-dashed border-white/50 bg-white/10 text-[10px] font-bold text-white/70 h-10 w-10 transition-all pointer-events-none"
-            style={{ top: coords.top, left: coords.left }}
-          >
-            {label}
-          </div>
-        );
-      })}
+        {/* Linhas do Campo Estilo EA FC (Ciano/Branco sutis) */}
+        <div className="absolute inset-4 rounded-xl border border-white/15 shadow-[0_0_20px_rgba(34,211,238,0.05)] pointer-events-none">
+          {/* Linha do meio */}
+          <div className="absolute left-0 right-0 top-1/2 border-t border-white/15" />
+          
+          {/* Círculo central */}
+          <div className={cn(
+            "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/15",
+            isSociety ? "h-20 w-20" : "h-28 w-28"
+          )} />
+          
+          {/* Ponto central brilhante */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-1.5 w-1.5 bg-cyan-400/40 rounded-full blur-[1px]" />
 
-      {/* Jogadores escalados */}
-      {jogadores.map(({ jogador, posicao_campo }) => {
-        const { top, left, label } = getPlayerCoords(posicao_campo);
-        const isDragging = draggingPlayer === jogador.id;
+          {/* Áreas com preenchimento sutil */}
+          <div className="absolute left-[15%] right-[15%] top-0 h-20 border border-t-0 border-white/15 bg-white/[0.01]" />
+          <div className="absolute bottom-0 left-[15%] right-[15%] h-20 border border-b-0 border-white/15 bg-white/[0.01]" />
+          
+          {/* Pequena área */}
+          <div className="absolute left-1/3 right-1/3 top-0 h-8 border border-t-0 border-white/10" />
+          <div className="absolute bottom-0 left-1/3 right-1/3 h-8 border border-b-0 border-white/10" />
+        </div>
 
-        return (
-          <div
-            key={jogador.id}
-            onMouseDown={(e) => handleMouseDown(e, jogador.id)}
-            onTouchStart={(e) => handleMouseDown(e, jogador.id)}
-            className={cn(
-              "absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center cursor-move transition-transform touch-none",
-              isDragging && "scale-125 z-50 drop-shadow-2xl",
-              !isDragging && "z-10"
-            )}
-            style={{ top, left }}
-          >
-            {jogador.foto_url ? (
-              <img
-                src={jogador.foto_url}
-                alt={jogador.nome}
-                className="h-10 w-10 rounded-full object-cover shadow-lg border-2 border-primary-foreground pointer-events-none"
-              />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-lg border-2 border-white pointer-events-none">
-                {jogador.numero || "?"}
+        {/* Radar Tático / Targets para posições vazias */}
+        {!draggingPlayer && jogadores.length === 0 && Object.entries(basePositions).map(([posicao, coords]) => {
+          const label = positionSlotLabels[posicao] || posicao.toUpperCase();
+          return (
+            <div
+              key={posicao}
+              className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/5 bg-white/[0.02] h-14 w-14 transition-all pointer-events-none"
+              style={{ top: coords.top, left: coords.left }}
+            >
+               <div className="absolute inset-0 rounded-full border border-dashed border-white/10 scale-90" />
+               <span className="text-[10px] font-black text-white/20 tracking-tighter">{label}</span>
+            </div>
+          );
+        })}
+
+        {/* Jogadores Escalados (Estilo Tactical Card) */}
+        {jogadores.map(({ jogador, posicao_campo }) => {
+          const { top, left, label } = getPlayerCoords(posicao_campo);
+          const isDragging = draggingPlayer === jogador.id;
+          
+          const getPosColor = (pos: string) => {
+            const p = pos.toLowerCase();
+            if (p === 'gol' || p === 'goleiro') return 'from-yellow-500/80 to-yellow-600/50 text-yellow-500';
+            if (['zagueiro', 'lateral', 'zag', 'lte', 'ltd'].some(s => p.includes(s))) return 'from-blue-500/80 to-blue-600/50 text-blue-400';
+            if (['volante', 'meia', 'vol', 'mei', 'me', 'md'].some(s => p.includes(s))) return 'from-emerald-500/80 to-emerald-600/50 text-emerald-400';
+            return 'from-rose-500/80 to-rose-600/50 text-rose-400'; // ATA
+          };
+
+          const posTheme = getPosColor(label || jogador.posicao);
+
+          return (
+            <div
+              key={jogador.id}
+              onMouseDown={(e) => handleMouseDown(e, jogador.id)}
+              onTouchStart={(e) => handleMouseDown(e, jogador.id)}
+              className={cn(
+                "absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center cursor-grab active:cursor-grabbing transition-all duration-300 touch-none",
+                isDragging && "z-50",
+                !isDragging && "z-10"
+              )}
+              style={{ 
+                top, 
+                left,
+                transform: `translate(-50%, -50%) rotateX(-25deg) ${isDragging ? 'translateZ(100px) scale(1.2)' : 'translateZ(30px)'}`,
+                transformStyle: 'preserve-3d'
+              }}
+            >
+              {/* Tactical Circle Avatar */}
+              <div className="relative group">
+                <div className={cn(
+                  "relative h-14 w-14 rounded-full p-0.5 bg-gradient-to-tr shadow-2xl transition-all border border-white/20",
+                  posTheme.split(' ').slice(0, 2).join(' ')
+                )}>
+                  {jogador.foto_url ? (
+                    <img
+                      src={jogador.foto_url}
+                      alt={jogador.nome}
+                      className="h-full w-full rounded-full object-cover pointer-events-none brightness-110 contrast-110"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-900 text-sm font-black text-white pointer-events-none">
+                      {jogador.numero || "?"}
+                    </div>
+                  )}
+                  
+                  {/* Rating Badge */}
+                  <div className="absolute -top-1 -left-1 h-6 w-6 rounded-full bg-slate-950 border border-white/30 flex items-center justify-center shadow-lg">
+                    <span className="text-[10px] font-black text-white italic">
+                      {jogador.numero || '99'}
+                    </span>
+                  </div>
+
+                  {/* SETOR Badge */}
+                  <div className={cn(
+                    "absolute -bottom-1 -right-1 px-1 rounded-sm bg-slate-950 border border-white/20 flex items-center justify-center shadow-md min-w-[20px]",
+                    posTheme.split(' ').slice(2).join(' ')
+                  )}>
+                    <span className="text-[8px] font-black uppercase italic tracking-tighter">
+                      {label}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Glow de seleção */}
+                {isDragging && (
+                  <div className="absolute inset-0 rounded-full bg-white/20 animate-ping pointer-events-none" />
+                )}
               </div>
-            )}
-            <div className="mt-1 flex flex-col items-center">
-              <span className="rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm leading-none">
-                {label}
-              </span>
-              <span className="mt-0.5 rounded bg-card/90 px-1 text-[9px] font-medium text-card-foreground shadow-sm">
-                {jogador.apelido || jogador.nome.split(" ")[0]}
-              </span>
+
+              {/* Nome */}
+              <div className="mt-3 relative">
+                {!isDragging && (
+                  <div className="absolute inset-0 translate-y-1 blur-sm bg-black/40 rounded-full" />
+                )}
+                <div className="relative rounded-full bg-gradient-to-b from-slate-900 to-black/90 backdrop-blur-md border border-white/15 px-3 py-0.5 shadow-2xl">
+                  <span className="text-[10px] font-black text-white uppercase tracking-wider whitespace-nowrap">
+                    {jogador.apelido || jogador.nome.split(" ")[0]}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {jogadores.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="flex flex-col items-center gap-4 animate-pulse">
+               <div className="h-20 w-20 border-2 border-dashed border-white/10 rounded-full flex items-center justify-center">
+                  <div className="h-10 w-10 border border-white/5 rounded-full" />
+               </div>
+               <p className="text-[10px] uppercase font-black text-white/30 tracking-[0.3em]">
+                 Aguardando Tática
+               </p>
             </div>
           </div>
-        );
-      })}
-
-      {jogadores.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <p className="rounded bg-black/50 px-4 py-2 text-white">
-            Escalação não definida
-          </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

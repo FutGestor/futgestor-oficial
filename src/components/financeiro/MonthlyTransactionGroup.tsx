@@ -34,23 +34,23 @@ export function MonthlyTransactionGroup({ monthKey, transacoes }: MonthlyTransac
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger asChild>
-        <button className="w-full bg-[#0F2440] border border-white/[0.06] rounded-xl p-4 mb-1 text-left hover:bg-[#122d50] transition-colors">
+        <button className="w-full bg-card border border-border rounded-xl p-4 mb-1 text-left hover:bg-muted transition-colors">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               {open ? (
                 <ChevronDown className="h-4 w-4 text-gray-500" />
               ) : (
-                <ChevronRight className="h-4 w-4 text-gray-500" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               )}
-              <h3 className="text-sm font-bold text-white capitalize">{monthLabel}</h3>
+              <h3 className="text-sm font-bold text-foreground capitalize">{monthLabel}</h3>
             </div>
-            <Badge variant="outline" className="text-[10px] border-white/10 text-gray-400">
+            <Badge variant="outline" className="text-[10px] border-border text-muted-foreground">
               {transacoes.length} lançamento{transacoes.length !== 1 ? "s" : ""}
             </Badge>
           </div>
           <div className="flex flex-wrap gap-3 text-[11px]">
-            <span className="text-green-400">+ {fmt(totalEntradas)}</span>
-            <span className="text-red-400">- {fmt(totalSaidas)}</span>
+            <span className="text-green-600 dark:text-green-400">+ {fmt(totalEntradas)}</span>
+            <span className="text-red-600 dark:text-red-400">- {fmt(totalSaidas)}</span>
             <span className={saldoMes >= 0 ? "text-[#D4A84B]" : "text-red-400"}>
               Saldo: {saldoMes >= 0 ? "+" : ""}{fmt(saldoMes)}
             </span>
@@ -62,22 +62,22 @@ export function MonthlyTransactionGroup({ monthKey, transacoes }: MonthlyTransac
           {transacoes.map((t) => (
             <div
               key={t.id}
-              className="flex items-center justify-between bg-[#0A1628] border border-white/[0.04] rounded-lg px-4 py-3"
+              className="flex items-center justify-between bg-muted/30 border border-border rounded-lg px-4 py-3"
             >
               <div className="flex flex-col gap-0.5">
-                <span className="text-sm text-gray-300">{t.descricao}</span>
+                <span className="text-sm text-foreground">{t.descricao}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-gray-600">
+                  <span className="text-[10px] text-muted-foreground">
                     {format(new Date(t.data), "dd/MM/yyyy")}
                   </span>
-                  <Badge variant="outline" className="text-[9px] border-white/10 text-gray-500">
+                  <Badge variant="outline" className="text-[9px] border-border text-muted-foreground">
                     {t.categoria}
                   </Badge>
                 </div>
               </div>
               <span
                 className={`text-sm font-bold ${
-                  t.tipo === "entrada" ? "text-green-400" : "text-red-400"
+                  t.tipo === "entrada" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                 }`}
               >
                 {t.tipo === "entrada" ? "+" : "-"} R${" "}

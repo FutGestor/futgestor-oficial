@@ -1104,6 +1104,7 @@ export type Database = {
           created_at: string
           escudo_url: string | null
           id: string
+          invite_code: string | null
           nome: string
           plano: string
           redes_sociais: Json | null
@@ -1116,6 +1117,7 @@ export type Database = {
           created_at?: string
           escudo_url?: string | null
           id?: string
+          invite_code?: string | null
           nome: string
           plano?: string
           redes_sociais?: Json | null
@@ -1128,6 +1130,7 @@ export type Database = {
           created_at?: string
           escudo_url?: string | null
           id?: string
+          invite_code?: string | null
           nome?: string
           plano?: string
           redes_sociais?: Json | null

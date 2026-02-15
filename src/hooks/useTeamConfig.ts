@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 import { useEffect } from "react";
 import { applyTeamTheme } from "@/lib/colors";
+import { ESCUDO_PADRAO } from "@/lib/constants";
 
 export interface TeamConfig {
   id: string | null;
@@ -11,6 +12,10 @@ export interface TeamConfig {
   slug: string | null;
   escudo_url: string | null;
   banner_url: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  invite_code?: string | null;
+  owner_contact?: string | null;
   redes_sociais: {
     instagram?: string;
     whatsapp?: string;
@@ -82,11 +87,15 @@ export function useTeamConfig() {
         id: teamSlug.team.id,
         nome: teamSlug.team.nome,
         slug: teamSlug.team.slug,
-        escudo_url: teamSlug.team.escudo_url,
+        escudo_url: teamSlug.team.escudo_url || ESCUDO_PADRAO,
         banner_url: teamSlug.team.banner_url,
+        cidade: (teamSlug.team as any).cidade,
+        estado: (teamSlug.team as any).estado,
         redes_sociais: teamSlug.team.redes_sociais || {},
         cores: (teamSlug.team.cores as any),
         bio_config: teamSlug.team.bio_config,
+        invite_code: teamSlug.team.invite_code,
+        owner_contact: (teamSlug.team as any).owner_contact,
       } as TeamConfig,
       isLoading: false,
     };
@@ -97,13 +106,17 @@ export function useTeamConfig() {
       id: teamData.id,
       nome: teamData.nome,
       slug: teamData.slug,
-      escudo_url: teamData.escudo_url,
+      escudo_url: teamData.escudo_url || ESCUDO_PADRAO,
       banner_url: (teamData as any).banner_url || null,
+      cidade: (teamData as any).cidade,
+      estado: (teamData as any).estado,
       redes_sociais: (teamData.redes_sociais as any) || {},
       cores: (teamData.cores as any),
       bio_config: (teamData as any).bio_config || null,
+      invite_code: teamData.invite_code,
+      owner_contact: (teamData as any).owner_contact || null,
     }
-    : DEFAULT_TEAM;
+    : { ...DEFAULT_TEAM, escudo_url: ESCUDO_PADRAO };
 
   return { team, isLoading };
 }

@@ -30,7 +30,7 @@ function GameCard({ jogo, timeCasa, resultado }: { jogo: Jogo; timeCasa?: Time |
   const isDerrota = isFinalizado && golsFavor < golsContra;
 
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card className="bg-black/40 backdrop-blur-xl border-white/10 transition-all hover:scale-[1.01]">
       <CardContent className="p-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
@@ -218,7 +218,7 @@ function AgendaContent() {
                         "aspect-square relative flex items-center justify-center rounded-lg text-sm transition-all hover:ring-2 hover:ring-primary/50 focus:outline-none focus:ring-2 focus:ring-primary",
                         isToday && !selectedDate && "bg-primary text-primary-foreground",
                         selectedDate && isSameDay(day, selectedDate) && "bg-primary text-primary-foreground ring-2 ring-offset-2 ring-primary",
-                        hasGames && !isToday && (!selectedDate || !isSameDay(day, selectedDate)) && "bg-card text-card-foreground border hover:bg-card/80",
+                        hasGames && !isToday && (!selectedDate || !isSameDay(day, selectedDate)) && "bg-transparent text-card-foreground border hover:bg-transparent/80",
                         !hasGames && !isToday && (!selectedDate || !isSameDay(day, selectedDate)) && "bg-secondary/30 hover:bg-secondary/50 text-muted-foreground"
                       )}
                     >

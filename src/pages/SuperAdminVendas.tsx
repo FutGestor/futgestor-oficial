@@ -143,7 +143,7 @@ export default function SuperAdminVendas() {
 
   if (loading || !authorized) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-transparent">
         <Skeleton className="h-8 w-48" />
       </div>
     );

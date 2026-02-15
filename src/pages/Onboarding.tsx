@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Layout } from "@/components/layout/Layout";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,10 +51,25 @@ export default function Onboarding() {
   const { team: existingTeam, isLoading: teamLoading } = useTeamConfig();
 
   useEffect(() => {
-    if (profile?.team_id && existingTeam.slug) {
+    // Se o usuário já tem time e slug, manda para o dashboard do time
+    if (profile?.team_id && existingTeam?.slug) {
       navigate(`/time/${existingTeam.slug}`);
+      return;
     }
-  }, [profile, existingTeam.slug, navigate]);
+
+    // Se é um atleta vindo de convite (detectado pelos metadados ou profile incompleto com team_id)
+    // Se ele tem team_id mas não é o dono (não tem slug do time carregado como admin),
+    // ou se o metadado indica que é um jogador.
+    const isPlayer = user?.user_metadata?.form_type === 'invite_link';
+    if (isPlayer && profile?.team_id) {
+      toast({
+        title: "Bem-vindo!",
+        description: "Seu cadastro de atleta foi concluído.",
+      });
+      navigate("/"); // O App.tsx cuidará de mandar para o PlayerDashboard ou Time Dashboard
+      return;
+    }
+  }, [profile, existingTeam?.slug, user, navigate, toast]);
 
   const form = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
@@ -150,8 +166,9 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <Layout>
+      <div className="flex min-h-[80vh] items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex items-center justify-center">
             <FutGestorLogo className="h-16 w-16" />
@@ -176,12 +193,12 @@ export default function Onboarding() {
                         <Shield className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="Ex: FC Unidos"
-                          className="pl-10"
                           {...field}
                           onChange={(e) => {
                             field.onChange(e.target.value);
                             regenerateSlug(e.target.value, undefined);
                           }}
+                          className="bg-black/40 border-white/10 text-white pl-10 focus:border-primary/50"
                         />
                       </div>
                     </FormControl>
@@ -292,6 +309,7 @@ export default function Onboarding() {
           </Form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </Layout>
   );
 }

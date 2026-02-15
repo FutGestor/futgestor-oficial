@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -11,6 +12,8 @@ import {
   X,
   Trash2,
   Loader2,
+  Sword,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,14 +67,15 @@ const statusLabels: Record<RequestStatus, string> = {
 };
 
 const statusColors: Record<RequestStatus, string> = {
-  pendente: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  aceita: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  recusada: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+  pendente: "bg-yellow-500/20 text-yellow-400",
+  aceita: "bg-green-500/20 text-green-400",
+  recusada: "bg-red-500/20 text-red-400",
 };
 
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { Layout } from "@/components/layout/Layout";
 
 export default function AdminSolicitacoes() {
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
@@ -85,7 +89,7 @@ export default function AdminSolicitacoes() {
   });
 
   const { team } = useTeamConfig();
-  const { basePath } = useTeamSlug();
+  const { basePath, slug } = useTeamSlug();
   const { data: solicitacoes, isLoading } = useSolicitacoes(
     statusFilter === "all" ? undefined : statusFilter,
     team.id
@@ -135,10 +139,11 @@ export default function AdminSolicitacoes() {
 
       queryClient.invalidateQueries({ queryKey: ["jogos"] });
       setAcceptDialogOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       toast({
         title: "Erro ao criar jogo",
-        description: error.message,
+        description: err.message,
         variant: "destructive",
       });
     } finally {
@@ -182,11 +187,48 @@ export default function AdminSolicitacoes() {
   }
 
   return (
-    <div className="space-y-6">
+    <Layout>
+      <div className="space-y-6 container py-8 px-4 md:px-6">
       <ManagementHeader 
         title="Solicitações de Jogos" 
         subtitle="Gerencie convites de outros times para partidas." 
       />
+
+      {/* Link de Desafio Público Rapid Access */}
+      <Card className="bg-black/40 backdrop-blur-xl border-white/10 mb-6">
+        <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-[#E6B325]/20 rounded-lg">
+              <Sword className="h-5 w-5 text-[#E6B325]" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase italic">Link de Desafio do Time</p>
+              <p className="text-xs text-muted-foreground">Compartilhe para receber novos convites.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex-1 sm:max-w-[250px] bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono truncate">
+              {window.location.origin}/time/{slug}/desafio
+            </div>
+            <Button 
+              variant="outline"
+              size="sm"
+              className="border-[#E6B325]/50 text-[#E6B325] hover:bg-[#E6B325]/10 h-8"
+              onClick={() => {
+                const url = `${window.location.origin}/time/${slug}/desafio`;
+                navigator.clipboard.writeText(url);
+                toast({
+                  title: "Link Copiado!",
+                  description: "Envie para seus adversários.",
+                });
+              }}
+            >
+              <Copy className="h-3 w-3 mr-1" />
+              Copiar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Select
@@ -206,7 +248,7 @@ export default function AdminSolicitacoes() {
       </div>
 
       {solicitacoes && solicitacoes.length === 0 ? (
-        <Card>
+        <Card className="bg-black/40 backdrop-blur-xl border-white/10">
           <CardContent className="py-8 text-center text-muted-foreground">
             Nenhuma solicitação encontrada.
           </CardContent>
@@ -214,11 +256,11 @@ export default function AdminSolicitacoes() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {solicitacoes?.map((sol) => (
-            <Card key={sol.id}>
+            <Card key={sol.id} className="bg-black/40 backdrop-blur-xl border-white/10 overflow-hidden transition-all hover:bg-black/50">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg">{sol.nome_time}</CardTitle>
-                  <Badge className={statusColors[sol.status]}>
+                  <CardTitle className="text-base font-black uppercase italic tracking-tight text-white">{sol.nome_time}</CardTitle>
+                  <Badge className={cn("uppercase tracking-widest text-[10px] font-black italic border-none", statusColors[sol.status])}>
                     {statusLabels[sol.status]}
                   </Badge>
                 </div>
@@ -255,7 +297,7 @@ export default function AdminSolicitacoes() {
                 </div>
 
                 {sol.observacoes && (
-                  <p className="rounded-md bg-muted p-2 text-sm">
+                  <p className="rounded-md bg-black/20 p-2 text-sm">
                     {sol.observacoes}
                   </p>
                 )}
@@ -393,6 +435,7 @@ export default function AdminSolicitacoes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </Layout>
   );
 }

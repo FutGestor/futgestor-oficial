@@ -323,7 +323,7 @@ export default function GameDetails() {
                                  key={ej.id}
                                  className="flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 border"
                                >
-                                 <div className="h-6 w-6 rounded-full bg-background flex items-center justify-center text-[10px] font-bold border">
+                                 <div className="h-6 w-6 rounded-full bg-transparent flex items-center justify-center text-[10px] font-bold border">
                                     {ej.jogador?.numero || "-"}
                                  </div>
                                  <span className="text-xs font-medium">

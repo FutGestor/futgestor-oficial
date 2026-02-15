@@ -1,6 +1,7 @@
 import { Instagram, MessageCircle, Youtube, Facebook } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
+import { FutGestorLogo } from "@/components/FutGestorLogo";
 import logoFutgestor from "@/assets/logo-futgestor.png";
 
 export function Footer() {
@@ -9,93 +10,68 @@ export function Footer() {
   const teamPrimaryColor = team.cores?.primary || "#0F2440";
 
   return (
-    <footer 
-      className="border-t border-border py-8"
-      style={{ 
-        backgroundColor: "hsl(var(--team-primary))",
-        color: "hsl(var(--team-primary-foreground))"
-      }}
-    >
+    <footer className="relative mt-auto border-t border-white/5 bg-black/60 backdrop-blur-3xl py-16">
       <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-          <div className="flex items-center gap-3">
-            {team.escudo_url ? (
-              <img
-                src={team.escudo_url}
-                alt={team.nome}
-                className="h-10 w-10 object-contain"
-              />
-            ) : (
-              <img src={logoFutgestor} alt="FutGestor" className="h-10 w-10 object-contain" />
-            )}
-            <div>
-              <p className="font-bold" style={{ color: "inherit" }}>{team.nome}</p>
-              <p className="text-sm opacity-70" style={{ color: "inherit" }}>
-                Time de Futebol
+        <div className="flex flex-col items-center justify-center text-center">
+          {/* Logo Section */}
+          <div className="mb-10 flex flex-col items-center gap-4">
+            <FutGestorLogo className="h-20 w-20 transition-transform hover:scale-105" showText textClassName="text-3xl md:text-4xl" />
+            <div className="max-w-md">
+              <p className="font-black uppercase italic tracking-widest text-primary text-lg">{team.nome}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground mt-2 opacity-50">
+                Elite Performance & SaaS Solutions
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {team.redes_sociais.instagram && (
-              <a
-                href={team.redes_sociais.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/10"
-                style={{ color: "inherit" }}
-              >
-                <Instagram className="h-5 w-5" />
-                Instagram
-              </a>
-            )}
-            {team.redes_sociais.youtube && (
-              <a
-                href={team.redes_sociais.youtube}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/10"
-                style={{ color: "inherit" }}
-              >
-                <Youtube className="h-5 w-5" />
-                YouTube
-              </a>
-            )}
-            {team.redes_sociais.facebook && (
-              <a
-                href={team.redes_sociais.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/10"
-                style={{ color: "inherit" }}
-              >
-                <Facebook className="h-5 w-5" />
-                Facebook
-              </a>
-            )}
-            {team.redes_sociais.whatsapp && (
-              <a
-                href={team.redes_sociais.whatsapp.startsWith('http') ? team.redes_sociais.whatsapp : `https://${team.redes_sociais.whatsapp}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/10"
-                style={{ color: "inherit" }}
-              >
-                <MessageCircle className="h-5 w-5" />
-                WhatsApp
-              </a>
-            )}
-          </div>
-        </div>
+          {/* Social Icons - Premium Distribution */}
+          <div className="mb-12 flex flex-wrap items-center justify-center gap-6">
+            {[
+              { id: 'instagram', icon: Instagram, link: team.redes_sociais.instagram },
+              { id: 'youtube', icon: Youtube, link: team.redes_sociais.youtube },
+              { id: 'facebook', icon: Facebook, link: team.redes_sociais.facebook },
+              { id: 'whatsapp', icon: MessageCircle, link: team.redes_sociais.whatsapp }
+            ].map((social) => {
+              if (!social.link) return null;
+              const Icon = social.icon;
+              const href = social.id === 'whatsapp' 
+                ? (social.link.startsWith('http') ? social.link : `https://${social.link}`)
+                : social.link;
 
-        <div className="mt-6 border-t border-border/40 pt-4 flex flex-col items-center gap-2 md:flex-row md:justify-between">
-          <p className="text-sm opacity-60" style={{ color: "inherit" }}>
-            © {new Date().getFullYear()} {team.nome}. Todos os direitos
-            reservados.
-          </p>
-          <Link to="/site" className="text-sm opacity-60 hover:opacity-100 transition-colors" style={{ color: "inherit" }}>
-            Conheça o FutGestor
-          </Link>
+              return (
+                <a
+                  key={social.id}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/10 transition-all hover:bg-primary hover:border-primary hover:-translate-y-1 active:scale-95 shadow-xl"
+                  title={social.id.charAt(0).toUpperCase() + social.id.slice(1)}
+                >
+                  <Icon className="h-6 w-6 text-white group-hover:text-black transition-colors" />
+                  <div className="absolute -inset-1 rounded-2xl bg-primary/20 blur opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
+              );
+            })}
+          </div>
+
+          {/* Bottom Bar - Elegant & Minimal */}
+          <div className="w-full max-w-4xl border-t border-white/5 pt-10 flex flex-col md:flex-row items-center justify-between gap-6 opacity-60">
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em]">
+              © {new Date().getFullYear()} {team.nome}. Corporativo Exclusivo.
+            </p>
+            
+            <Link 
+              to="/site" 
+              className="group flex items-center gap-3 text-[10px] font-black uppercase italic tracking-[0.3em] hover:text-primary transition-all"
+            >
+              POWERED BY 
+              <span className="flex items-center gap-1 grayscale group-hover:grayscale-0 transition-all opacity-50 group-hover:opacity-100">
+                <FutGestorLogo size="sm" />
+                <span className="text-white">FUT</span>
+                <span className="text-primary">GESTOR</span>
+              </span>
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

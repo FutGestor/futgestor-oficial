@@ -30,7 +30,7 @@ export function RequireApproval() {
     // Admins and Super Admins bypass the approval check
     if (!isApproved && !isAdmin && !isSuperAdmin) {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
+            <div className="flex min-h-screen flex-col items-center justify-center bg-transparent p-4 text-center">
                 <div className="mb-6 rounded-full bg-yellow-100 p-6 dark:bg-yellow-900/30">
                     <ShieldAlert className="h-12 w-12 text-yellow-600 dark:text-yellow-500" />
                 </div>

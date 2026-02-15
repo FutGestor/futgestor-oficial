@@ -11,6 +11,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
+// The instruction implies adding a StatLine component, but only provides its signature and props.
+// The lines following it in the instruction snippet are from LeagueCard, so they are omitted here.
+// A minimal StatLine component is added based on the provided signature.
+function StatLine({ icon: Icon, label, value, color }: { icon: React.ElementType, label: string, value: number, color: string }) {
+  return (
+    <div style={{ backgroundColor: 'transparent' }} className="flex items-center gap-2 text-sm">
+      <Icon className={`h-4 w-4 ${color}`} />
+      <span className="text-muted-foreground">{label}:</span>
+      <span className="font-medium text-foreground">{value}</span>
+    </div>
+  );
+}
+
 function LeagueCard({ leagueId, leagueName }: { leagueId: string; leagueName: string }) {
   const { data: teams } = useLeagueTeams(leagueId);
   const { data: matches } = useLeagueMatches(leagueId);
@@ -19,7 +32,7 @@ function LeagueCard({ leagueId, leagueName }: { leagueId: string; leagueName: st
   if (!teams || teams.length === 0) return null;
 
   return (
-    <Card className="bg-card border-none shadow-none sm:border sm:shadow">
+    <Card className="bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <Trophy className="h-5 w-5 text-primary" />
@@ -62,7 +75,10 @@ export default function LigasPage() {
 
   return (
     <Layout>
-      <div className="container py-8 px-4 md:px-6">
+      <div 
+        className="container py-8 px-4 md:px-6"
+        style={{ backgroundColor: 'transparent' }}
+      >
         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Campeonatos</h1>
@@ -89,7 +105,7 @@ export default function LigasPage() {
                 onValueChange={setSelectedLeagueId} 
                 className="w-full"
               >
-                <TabsList className="w-full justify-start overflow-x-auto h-auto p-1 bg-muted/50">
+                <TabsList className="w-full justify-start overflow-x-auto h-auto p-1 bg-black/20 backdrop-blur-md border border-white/5">
                   {leagues.map((l) => (
                     <TabsTrigger 
                       key={l.id} 
@@ -115,7 +131,7 @@ export default function LigasPage() {
             )}
           </div>
         ) : (
-          <Card>
+          <Card className="bg-black/40 backdrop-blur-xl border border-white/10">
             <CardContent className="py-12 text-center text-muted-foreground">
               Nenhum campeonato cadastrado no momento.
             </CardContent>

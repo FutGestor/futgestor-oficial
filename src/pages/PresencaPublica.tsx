@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { Layout } from "@/components/layout/Layout";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, MapPin, Check, X, Loader2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Check, X, Loader2, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -93,7 +95,7 @@ export default function PresencaPublica() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-transparent">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -101,7 +103,7 @@ export default function PresencaPublica() {
 
   if (error || !data) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="flex min-h-screen items-center justify-center bg-transparent p-4">
         <Card className="w-full max-w-md">
           <CardContent className="py-8 text-center">
             <p className="text-lg font-semibold text-destructive">Link inválido ou expirado</p>
@@ -116,27 +118,27 @@ export default function PresencaPublica() {
   const dataJogo = new Date(jogo.data_hora);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Toaster />
-      <div className="mx-auto max-w-lg space-y-6 p-4 pt-8">
+    <Layout>
+      <div className="mx-auto max-w-lg space-y-6 px-4 py-12">
         {/* Info do Jogo */}
-        <Card>
-          <CardContent className="space-y-3 p-6">
-            <h1 className="text-center text-xl font-bold">Confirmação de Presença</h1>
-            <h2 className="text-center text-lg font-semibold text-primary">
-              vs {jogo.adversario}
-            </h2>
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
+        <Card className="bg-black/40 backdrop-blur-xl border-white/10 shadow-2xl overflow-hidden relative group">
+          <div className="absolute top-0 left-0 w-full h-1 bg-primary/20 group-hover:bg-primary transition-colors" />
+          <CardContent className="space-y-4 p-8">
+            <Badge className="bg-primary/20 text-primary border-primary/30 mx-auto table mb-2 uppercase italic font-black text-[10px]">Confirmação de Elite</Badge>
+            <h1 className="text-center text-3xl font-black italic uppercase tracking-tighter text-white">
+              VS <span className="text-primary">{jogo.adversario}</span>
+            </h1>
+            <div className="flex flex-wrap justify-center gap-6 text-[10px] font-bold uppercase italic text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="h-3 w-3 text-primary" />
                 {format(dataJogo, "dd/MM/yyyy", { locale: ptBR })}
               </span>
-              <span className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-3 w-3 text-primary" />
                 {format(dataJogo, "HH:mm")}
               </span>
-              <span className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
+              <span className="flex items-center gap-1.5">
+                <MapPin className="h-3 w-3 text-primary" />
                 {jogo.local}
               </span>
             </div>
@@ -144,9 +146,11 @@ export default function PresencaPublica() {
         </Card>
 
         {/* Instrução */}
-        <p className="text-center text-sm text-muted-foreground">
-          Toque no seu nome para confirmar ou informar ausência.
-        </p>
+        <div className="bg-black/20 backdrop-blur-md p-4 rounded-xl border border-white/5 text-center">
+          <p className="text-xs font-bold uppercase italic text-slate-500 tracking-widest">
+            Selecione seu nome e confirme sua presença
+          </p>
+        </div>
 
         {/* Lista de Jogadores */}
         <div className="space-y-2">
@@ -155,50 +159,59 @@ export default function PresencaPublica() {
             const confirmed = confirmedMap[jogador.id];
 
             return (
-              <Card key={jogador.id} className={confirmed ? "border-green-500/30" : ""}>
-                <CardContent className="p-3">
+              <Card key={jogador.id} className={cn(
+                "bg-black/40 backdrop-blur-md border-white/5 hover:border-white/10 transition-all",
+                confirmed === "confirmado" && "border-green-500/30 bg-green-500/5",
+                confirmed === "ausente" && "border-red-500/30 bg-red-500/5"
+              )}>
+                <CardContent className="p-4">
                   <button
-                    className="flex w-full items-center gap-3 text-left"
+                    className="flex w-full items-center gap-4 text-left group"
                     onClick={() => setSelectedJogador(isSelected ? null : jogador.id)}
                     disabled={submitting}
                   >
-                    {jogador.foto_url ? (
-                      <img src={jogador.foto_url} alt="" className="h-10 w-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-bold">
-                        {(jogador.apelido || jogador.nome).charAt(0)}
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <p className="font-medium">{jogador.apelido || jogador.nome}</p>
-                      <p className="text-xs capitalize text-muted-foreground">{jogador.posicao}</p>
+                    <div className="relative">
+                      {jogador.foto_url ? (
+                        <img src={jogador.foto_url} alt="" className="h-12 w-12 rounded-full object-cover border-2 border-white/10 group-hover:border-primary transition-colors" />
+                      ) : (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-800 text-lg font-black italic text-primary border-2 border-white/10 group-hover:border-primary transition-colors">
+                          {(jogador.apelido || jogador.nome).charAt(0)}
+                        </div>
+                      )}
+                      {confirmed && (
+                        <div className={cn(
+                          "absolute -bottom-1 -right-1 rounded-full p-1 border-2 border-black",
+                          confirmed === "confirmado" ? "bg-green-500" : "bg-red-500"
+                        )}>
+                          {confirmed === "confirmado" ? <Check className="h-2 w-2 text-white" /> : <X className="h-2 w-2 text-white" />}
+                        </div>
+                      )}
                     </div>
-                    {confirmed && (
-                      <Badge variant={confirmed === "confirmado" ? "default" : "destructive"} className="gap-1">
-                        {confirmed === "confirmado" ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
-                        {confirmed === "confirmado" ? "Vou" : "Não vou"}
-                      </Badge>
-                    )}
+                    <div className="flex-1">
+                      <p className="font-bold text-white uppercase italic text-sm">{jogador.apelido || jogador.nome}</p>
+                      <p className="text-[10px] font-black uppercase text-slate-500 italic tracking-widest">{jogador.posicao}</p>
+                    </div>
+                    {!confirmed && <ChevronRight className="h-4 w-4 text-slate-600 group-hover:text-primary transition-colors" />}
                   </button>
 
                   {isSelected && (
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-4 flex gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
                       <Button
-                        className="flex-1"
+                        className="flex-1 bg-green-600 hover:bg-green-500 text-white font-black italic text-xs h-10"
                         onClick={() => handleConfirm(jogador.id, "confirmado")}
                         disabled={submitting}
                       >
-                        {submitting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Check className="mr-1 h-4 w-4" />}
-                        Vou jogar
+                        {submitting ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Check className="mr-2 h-3 w-3" />}
+                        CONFIRMAR
                       </Button>
                       <Button
                         variant="destructive"
-                        className="flex-1"
+                        className="flex-1 font-black italic text-xs h-10"
                         onClick={() => handleConfirm(jogador.id, "ausente")}
                         disabled={submitting}
                       >
-                        {submitting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <X className="mr-1 h-4 w-4" />}
-                        Não vou
+                        {submitting ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <X className="mr-2 h-3 w-3" />}
+                        AUSENTE
                       </Button>
                     </div>
                   )}
@@ -208,6 +221,6 @@ export default function PresencaPublica() {
           })}
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

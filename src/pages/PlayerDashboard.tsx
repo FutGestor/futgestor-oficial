@@ -179,7 +179,7 @@ export default function PlayerDashboard() {
 
   if (authLoading || jogador.isLoading || team.isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-transparent">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -187,7 +187,7 @@ export default function PlayerDashboard() {
 
   if (!profile?.jogador_id) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-transparent p-4 text-center">
         <FutGestorLogo className="mb-4 h-16 w-16" />
         <h1 className="text-xl font-bold">Acesso Negado</h1>
         <p className="mt-2 text-muted-foreground">Sua conta não está vinculada a nenhum jogador.</p>
@@ -205,9 +205,9 @@ export default function PlayerDashboard() {
   const currentStatus = confirmacao.data?.status;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-transparent">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b bg-card p-4">
+      <header className="sticky top-0 z-10 border-b bg-transparent p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button

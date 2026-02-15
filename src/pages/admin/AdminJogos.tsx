@@ -31,7 +31,9 @@ import { TimePickerSelect } from "@/components/ui/time-picker-select";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { ESCUDO_PADRAO } from "@/lib/constants";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Layout } from "@/components/layout/Layout";
 
 type JogoFormData = {
   data_hora: string;
@@ -360,8 +362,9 @@ export default function AdminJogos() {
   };
 
   return (
-    <div className="space-y-6">
-      <ManagementHeader 
+    <Layout>
+      <div className="space-y-6 container py-8 px-4 md:px-6">
+        <ManagementHeader 
         title="Gerenciar Agenda" 
         subtitle="Agende partidas, registre resultados e controle presenças." 
       />
@@ -373,8 +376,8 @@ export default function AdminJogos() {
             <DialogTrigger asChild>
               <Button onClick={() => openCreateDialog()} size="sm" className="shrink-0">
                 <Plus className="mr-1 h-4 w-4" />
-                <span className="hidden sm:inline">Novo Jogo</span>
-                <span className="sm:hidden">Novo</span>
+                <span className="hidden sm:inline">ADICIONAR PARTIDA</span>
+                <span className="sm:hidden">ADICIONAR</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -398,11 +401,7 @@ export default function AdminJogos() {
                       {times?.filter(t => !t.is_casa).map((time) => (
                         <SelectItem key={time.id} value={time.id}>
                           <div className="flex items-center gap-2">
-                            {time.escudo_url ? (
-                              <img src={time.escudo_url} alt="" className="h-5 w-5 rounded-full object-contain" />
-                            ) : (
-                              <Shield className="h-4 w-4 text-muted-foreground" />
-                            )}
+                            <img src={time.escudo_url || ESCUDO_PADRAO} alt="" className="h-5 w-5 rounded-full object-contain" />
                             {time.nome}
                           </div>
                         </SelectItem>
@@ -541,6 +540,7 @@ export default function AdminJogos() {
                   resultado={resultado}
                   onEdit={openEditDialog}
                   onDelete={handleDelete}
+                  className="bg-black/40 backdrop-blur-xl border-white/10"
                   onViewConfirmacoes={(id) => {
                     setSelectedJogoId(id);
                     setConfirmDialogOpen(true);
@@ -557,7 +557,7 @@ export default function AdminJogos() {
             })}
           </div>
         ) : (
-          <Card>
+          <Card className="bg-black/40 backdrop-blur-xl border-white/10">
             <CardContent className="py-8 text-center text-muted-foreground">
               Nenhum jogo cadastrado.
             </CardContent>
@@ -567,7 +567,7 @@ export default function AdminJogos() {
         // Modo Calendário
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Calendário */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 bg-black/40 backdrop-blur-xl border-white/10">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -625,26 +625,24 @@ export default function AdminJogos() {
                         "aspect-square relative flex items-center justify-center rounded-lg text-sm transition-colors cursor-pointer",
                         isToday && !isSelected && "bg-primary text-primary-foreground",
                         isSelected && "ring-2 ring-primary ring-offset-2",
-                        hasGames && !isToday && !isSelected && "bg-card text-card-foreground border",
-                        !hasGames && !isToday && "bg-secondary/30 hover:bg-secondary/50"
+                        hasGames && !isToday && !isSelected && "bg-white/10 backdrop-blur-md text-card-foreground border-white/10",
+                        !hasGames && !isToday && "bg-secondary/10 hover:bg-secondary/20"
                       )}
                     >
-                      {/* Número do dia - escondido se tiver escudo */}
-                      {(!hasGames || !time?.escudo_url) && (
-                        <span className={cn(
-                          "absolute left-1 top-0.5 text-[10px] font-medium z-10",
-                          hasGames && "font-bold"
-                        )}>
-                          {format(day, "d")}
-                        </span>
-                      )}
+                      {/* Número do dia */}
+                      <span className={cn(
+                        "absolute left-1 top-0.5 text-[10px] font-medium z-20",
+                        hasGames && "font-extrabold bg-transparent/50 rounded-sm px-0.5"
+                      )}>
+                        {format(day, "d")}
+                      </span>
 
                       {/* Escudo ocupando todo o quadrado */}
-                      {hasGames && time?.escudo_url && (
-                        <div className="absolute inset-0 flex items-center justify-center p-0.5">
+                      {hasGames && (
+                        <div className="absolute inset-0 flex items-center justify-center p-0.5 opacity-60">
                           <img
-                            src={time.escudo_url}
-                            alt={time.nome || firstGame.adversario}
+                            src={time?.escudo_url || ESCUDO_PADRAO}
+                            alt={time?.nome || firstGame.adversario}
                             className="h-full w-full rounded-full object-contain"
                           />
                         </div>
@@ -694,6 +692,7 @@ export default function AdminJogos() {
                         resultado={resultado}
                         onEdit={openEditDialog}
                         onDelete={handleDelete}
+                        className="bg-black/40 backdrop-blur-xl border-white/10"
                         onViewConfirmacoes={(id) => {
                           setSelectedJogoId(id);
                           setConfirmDialogOpen(true);
@@ -705,14 +704,14 @@ export default function AdminJogos() {
                   })}
                 </div>
               ) : (
-                <Card>
+                <Card className="bg-black/40 backdrop-blur-xl border-white/10">
                   <CardContent className="py-6 text-center text-muted-foreground">
                     Nenhum jogo nesta data.
                   </CardContent>
                 </Card>
               )
             ) : (
-              <Card>
+              <Card className="bg-black/40 backdrop-blur-xl border-white/10">
                 <CardContent className="py-6 text-center text-muted-foreground">
                   Clique em um dia do calendário para ver os jogos.
                 </CardContent>
@@ -801,7 +800,8 @@ export default function AdminJogos() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </Layout>
   );
 }
 
@@ -816,7 +816,8 @@ function JogoCard({
   onRegisterResult,
   onEditResult,
   onViewStats,
-  compact = false
+  compact = false,
+  className
 }: {
   jogo: Jogo;
   resultado?: Resultado;
@@ -828,18 +829,19 @@ function JogoCard({
   onEditResult?: (jogo: Jogo, result: Resultado) => void;
   onViewStats?: (resultId: string) => void;
   compact?: boolean;
+  className?: string;
 }) {
   const { data: contagem } = useConfirmacoesContagem(jogo.id);
   const { hasPresenca } = usePlanAccess();
 
   const getResultColor = (golsFavor: number, golsContra: number) => {
-    if (golsFavor > golsContra) return "bg-green-100 text-green-800 border-green-200";
-    if (golsFavor < golsContra) return "bg-red-100 text-red-800 border-red-200";
-    return "bg-gray-100 text-gray-800 border-gray-200";
+    if (golsFavor > golsContra) return "bg-green-500/20 text-green-400 border-green-500/30";
+    if (golsFavor < golsContra) return "bg-red-500/20 text-red-400 border-red-500/30";
+    return "bg-white/10 text-white border-white/20";
   };
 
   return (
-    <Card className={cn(resultado ? "border-l-4 border-l-primary" : "")}>
+    <Card className={cn("bg-black/40 backdrop-blur-xl border-white/10 overflow-hidden", resultado ? "border-l-4 border-l-primary" : "", className)}>
       <CardContent className={cn("flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between", compact ? "p-3" : "p-4")}>
         <div className="flex-1 min-w-0">
           <div className="mb-2 flex items-center gap-2">
@@ -849,7 +851,10 @@ function JogoCard({
               <PopoverTrigger asChild>
                  <Badge 
                   variant={jogo.status === "confirmado" ? "default" : "secondary"}
-                  className="cursor-pointer hover:opacity-80"
+                  className={cn(
+                    "cursor-pointer hover:opacity-80 uppercase tracking-widest text-[10px] font-black italic",
+                    jogo.status === "confirmado" ? "bg-primary text-black" : "bg-white/5 border-white/10 text-white"
+                  )}
                  >
                   {statusLabels[jogo.status]}
                 </Badge>
@@ -885,7 +890,7 @@ function JogoCard({
           </div>
           
           <div className="flex items-center gap-3">
-            <h3 className={cn("font-semibold", compact && "text-sm")}>vs {jogo.adversario}</h3>
+            <h3 className={cn("font-black uppercase italic tracking-tight text-white", compact ? "text-sm" : "text-base")}>vs {jogo.adversario}</h3>
             
             {/* Placar em destaque */}
             {resultado && (

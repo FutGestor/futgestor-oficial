@@ -26,14 +26,14 @@ function EscalacaoCard({ escalacao, isSelected, onClick }: {
   return (
     <Card
       className={cn(
-        "cursor-pointer transition-all hover:shadow-md",
+        "cursor-pointer transition-all bg-black/40 backdrop-blur-xl border-white/10",
         isSelected && "ring-2 ring-primary"
       )}
       onClick={onClick}
     >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
-          <div>
+          <div style={{ backgroundColor: 'transparent' }}>
             <p className="font-medium">
               {escalacao.jogo ? `vs ${escalacao.jogo.adversario}` : "Jogo não encontrado"}
             </p>
@@ -92,7 +92,10 @@ function EscalacaoContent() {
 
   return (
     <Layout>
-      <div className="container py-8 px-4 md:px-6">
+      <div 
+        className="container py-8 px-4 md:px-6"
+        style={{ backgroundColor: 'transparent' }}
+      >
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Escalação</h1>
@@ -113,7 +116,7 @@ function EscalacaoContent() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Soccer Field */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="bg-black/40 backdrop-blur-xl border-white/10">
               <CardHeader className="pb-2">
                 {currentEscalacao ? (
                   <div className="flex flex-col gap-6">
@@ -150,7 +153,7 @@ function EscalacaoContent() {
                             className="h-16 w-16 object-contain md:h-20 md:w-20" 
                           />
                         ) : (
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted md:h-20 md:w-20">
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black/20 border border-white/10 md:h-20 md:w-20">
                             <Shield className="h-8 w-8 text-muted-foreground/50" />
                           </div>
                         )}
@@ -161,7 +164,7 @@ function EscalacaoContent() {
                     </div>
 
                     {/* Info Bar */}
-                    <div className="flex flex-col items-center justify-center gap-2 border-t border-border/50 pt-4 text-sm text-muted-foreground sm:flex-row sm:gap-6">
+                    <div className="flex flex-col items-center justify-center gap-2 border-t border-white/10 pt-4 text-sm text-muted-foreground sm:flex-row sm:gap-6">
                       <span className="flex items-center gap-1.5 font-medium">
                         <Calendar className="h-4 w-4" />
                         {currentEscalacao.jogo && format(new Date(currentEscalacao.jogo.data_hora), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
@@ -186,6 +189,7 @@ function EscalacaoContent() {
                 {loadingJogadores ? (
                   <Skeleton className="mx-auto aspect-[3/4] w-full max-w-md" />
                 ) : (
+                <div className="w-full overflow-visible py-4">
                   <SocietyField
                     modalidade={((currentEscalacao as any)?.modalidade as GameModality) || 'society-6'}
                     formacao={currentEscalacao?.formacao || '2-2-2'}
@@ -196,13 +200,14 @@ function EscalacaoContent() {
                       })) || []
                     }
                   />
+                </div>
                 )}
               </CardContent>
             </Card>
 
             {/* Banco de Reservas */}
             {jogadores && jogadores.filter(j => j.posicao_campo === 'banco').length > 0 && (
-              <Card className="mt-4">
+              <Card className="mt-4 bg-black/40 backdrop-blur-xl border-white/10">
                 <CardHeader>
                   <CardTitle className="text-lg">🪑 Banco de Reservas</CardTitle>
                 </CardHeader>
@@ -211,7 +216,7 @@ function EscalacaoContent() {
                     {jogadores.filter(ej => ej.posicao_campo === 'banco').map((ej) => (
                       <div
                         key={ej.id}
-                        className="flex items-center gap-2 rounded-full bg-muted px-4 py-2"
+                        className="flex items-center gap-2 rounded-full bg-black/20 border border-white/10 px-4 py-2"
                       >
                         {ej.jogador?.foto_url ? (
                           <img
@@ -236,7 +241,7 @@ function EscalacaoContent() {
 
             {/* Lista de jogadores escalados (campo) */}
             {jogadores && jogadores.filter(j => j.posicao_campo !== 'banco').length > 0 && (
-              <Card className="mt-4">
+              <Card className="mt-4 bg-black/40 backdrop-blur-xl border-white/10">
                 <CardHeader>
                   <CardTitle className="text-lg">Jogadores Titulares</CardTitle>
                 </CardHeader>
@@ -245,7 +250,7 @@ function EscalacaoContent() {
                     {jogadores.filter(ej => ej.posicao_campo !== 'banco').map((ej) => (
                       <div
                         key={ej.id}
-                        className="flex items-center gap-3 rounded-lg border p-2"
+                        className="flex items-center gap-3 rounded-lg border border-white/10 p-2 bg-black/20"
                       >
                         {ej.jogador?.foto_url ? (
                           <img
@@ -283,7 +288,7 @@ function EscalacaoContent() {
               </h2>
               
               <Select value={filterMonth} onValueChange={setFilterMonth}>
-                <SelectTrigger className="w-full bg-background border-border">
+                <SelectTrigger className="w-full bg-black/20 border-white/10">
                   <SelectValue placeholder="Selecionar mês" />
                 </SelectTrigger>
                 <SelectContent>
@@ -318,7 +323,7 @@ function EscalacaoContent() {
                 ))}
               </div>
             ) : (
-              <Card className="border-dashed">
+              <Card className="border-dashed bg-black/40 backdrop-blur-xl border-white/10">
                 <CardContent className="py-12 text-center">
                   <Filter className="h-10 w-10 text-muted-foreground/20 mx-auto mb-4" />
                   <p className="text-muted-foreground font-medium">Nenhuma escalação encontrada</p>

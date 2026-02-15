@@ -1,8 +1,19 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Instagram, MessageCircle, User, LogOut, Sun, Moon, Headphones, BarChart3, ShieldAlert } from "lucide-react";
-import logoFutgestor from "@/assets/logo-futgestor.png";
+import { 
+  Menu, X, Instagram, MessageCircle, User, LogOut, Sun, Moon, Headphones, 
+  BarChart3, ShieldAlert, ChevronDown, LayoutDashboard, CalendarPlus, 
+  Search, ShieldCheck, Settings 
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ESCUDO_PADRAO } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { FutGestorLogo } from "@/components/FutGestorLogo";
 
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,12 +31,11 @@ export function Header() {
   const isPlayer = !!profile?.jogador_id && !isAdmin;
   const teamSlug = useOptionalTeamSlug();
 
-  const toggleTheme = () => {
-    const next = !isDark;
-    setIsDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  };
+  useEffect(() => {
+    // Forçar modo escuro globalmente
+    document.documentElement.classList.add("dark");
+    localStorage.setItem("theme", "dark");
+  }, []);
 
   const basePath = teamSlug?.basePath || "";
   const teamName = teamSlug?.team.nome || "FutGestor";
@@ -41,7 +51,8 @@ export function Header() {
   const visitorNavItems = teamSlug
     ? [
       { href: basePath, label: "Início" },
-
+      { href: `${basePath}/agenda`, label: "Agenda" },
+      { href: `${basePath}/resultados`, label: "Resultados" },
       ...(hasRanking ? [{ href: `${basePath}/ranking`, label: "Ranking" }] : []),
       ...(hasCampeonatos ? [{ href: `${basePath}/ligas`, label: "Ligas" }] : []),
     ]
@@ -99,62 +110,91 @@ export function Header() {
   const teamPrimaryColor = teamSlug?.team.cores?.primary || "#0F2440";
 
   return (
-    <header 
-      className="sticky top-0 z-50 w-full border-b border-border/40 shadow-lg"
-      style={{ 
-        backgroundColor: "hsl(var(--team-primary))",
-        color: "hsl(var(--team-primary-foreground))"
-      }}
-    >
+    <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl shadow-lg shadow-black/50">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Logo */}
-        <Link to={basePath || "/"} className="flex items-center gap-3">
-          {teamEscudo ? (
-            <img src={teamEscudo} alt={teamName} className="h-12 w-12 object-contain" />
-          ) : (
-            <img src={logoFutgestor} alt="FutGestor" className="h-12 w-12 object-contain" />
-          )}
-          <span className="hidden truncate max-w-[120px] lg:max-w-[200px] xl:max-w-none text-lg font-bold md:inline-block" style={{ color: "inherit" }}>
-            {teamName}
-          </span>
+        {/* Logo area */}
+        <Link to={basePath || "/"} className="flex items-center gap-3 md:hidden">
+          <FutGestorLogo 
+            teamEscudo={teamEscudo} 
+            showText={true} 
+            size="sm" 
+          />
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-1 md:flex">
-          {navItems.map((item) => (
-            <Link
-              key={item.label} // Changed key to label as href can change
-              to={item.href}
-              className={cn(
-                "relative rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive(item.href.split('?')[0])
-                  ? "bg-secondary text-secondary-foreground"
-                  : "hover:bg-white/10"
-              )}
-              style={{ color: !isActive(item.href.split('?')[0]) ? "inherit" : undefined }}
-            >
-              {item.label}
-              {(item as any).badge && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
-                  {(item as any).badge}
-                </span>
-              )}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            if (item.label === "Gestão") {
+              return (
+                <DropdownMenu key={item.label}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "relative flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-white/10",
+                        isActive(`${basePath}/gestao`) && "bg-secondary text-secondary-foreground"
+                      )}
+                      style={{ color: !isActive(`${basePath}/gestao`) ? "inherit" : undefined }}
+                    >
+                      {item.label}
+                      <ChevronDown className="h-3 w-3 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56 bg-card border-border">
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to={`${basePath}/gestao`} className="flex items-center gap-2">
+                        <LayoutDashboard className="h-4 w-4 text-primary" />
+                        <span>Visão Geral</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to={`${basePath}/solicitacoes`} className="flex items-center gap-2">
+                        <CalendarPlus className="h-4 w-4 text-primary" />
+                        <span>Solicitações</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to={`${basePath}/descobrir`} className="flex items-center gap-2">
+                        <Search className="h-4 w-4 text-primary" />
+                        <span>Descobrir</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to={`${basePath}/times`} className="flex items-center gap-2">
+                        <ShieldCheck className="h-4 w-4 text-primary" />
+                        <span>Times</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            }
+
+            return (
+              <Link
+                key={item.label}
+                to={item.href}
+                className={cn(
+                  "relative rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300",
+                  isActive(item.href.split('?')[0])
+                    ? "bg-primary text-black shadow-lg shadow-primary/20"
+                    : "text-white/80 hover:bg-primary hover:text-black hover:shadow-lg hover:shadow-primary/20"
+                )}
+              >
+                {item.label}
+                {(item as any).badge && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
+                    {(item as any).badge}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          {/* Theme Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className="hover:bg-white/10"
-            style={{ color: "inherit" }}
-          >
-            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
 
           {isSuperAdmin && (
             <Link to="/super-admin">
@@ -174,26 +214,7 @@ export function Header() {
             </Link>
           )}
 
-          {redesSociais.instagram && (
-            <a
-              href={redesSociais.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden rounded-md p-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground md:inline-flex"
-            >
-              <Instagram className="h-5 w-5" />
-            </a>
-          )}
-          {redesSociais.whatsapp && (
-            <a
-              href={redesSociais.whatsapp.startsWith('http') ? redesSociais.whatsapp : `https://${redesSociais.whatsapp}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden rounded-md p-2 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground md:inline-flex"
-            >
-              <MessageCircle className="h-5 w-5" />
-            </a>
-          )}
+        {/* Mobile menu button */}
 
           {user ? (
             <>

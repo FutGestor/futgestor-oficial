@@ -31,6 +31,7 @@ import { SocietyField } from "@/components/SocietyField";
 import { useTacticalAssistant } from "@/hooks/useTacticalAssistant";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { Layout } from "@/components/layout/Layout";
 
 type EscalacaoFormData = {
   jogo_id: string;
@@ -423,11 +424,12 @@ export default function AdminEscalacoes() {
 
 
   return (
-    <div className="space-y-6">
-      <ManagementHeader 
-        title="Gerenciar Escalações" 
-        subtitle="Monte táticas, defina titulares e use o assistente de IA." 
-      />
+    <Layout>
+      <div className="space-y-6 container py-8 px-4 md:px-6">
+        <ManagementHeader 
+          title="Gerenciar Escalações" 
+          subtitle="Monte táticas, defina titulares e use o assistente de IA." 
+        />
 
       <div className="flex justify-end">
         <div className="flex gap-2">
@@ -640,7 +642,7 @@ export default function AdminEscalacoes() {
                 </div>
 
                 {/* Seção Banco de Reservas */}
-                <div className="space-y-3 rounded-lg border p-4">
+                <div className="space-y-3 rounded-lg border border-white/10 p-4 bg-black/20">
                     <div className="flex items-center justify-between">
                     <Label className="text-base font-semibold">🪑 Banco de Reservas ({formData.banco.length} jogadores)</Label>
                     </div>
@@ -693,7 +695,7 @@ export default function AdminEscalacoes() {
                         return (
                             <div
                             key={jogadorId}
-                            className="flex items-center gap-2 rounded-full bg-muted px-3 py-1"
+                            className="flex items-center gap-2 rounded-full bg-black/20 border border-white/10 px-3 py-1"
                             >
                             <span className="text-sm">
                                 {jogador.numero !== null && <span className="mr-1 font-bold">#{jogador.numero}</span>}
@@ -746,7 +748,7 @@ export default function AdminEscalacoes() {
       ) : escalacoes && escalacoes.length > 0 ? (
         <div className="space-y-4">
           {escalacoes.map((escalacao) => (
-            <Card key={escalacao.id}>
+            <Card key={escalacao.id} className="bg-black/40 backdrop-blur-xl border-white/10">
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-4">
                   <Users className="h-8 w-8 text-foreground" />
@@ -789,7 +791,7 @@ export default function AdminEscalacoes() {
           ))}
         </div>
       ) : (
-        <Card>
+        <Card className="bg-black/40 backdrop-blur-xl border-white/10">
           <CardContent className="py-8 text-center text-muted-foreground">
             <Users className="mx-auto mb-4 h-12 w-12 opacity-50" />
             <p>Nenhuma escalação criada.</p>
@@ -801,6 +803,7 @@ export default function AdminEscalacoes() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </Layout>
   );
 }

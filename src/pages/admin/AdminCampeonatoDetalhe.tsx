@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { supabase } from "@/integrations/supabase/client";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
+import { Layout } from "@/components/layout/Layout";
 import { LeagueStandingsTable } from "@/components/LeagueStandingsTable";
 import {
   useLeague,
@@ -156,7 +157,7 @@ function TimesTab({ leagueId }: { leagueId: string }) {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {teams?.map((t) => (
-          <Card key={t.id}>
+          <Card key={t.id} className="bg-black/40 backdrop-blur-xl border-white/10">
             <CardContent className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
@@ -361,7 +362,7 @@ function JogosTab({ leagueId }: { leagueId: string }) {
       {Array.from(rounds.entries())
         .sort(([a], [b]) => a - b)
         .map(([roundNum, roundMatches]) => (
-          <Card key={roundNum}>
+          <Card key={roundNum} className="bg-black/40 backdrop-blur-xl border-white/10">
             <CardHeader className="px-3 py-2 sm:px-6 sm:py-4">
               <CardTitle className="text-sm sm:text-base">Rodada {roundNum}</CardTitle>
             </CardHeader>
@@ -449,35 +450,52 @@ export default function AdminCampeonatoDetalhe() {
   if (lLoading) return <Skeleton className="h-10 w-64" />;
 
   return (
-    <div className="space-y-6 overflow-hidden">
-      <ManagementHeader 
-        title={league?.name || "Campeonato"} 
-        subtitle="Gerencie times, rodadas e acompanhe a classificação." 
-      />
-
-      <Tabs defaultValue="classificacao">
-        <TabsList>
-          <TabsTrigger value="classificacao">Classificação</TabsTrigger>
-          <TabsTrigger value="jogos">Jogos / Rodadas</TabsTrigger>
-          <TabsTrigger value="times">Times</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="classificacao">
-          <Card>
-            <CardContent className="p-0 sm:p-4">
-              <LeagueStandingsTable standings={standings} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="jogos">
-          <JogosTab leagueId={leagueId!} />
-        </TabsContent>
-
-        <TabsContent value="times">
-          <TimesTab leagueId={leagueId!} />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <Layout>
+      <div className="space-y-6 container py-8 px-4 md:px-6">
+        <ManagementHeader 
+          title={league?.name || "Campeonato"} 
+          subtitle="Gerencie times, rodadas e acompanhe a classificação." 
+        />
+  
+        <Tabs defaultValue="classificacao">
+          <TabsList className="bg-black/40 border border-white/10 backdrop-blur-xl p-1 rounded-xl h-auto">
+            <TabsTrigger 
+              value="classificacao" 
+              className="data-[state=active]:bg-primary data-[state=active]:text-black font-bold py-2 px-4 rounded-lg"
+            >
+              Classificação
+            </TabsTrigger>
+            <TabsTrigger 
+              value="jogos"
+              className="data-[state=active]:bg-primary data-[state=active]:text-black font-bold py-2 px-4 rounded-lg"
+            >
+              Jogos / Rodadas
+            </TabsTrigger>
+            <TabsTrigger 
+              value="times"
+              className="data-[state=active]:bg-primary data-[state=active]:text-black font-bold py-2 px-4 rounded-lg"
+            >
+              Times
+            </TabsTrigger>
+          </TabsList>
+  
+          <TabsContent value="classificacao" className="mt-6">
+            <Card className="bg-black/40 backdrop-blur-xl border-white/10 shadow-2xl overflow-hidden">
+              <CardContent className="p-0 sm:p-4">
+                <LeagueStandingsTable standings={standings} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+  
+          <TabsContent value="jogos" className="mt-6">
+            <JogosTab leagueId={leagueId!} />
+          </TabsContent>
+  
+          <TabsContent value="times" className="mt-6">
+            <TimesTab leagueId={leagueId!} />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </Layout>
   );
 }

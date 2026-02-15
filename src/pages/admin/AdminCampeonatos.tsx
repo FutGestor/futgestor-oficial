@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useLeagues, useCreateLeague, useDeleteLeague } from "@/hooks/useLeagues";
+import { Layout } from "@/components/layout/Layout";
 
 export default function AdminCampeonatos() {
   const { basePath } = useTeamSlug();
@@ -49,7 +50,8 @@ export default function AdminCampeonatos() {
   }
 
   return (
-    <div className="space-y-6">
+    <Layout>
+      <div className="space-y-6 container py-8 px-4 md:px-6">
       <ManagementHeader 
         title="Gerenciar Ligas" 
         subtitle="Crie campeonatos, adicione times e acompanhe a tabela." 
@@ -81,12 +83,12 @@ export default function AdminCampeonatos() {
       </div>
 
       {leagues && leagues.length === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Trophy className="mb-4 h-12 w-12 text-muted-foreground" />
-            <p className="text-muted-foreground">Nenhum campeonato criado ainda.</p>
-            <Button className="mt-4 gap-2" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4" /> Criar seu primeiro campeonato
+        <Card className="bg-black/40 backdrop-blur-xl border-white/10">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <Trophy className="mb-6 h-16 w-16 text-muted-foreground/30" />
+            <p className="text-muted-foreground font-medium">Nenhum campeonato criado ainda.</p>
+            <Button className="mt-6 gap-2 btn-primary" onClick={() => setDialogOpen(true)}>
+              <Plus className="h-5 w-5" /> Criar seu primeiro campeonato
             </Button>
           </CardContent>
         </Card>
@@ -96,12 +98,12 @@ export default function AdminCampeonatos() {
         {leagues?.map((league) => (
           <Card
             key={league.id}
-            className="cursor-pointer transition-shadow hover:shadow-lg"
+            className="cursor-pointer transition-all hover:scale-[1.02] bg-black/40 backdrop-blur-xl border-white/10 hover:border-primary/50 group"
             onClick={() => navigate(`${basePath}/ligas/gerenciar/${league.id}`)}
           >
-            <CardHeader className="flex-row items-center justify-between space-y-0">
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-foreground" />
+            <CardHeader className="flex-row items-center justify-between space-y-0 p-6">
+              <CardTitle className="flex items-center gap-3 font-black uppercase italic tracking-tighter">
+                <Trophy className="h-6 w-6 text-primary group-hover:animate-bounce" />
                 {league.name}
               </CardTitle>
               <AlertDialog>
@@ -134,6 +136,7 @@ export default function AdminCampeonatos() {
           </Card>
         ))}
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 }

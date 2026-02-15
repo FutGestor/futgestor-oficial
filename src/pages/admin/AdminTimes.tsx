@@ -16,6 +16,9 @@ import { useAuth } from "@/hooks/useAuth";
 import type { Time } from "@/lib/types";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { ESCUDO_PADRAO } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+import { Layout } from "@/components/layout/Layout";
 
 type TimeFormData = {
   nome: string;
@@ -200,7 +203,8 @@ export default function AdminTimes() {
   };
 
   return (
-    <div className="space-y-6">
+    <Layout>
+      <div className="space-y-6 container py-8 px-4 md:px-6">
       <ManagementHeader 
         title="Gerenciar Times" 
         subtitle="Cadastre seu próprio time e os adversários para histórico de jogos." 
@@ -227,7 +231,7 @@ export default function AdminTimes() {
               {/* Upload de Escudo */}
               <div className="flex flex-col items-center gap-4">
                 <div
-                  className="relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-muted-foreground/50 bg-muted transition-colors hover:border-primary"
+                  className="relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-white/20 bg-black/20 transition-colors hover:border-primary"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {imagePreview ? (
@@ -350,19 +354,15 @@ export default function AdminTimes() {
       ) : times && times.length > 0 ? (
         <div className="space-y-4">
           {times.map((time) => (
-            <Card key={time.id} className={time.is_casa ? "border-primary" : ""}>
+            <Card key={time.id} className={cn("bg-black/40 backdrop-blur-xl border-white/10", time.is_casa ? "border-primary" : "")}>
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-muted">
-                    {time.escudo_url ? (
-                      <img
-                        src={time.escudo_url}
-                        alt={time.nome}
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <Shield className="h-6 w-6 text-muted-foreground" />
-                    )}
+                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-black/20 border border-white/10">
+                    <img
+                      src={time.escudo_url || ESCUDO_PADRAO}
+                      alt={time.nome}
+                      className="h-full w-full object-contain"
+                    />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
@@ -411,10 +411,10 @@ export default function AdminTimes() {
           ))}
         </div>
       ) : (
-        <Card>
+        <Card className="bg-black/40 backdrop-blur-xl border-white/10">
           <CardContent className="py-8 text-center text-muted-foreground">
-            <Shield className="mx-auto mb-4 h-12 w-12 opacity-50" />
-            <p>Nenhum time cadastrado.</p>
+            <Shield className="mx-auto mb-4 h-12 w-12 opacity-30" />
+            <p className="font-bold">Nenhum time cadastrado.</p>
             <p className="text-sm">Comece adicionando o seu time e os adversários.</p>
           </CardContent>
         </Card>
@@ -446,6 +446,7 @@ export default function AdminTimes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </Layout>
   );
 }

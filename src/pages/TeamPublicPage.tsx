@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
-import { Calendar, MapPin, Instagram, MessageCircle, Youtube, Facebook, Clock, ChevronLeft, ChevronRight as ChevronRightIcon, Trophy, TrendingUp, Bell, ChevronRight, Users } from "lucide-react";
+import { Calendar, MapPin, Instagram, MessageCircle, Youtube, Facebook, Clock, ChevronLeft, ChevronRight as ChevronRightIcon, Trophy, TrendingUp, Bell, ChevronRight, Users, Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanAccess } from "@/hooks/useSubscription";
@@ -23,6 +23,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { FutGestorLogo } from "@/components/FutGestorLogo";
 import { supabase } from "@/integrations/supabase/client";
+import { ESCUDO_PADRAO } from "@/lib/constants";
 // Featured Game Card Component
 function FeaturedGameCard({ teamId }: { teamId: string }) {
   const { data: proximoJogo, isLoading: loadingNext } = useProximoJogo(teamId);
@@ -86,7 +87,7 @@ function FeaturedGameCard({ teamId }: { teamId: string }) {
     <div className="space-y-6">
       {/* Próximo Jogo */}
       {proximoJogo && (
-        <div className="relative overflow-hidden rounded-2xl bg-[#0F2440] p-6 text-white shadow-xl ring-1 ring-white/10">
+        <div className="relative overflow-hidden rounded-2xl bg-black/40 backdrop-blur-xl p-6 text-white shadow-xl border border-white/10">
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <Calendar className="h-32 w-32" />
           </div>
@@ -100,13 +101,7 @@ function FeaturedGameCard({ teamId }: { teamId: string }) {
 
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col items-center gap-2">
-                {team.escudo_url ? (
-                  <img src={team.escudo_url} alt={team.nome} className="h-16 w-16 object-contain md:h-20 md:w-20" />
-                ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 p-3">
-                    <TrendingUp className="h-8 w-8" />
-                  </div>
-                )}
+                <img src={team.escudo_url || ESCUDO_PADRAO} alt={team.nome} className="h-16 w-16 object-contain md:h-20 md:w-20" />
                 <span className="text-sm font-bold md:text-base text-center max-w-[80px] leading-tight">{team.nome}</span>
               </div>
 
@@ -116,13 +111,7 @@ function FeaturedGameCard({ teamId }: { teamId: string }) {
               </div>
 
               <div className="flex flex-col items-center gap-2">
-                {proximoJogo.time_adversario?.escudo_url ? (
-                  <img src={proximoJogo.time_adversario.escudo_url} alt={proximoJogo.time_adversario.nome} className="h-16 w-16 object-contain md:h-20 md:w-20" />
-                ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 p-3">
-                    <Trophy className="h-8 w-8" />
-                  </div>
-                )}
+                <img src={proximoJogo.time_adversario?.escudo_url || ESCUDO_PADRAO} alt={proximoJogo.time_adversario?.nome || proximoJogo.adversario} className="h-16 w-16 object-contain md:h-20 md:w-20" />
                 <span className="text-sm font-bold md:text-base text-center max-w-[80px] leading-tight">
                   {proximoJogo.time_adversario?.nome || proximoJogo.adversario || "Adversário"}
                 </span>
@@ -169,8 +158,8 @@ function FeaturedGameCard({ teamId }: { teamId: string }) {
 
       {/* Último Resultado - Design Adaptativo */}
       {ultimoResultado && ultimoResultado.jogo && (
-        <Card className="overflow-hidden border-border bg-card text-foreground shadow-xl soft-shadow rounded-2xl">
-          <CardHeader className="pb-2 border-b border-border/50">
+        <Card className="overflow-hidden border-white/10 bg-black/40 backdrop-blur-xl text-foreground shadow-xl soft-shadow rounded-2xl">
+          <CardHeader className="pb-2 border-b border-white/10">
             <div className="flex items-center justify-between">
               <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">🏁 Último Resultado</CardTitle>
               <Trophy className="h-4 w-4 text-primary" />
@@ -182,9 +171,7 @@ function FeaturedGameCard({ teamId }: { teamId: string }) {
                 {/* Time da Casa */}
                 <div className="flex flex-col items-center gap-3">
                   <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-muted/50 p-3 flex items-center justify-center border border-border shadow-inner">
-                    {team?.escudo_url ? (
-                      <img src={team.escudo_url} alt="" className="h-full w-full object-contain" />
-                    ) : <FutGestorLogo className="h-full w-full opacity-30" />}
+                    <img src={team?.escudo_url || ESCUDO_PADRAO} alt="" className="h-full w-full object-contain" />
                   </div>
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground text-center max-w-[100px] leading-tight">
                     {team.nome}
@@ -203,13 +190,7 @@ function FeaturedGameCard({ teamId }: { teamId: string }) {
                 {/* Adversário */}
                 <div className="flex flex-col items-center gap-3">
                   <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-muted/50 p-3 flex items-center justify-center border border-border shadow-inner">
-                    {ultimoResultado.jogo.time_adversario?.escudo_url ? (
-                      <img src={ultimoResultado.jogo.time_adversario.escudo_url} alt="" className="h-full w-full object-contain" />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary uppercase italic text-lg">
-                        {ultimoResultado.jogo.adversario.substring(0, 2)}
-                      </div>
-                    )}
+                    <img src={ultimoResultado.jogo.time_adversario?.escudo_url || ESCUDO_PADRAO} alt="" className="h-full w-full object-contain" />
                   </div>
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground text-center max-w-[100px] leading-tight">
                     {ultimoResultado.jogo.adversario}
@@ -217,9 +198,9 @@ function FeaturedGameCard({ teamId }: { teamId: string }) {
                 </div>
               </div>
 
-              <div className="w-full border-t border-border pt-6">
+              <div className="w-full border-t border-white/10 pt-6">
                 <div className="flex flex-col items-center gap-4">
-                  <div className="flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                  <div className="flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground bg-black/20 px-3 py-1 rounded-full border border-white/10">
                     <Calendar className="h-3 w-3" />
                     {format(new Date(ultimoResultado.jogo.data_hora), "dd 'de' MMMM", { locale: ptBR })}
                   </div>
@@ -242,7 +223,7 @@ function FeaturedGameCard({ teamId }: { teamId: string }) {
       )}
 
       {!proximoJogo && (!ultimoResultado || !ultimoResultado.jogo) && (
-        <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-8 text-center text-slate-400">
+        <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 backdrop-blur-sm p-8 text-center text-slate-400">
           <Calendar className="mx-auto h-10 w-10 opacity-20 mb-2" />
           <p>Nenhum compromisso ou resultado recente.</p>
         </div>
@@ -262,7 +243,7 @@ function MemberArea({ teamId, hasFinanceiro, hasAvisos }: { teamId: string, hasF
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {hasFinanceiro && (
                 <Link to={`${basePath}/financeiro`}>
-                    <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+                    <Card className="bg-black/40 backdrop-blur-xl border-white/10 hover:bg-black/50 transition-colors cursor-pointer h-full">
                         <CardContent className="p-5 flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-muted-foreground mb-1 font-medium">Caixa do Time</p>
@@ -270,7 +251,7 @@ function MemberArea({ teamId, hasFinanceiro, hasAvisos }: { teamId: string, hasF
                                     R$ {saldo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                 </p>
                             </div>
-                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
                                 <TrendingUp className="h-5 w-5 text-primary" />
                             </div>
                         </CardContent>
@@ -280,7 +261,7 @@ function MemberArea({ teamId, hasFinanceiro, hasAvisos }: { teamId: string, hasF
 
             {hasAvisos && (
                 <Link to={`${basePath}/avisos`}>
-                    <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+                    <Card className="bg-black/40 backdrop-blur-xl border-white/10 hover:bg-black/50 transition-colors cursor-pointer h-full">
                         <CardContent className="p-5">
                             <div className="flex items-center justify-between mb-2">
                                 <p className="text-sm text-muted-foreground font-medium">Mural de Avisos</p>
@@ -312,61 +293,71 @@ export default function TeamPublicPage() {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative overflow-hidden min-h-[450px] md:min-h-[550px]">
-        {team.banner_url && (
-          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${team.banner_url})` }} />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background" />
+      {/* Home Title Section (Triple A Refinement) */}
+      <section className="relative pt-24 pb-12 flex flex-col items-center justify-center text-center container px-4">
+        <div className="flex flex-col items-center gap-4 mb-8">
+          <img 
+            src={team.escudo_url || ESCUDO_PADRAO} 
+            alt={team.nome} 
+            className="h-24 w-24 md:h-32 md:w-32 object-contain drop-shadow-[0_0_20px_rgba(230,179,37,0.3)] animate-in zoom-in duration-700" 
+          />
+          <h1 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter flex flex-col md:flex-row items-center gap-2 md:gap-4">
+            <span className="text-white drop-shadow-[0_4px_12px_rgba(255,255,255,0.4)]">{team.nome.split(' ')[0]}</span>
+            {team.nome.split(' ').slice(1).length > 0 && (
+              <span className="text-primary drop-shadow-[0_4px_12px_rgba(230,179,37,0.4)]">
+                {team.nome.split(' ').slice(1).join(' ')}
+              </span>
+            )}
+          </h1>
+        </div>
         
-        <div className="container relative z-10 flex min-h-[450px] md:min-h-[550px] flex-col items-center justify-center px-4 md:px-6 pt-12 text-center">
-             <h1
-              className="mb-4 text-4xl font-black md:text-6xl drop-shadow-2xl tracking-tight"
-              style={{ 
-                color: team.bio_config?.titleColor || "#FFFFFF",
-                WebkitTextStroke: team.bio_config?.titleStroke 
-                  ? `${team.bio_config?.titleStrokeWidth || 2}px ${team.bio_config?.titleStrokeColor || "#000000"}` 
-                  : 'none',
-                paintOrder: 'stroke fill'
-              } as React.CSSProperties}
-            >
-              {team.nome}
-            </h1>
-            
-            <p 
-              className={cn(
-                "mb-8 max-w-xl drop-shadow-lg leading-relaxed transition-all duration-300",
-                team.bio_config?.fontSize || "text-lg",
-                team.bio_config?.fontWeight || "font-normal",
-                team.bio_config?.textAlign || "text-center",
-                team.bio_config?.fontFamily || "font-sans"
-              )}
-              style={{
-                color: team.bio_config?.color || "#FFFFFF",
-                WebkitTextStroke: team.bio_config?.bioStroke 
-                  ? `${team.bio_config?.bioStrokeWidth || 2}px ${team.bio_config?.bioStrokeColor || "#000000"}` 
-                  : 'none',
-                paintOrder: 'stroke fill'
-              } as React.CSSProperties}
-            >
-              {team.bio_config?.text || (isMember
-                ? "Painel oficial do atleta. Acompanhe seus jogos e estatísticas."
-                : "Bem-vindo à página oficial do nosso time.")}
-            </p>
+        <p className="max-w-2xl text-muted-foreground text-lg md:text-xl font-medium leading-relaxed mb-8 mt-4">
+          {team.bio_config?.text || "Vai encarar? Agende um jogo hoje mesmo"}
+        </p>
 
-            <div className="flex flex-wrap justify-center gap-3">
-              {!user && (
-                <Link to="/auth">
-                  <Button size="lg" className="h-12 px-8 font-bold gap-2 bg-primary text-primary-foreground hover:opacity-90 rounded-full transition-all shadow-md">Entrar no Time</Button>
-                </Link>
-              )}
-               {/* Social Icons simplified */}
-               {team.redes_sociais?.instagram && (
-                 <a href={team.redes_sociais.instagram} target="_blank" rel="noopener noreferrer" className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm">
-                    <Instagram className="h-6 w-6" />
-                 </a>
-               )}
-            </div>
+        <div className="flex flex-wrap justify-center gap-4 items-center">
+          {!user && (
+            <Link to="/auth">
+              <Button size="lg" className="h-14 px-10 font-black uppercase italic tracking-widest bg-primary text-black hover:bg-primary/90 rounded-xl transition-all shadow-xl shadow-primary/20">
+                Entrar no Time
+              </Button>
+            </Link>
+          )}
+
+          <div className="flex gap-3">
+            {team.redes_sociais?.instagram && (
+              <a 
+                href={team.redes_sociais.instagram.startsWith('http') ? team.redes_sociais.instagram : `https://instagram.com/${team.redes_sociais.instagram.replace('@', '')}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="p-4 rounded-xl bg-gradient-to-br from-[#E1306C]/20 to-[#405DE6]/20 border border-white/10 hover:border-primary/50 text-white transition-all backdrop-blur-xl group"
+                title="Instagram"
+              >
+                <Instagram className="h-6 w-6 group-hover:scale-110 transition-transform" />
+              </a>
+            )}
+            {team.redes_sociais?.whatsapp && (
+              <a 
+                href={team.redes_sociais.whatsapp.startsWith('http') ? team.redes_sociais.whatsapp : `https://wa.me/${team.redes_sociais.whatsapp.replace(/\D/g, '')}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="p-4 rounded-xl bg-green-500/10 border border-white/10 hover:border-green-500/50 text-white transition-all backdrop-blur-xl group"
+                title="WhatsApp"
+              >
+                <MessageCircle className="h-6 w-6 group-hover:scale-110 transition-transform text-green-400" />
+              </a>
+            )}
+            <Button 
+                variant="outline" 
+                className="p-4 h-auto rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all backdrop-blur-xl"
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast({ title: "Link copiado!", description: "Compartilhe o perfil do seu time." });
+                }}
+            >
+              <Send className="h-6 w-6" />
+            </Button>
+          </div>
         </div>
       </section>
 

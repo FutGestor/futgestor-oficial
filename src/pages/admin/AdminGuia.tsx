@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, X, Settings2 } from "lucide-react";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { Layout } from "@/components/layout/Layout";
 
 /* ───────────── helpers ───────────── */
 
@@ -79,7 +80,8 @@ export default function AdminGuia() {
   };
 
   return (
-    <>
+    <Layout>
+      <div className="space-y-6 container py-8 px-4 md:px-6">
       {/* Print‑only styles */}
       <style>{`
         @media print {
@@ -108,7 +110,7 @@ export default function AdminGuia() {
 
         <div id="guia-print-area" ref={printRef} className="space-y-8">
           {/* ═══════════ ÁREA PÚBLICA ═══════════ */}
-          <Card>
+          <Card className="bg-black/40 backdrop-blur-xl border-white/10">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Globe className="h-5 w-5 text-primary" />
@@ -314,7 +316,7 @@ export default function AdminGuia() {
           </Card>
 
           {/* ═══════════ ÁREA ADMINISTRATIVA ═══════════ */}
-          <Card>
+          <Card className="bg-black/40 backdrop-blur-xl border-white/10">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <ShieldCheck className="h-5 w-5 text-primary" />
@@ -599,7 +601,7 @@ export default function AdminGuia() {
           </Card>
 
            {/* ═══════════ SUPORTE E AJUDA ═══════════ */}
-           <Card>
+           <Card className="bg-black/40 backdrop-blur-xl border-white/10">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Headphones className="h-5 w-5 text-primary" />
@@ -640,7 +642,7 @@ export default function AdminGuia() {
           </Card>
 
           {/* ═══════════ COMPARATIVO DE PLANOS ═══════════ */}
-          <Card>
+          <Card className="bg-black/40 backdrop-blur-xl border-white/10">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Comparativo de Planos</CardTitle>
               <p className="text-sm text-muted-foreground">
@@ -697,7 +699,8 @@ export default function AdminGuia() {
             Baixar Guia em PDF
           </Button>
         </div>
+        </div>
       </div>
-    </>
+    </Layout>
   );
 }

@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { type Transacao, type TransactionType } from "@/lib/types";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { Layout } from "@/components/layout/Layout";
 
 const categorias = [
   "Mensalidade",
@@ -148,7 +149,8 @@ export default function AdminTransacoes() {
   };
 
   return (
-    <div className="space-y-6">
+    <Layout>
+      <div className="space-y-6 container py-8 px-4 md:px-6">
       <ManagementHeader 
         title="Gerenciar Transações" 
         subtitle="Controle entradas, saídas e categorias financeiras." 
@@ -253,32 +255,32 @@ export default function AdminTransacoes() {
       {/* Summary */}
       {summary && (
         <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
+          <Card className="bg-black/40 backdrop-blur-xl border-white/10">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Saldo Atual</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground uppercase tracking-widest">Saldo Atual</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className={`text-2xl font-bold ${summary.saldoAtual >= 0 ? "text-green-600" : "text-destructive"}`}>
+              <p className={`text-2xl font-black italic ${summary.saldoAtual >= 0 ? "text-green-400" : "text-destructive"}`}>
                 R$ {summary.saldoAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-black/40 backdrop-blur-xl border-white/10">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Total Entradas</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground uppercase tracking-widest">Total Entradas</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-black italic text-green-400">
                 R$ {summary.totalArrecadado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-black/40 backdrop-blur-xl border-white/10">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Total Saídas</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground uppercase tracking-widest">Total Saídas</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-destructive">
+              <p className="text-2xl font-black italic text-destructive">
                 R$ {summary.totalGasto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </p>
             </CardContent>
@@ -287,7 +289,7 @@ export default function AdminTransacoes() {
       )}
 
       {/* Transactions Table */}
-      <Card>
+      <Card className="bg-black/40 backdrop-blur-xl border-white/10 overflow-hidden">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="space-y-2 p-4">
@@ -300,8 +302,8 @@ export default function AdminTransacoes() {
               {/* Desktop Table */}
               <div className="hidden md:block">
                 <Table>
-                  <TableHeader>
-                    <TableRow>
+                  <TableHeader className="bg-white/5">
+                    <TableRow className="border-white/10 hover:bg-transparent">
                       <TableHead>Data</TableHead>
                       <TableHead>Descrição</TableHead>
                       <TableHead>Categoria</TableHead>
@@ -312,15 +314,15 @@ export default function AdminTransacoes() {
                   </TableHeader>
                   <TableBody>
                     {transacoes.map((t) => (
-                      <TableRow key={t.id}>
+                      <TableRow key={t.id} className="border-white/5 hover:bg-white/5 transition-colors">
                         <TableCell>{format(new Date(t.data), "dd/MM/yyyy")}</TableCell>
                         <TableCell>{t.descricao}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{t.categoria}</Badge>
+                          <Badge variant="outline" className="border-white/10 bg-black/20">{t.categoria}</Badge>
                         </TableCell>
                         <TableCell>
                           {t.tipo === "entrada" ? (
-                            <span className="flex items-center gap-1 text-green-600">
+                            <span className="flex items-center gap-1 text-green-400">
                               <ArrowUpRight className="h-4 w-4" />
                               Entrada
                             </span>
@@ -331,7 +333,7 @@ export default function AdminTransacoes() {
                             </span>
                           )}
                         </TableCell>
-                        <TableCell className={`text-right font-medium ${t.tipo === "entrada" ? "text-green-600" : "text-destructive"}`}>
+                        <TableCell className={`text-right font-black italic ${t.tipo === "entrada" ? "text-green-400" : "text-destructive"}`}>
                           {t.tipo === "entrada" ? "+" : "-"} R$ {Number(t.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                         </TableCell>
                         <TableCell>
@@ -353,7 +355,7 @@ export default function AdminTransacoes() {
               {/* Mobile Cards */}
               <div className="space-y-3 p-4 md:hidden">
                 {transacoes.map((t) => (
-                  <div key={t.id} className="rounded-lg border p-3 space-y-2">
+                  <div key={t.id} className="rounded-xl border border-white/10 bg-black/20 p-4 space-y-3 transition-colors hover:bg-black/30">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {t.tipo === "entrada" ? (
@@ -392,6 +394,7 @@ export default function AdminTransacoes() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </Layout>
   );
 }

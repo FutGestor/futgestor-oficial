@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Layout } from "@/components/layout/Layout";
 import { FutGestorLogo } from "@/components/FutGestorLogo";
 import { ArrowLeft } from "lucide-react";
 
 export default function Termos() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <Layout>
+      <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="border-b bg-card py-4">
+      <header className="border-b bg-transparent py-4">
         <div className="container flex items-center gap-4 px-4">
           <Link to="/">
             <Button variant="ghost" size="sm" className="gap-2">
@@ -21,7 +23,7 @@ export default function Termos() {
       </header>
 
       {/* Content */}
-      <main className="container max-w-3xl flex-1 px-4 py-12">
+      <main className="container max-w-3xl flex-1 px-4 py-12 bg-black/40 backdrop-blur-md border-x border-white/5 shadow-2xl">
         <h1 className="mb-8 text-3xl font-bold text-foreground">Termos de Uso</h1>
         <p className="mb-2 text-sm text-muted-foreground">Última atualização: 7 de fevereiro de 2026</p>
 
@@ -84,6 +86,7 @@ export default function Termos() {
           © 2026 FutGestor. Todos os direitos reservados.
         </div>
       </footer>
-    </div>
+      </div>
+    </Layout>
   );
 }

@@ -2,10 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { TeamSlugLayout } from "@/hooks/useTeamSlug";
-import Index from "./pages/Index";
 import Agenda from "./pages/Agenda";
 import Financeiro from "./pages/Financeiro";
 import Escalacao from "./pages/Escalacao";
@@ -20,6 +19,7 @@ import AdminUsuarios from "./pages/admin/AdminUsuarios";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 import TeamPublicPage from "./pages/TeamPublicPage";
+import PublicMatchmaking from "./pages/PublicMatchmaking";
 import Termos from "./pages/Termos";
 import PresencaPublica from "./pages/PresencaPublica";
 import PlayerDashboard from "./pages/PlayerDashboard";
@@ -28,7 +28,6 @@ import SuperAdminAvisos from "./pages/SuperAdminAvisos";
 import SuperAdminHealth from "./pages/SuperAdminHealth";
 import { RequireApproval } from "./components/auth/RequireApproval";
 import { RequireAdmin } from "./components/auth/RequireAdmin";
-import LandingPage from "./pages/LandingPage";
 import Ligas from "./pages/Ligas";
 import Suporte from "./pages/Suporte";
 import SuperAdminSuporte from "./pages/SuperAdminSuporte";
@@ -38,14 +37,17 @@ import SuperAdminUsuarios from "./pages/SuperAdminUsuarios";
 import AdminGuia from "./pages/admin/AdminGuia";
 import AdminJogos from "./pages/admin/AdminJogos";
 import AdminJogadores from "./pages/admin/AdminJogadores";
+import AdminTimes from "./pages/admin/AdminTimes";
+import Discovery from "./pages/admin/Discovery";
 import AdminTransacoes from "./pages/admin/AdminTransacoes";
 import AdminAvisos from "./pages/admin/AdminAvisos";
 import AdminEscalacoes from "./pages/admin/AdminEscalacoes";
-import AdminConfiguracoes from "./pages/admin/AdminConfiguracoes";
+
 import AdminSolicitacoes from "./pages/admin/AdminSolicitacoes";
 import AdminCampeonatos from "./pages/admin/AdminCampeonatos";
 import AdminCampeonatoDetalhe from "./pages/admin/AdminCampeonatoDetalhe";
 import GameDetails from "./pages/GameDetails";
+import Convite from "./pages/Convite";
 
 const queryClient = new QueryClient();
 
@@ -57,11 +59,10 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/termos" element={<Termos />} />
-            <Route path="/site" element={<LandingPage />} />
             <Route path="/super-admin" element={<SuperAdminDashboard />} />
             <Route path="/super-admin/vendas" element={<SuperAdminVendas />} />
             <Route path="/super-admin/suporte" element={<SuperAdminSuporte />} />
@@ -70,12 +71,14 @@ const App = () => (
             <Route path="/super-admin/avisos" element={<SuperAdminAvisos />} />
             <Route path="/super-admin/health" element={<SuperAdminHealth />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
+            <Route path="/convite/:code" element={<Convite />} />
             <Route path="/player/dashboard" element={<RequireApproval />}>
               <Route index element={<MeuPerfil />} />
             </Route>
 
             <Route path="/time/:slug" element={<TeamSlugLayout />}>
               <Route index element={<TeamPublicPage />} />
+              <Route path="desafio" element={<PublicMatchmaking />} />
 
               <Route element={<RequireApproval />}>
                 <Route path="agenda" element={<Agenda />} />
@@ -118,8 +121,10 @@ const App = () => (
                     <Route path=":leagueId" element={<AdminCampeonatoDetalhe />} />
                   </Route>
                   <Route path="gestao" element={<AdminDashboard />} />
-                  <Route path="configuracoes" element={<AdminConfiguracoes />} />
+
                   <Route path="solicitacoes" element={<AdminSolicitacoes />} />
+                  <Route path="descobrir" element={<Discovery />} />
+                  <Route path="times" element={<AdminTimes />} />
                   <Route path="usuarios" element={<AdminUsuarios />} />
                   <Route path="avisos/gerenciar" element={<AdminAvisos />} />
                 </Route>

@@ -17,7 +17,9 @@ import {
   Settings,
   ShieldCheck,
   CalendarPlus,
-  BookOpen
+  BookOpen,
+  Search,
+  LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAvisosNaoLidos } from "@/hooks/useAvisoLeituras";
@@ -66,8 +68,10 @@ export function MobileBottomNav() {
   ];
 
   const adminMenuItems = [
+    { href: `${basePath}/gestao`, label: "Visão Geral", icon: LayoutDashboard },
     { href: `${basePath}/solicitacoes`, label: "Solicitações", icon: CalendarPlus },
-    { href: `${basePath}/configuracoes`, label: "Configurações", icon: Settings },
+    { href: `${basePath}/descobrir`, label: "Descobrir", icon: Search },
+    { href: `${basePath}/times`, label: "Times", icon: ShieldCheck },
   ];
 
   const notificationCount = naoLidos ?? 0;
@@ -81,7 +85,7 @@ export function MobileBottomNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background md:hidden safe-area-bottom pb-safe">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-background/80 backdrop-blur-xl md:hidden safe-area-bottom pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
         <div className="flex items-center justify-around py-2">
           {mainItems.map((item) => {
             const isActive = location.pathname === item.href;
@@ -120,20 +124,30 @@ export function MobileBottomNav() {
                 )}
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[540px] overflow-y-auto">
-              <SheetHeader className="text-left mb-6">
+            <SheetContent side="right" className="w-[300px] sm:w-[540px] overflow-y-auto bg-black/60 backdrop-blur-3xl border-white/5 text-white shadow-2xl">
+              <SheetHeader className="text-left mb-8 border-b border-white/10 pb-6">
                 <SheetTitle className="flex items-center gap-3">
-                  {team?.escudo_url ? (
-                    <img src={team.escudo_url} alt={team.nome} className="h-10 w-10 object-contain" />
-                  ) : (
-                    <img src={logoFutgestor} alt="FutGestor" className="h-10 w-10 object-contain" />
-                  )}
-                  <span className="truncate text-lg font-bold">{team?.nome || "FutGestor"}</span>
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-amber-500/50 rounded-full blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                    {team?.escudo_url ? (
+                      <img src={team.escudo_url} alt={team.nome} className="relative h-12 w-12 object-contain rounded-full border border-white/20 shadow-xl" />
+                    ) : (
+                      <img src={logoFutgestor} alt="FutGestor" className="relative h-12 w-12 object-contain" />
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="truncate text-xl font-black uppercase tracking-tight leading-none bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent">
+                      {team?.nome || "FutGestor"}
+                    </span>
+                    <span className="text-[10px] text-primary font-bold uppercase tracking-widest mt-1 opacity-80">
+                      Painel do Clube
+                    </span>
+                  </div>
                 </SheetTitle>
               </SheetHeader>
 
               <div className="grid gap-2 py-4">
-                <p className="text-sm font-medium text-muted-foreground px-2 mb-2">Navegação</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 px-2 mb-3">Navegação Principal</p>
                 {menuItems.map((item) => {
                   const isActive = location.pathname === item.href;
                   const Icon = item.icon;
@@ -145,16 +159,16 @@ export function MobileBottomNav() {
                       to={item.href}
                       onClick={() => setOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                        "flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300",
                         isActive
-                          ? "bg-secondary text-secondary-foreground"
-                          : "hover:bg-secondary/50"
+                          ? "bg-primary text-black shadow-lg shadow-primary/20 scale-[1.02]"
+                          : "text-white/70 hover:bg-white/5 hover:text-white"
                       )}
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className={cn("h-5 w-5", isActive ? "stroke-[2.5px]" : "opacity-70")} />
                       {item.label}
                       {showBadge && (
-                        <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                        <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white shadow-lg animate-bounce">
                           {notificationCount > 9 ? "9+" : notificationCount}
                         </span>
                       )}
@@ -164,64 +178,66 @@ export function MobileBottomNav() {
 
                 {isAdmin && (
                   <>
-                    <div className="my-4 border-t" />
-                    <p className="text-sm font-medium text-muted-foreground px-2 mb-2 flex items-center gap-2">
-                       <ShieldCheck className="h-4 w-4 text-primary" />
-                       Gestão
+                    <div className="my-6 border-t border-white/10 mx-2" />
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary px-2 mb-3 flex items-center gap-2">
+                       <ShieldCheck className="h-3 w-3" />
+                       Módulo Administrativo
                     </p>
-                    {adminMenuItems.map((item) => {
-                      const isActive = location.pathname === item.href;
-                      const Icon = item.icon;
+                    <div className="grid grid-cols-2 gap-2">
+                      {adminMenuItems.map((item) => {
+                        const isActive = location.pathname === item.href;
+                        const Icon = item.icon;
 
-                      return (
-                        <Link
-                          key={item.href}
-                          to={item.href}
-                          onClick={() => setOpen(false)}
-                          className={cn(
-                            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                            isActive
-                              ? "bg-primary/10 text-primary font-bold"
-                              : "hover:bg-secondary/50"
-                          )}
-                        >
-                          <Icon className="h-5 w-5" />
-                          {item.label}
-                        </Link>
-                      );
-                    })}
+                        return (
+                          <Link
+                            key={item.href}
+                            to={item.href}
+                            onClick={() => setOpen(false)}
+                            className={cn(
+                              "flex flex-col items-center justify-center gap-2 rounded-xl p-4 text-[11px] font-bold transition-all border",
+                              isActive
+                                ? "bg-white/10 border-primary text-primary shadow-inner shadow-primary/10"
+                                : "bg-white/5 border-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+                            )}
+                          >
+                            <Icon className={cn("h-6 w-6", isActive ? "text-primary" : "opacity-50")} />
+                            {item.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </>
                 )}
 
-                <div className="my-4 border-t" />
-                <p className="text-sm font-medium text-muted-foreground px-2 mb-2">Conta</p>
+                <div className="my-6 border-t border-white/10 mx-2" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 px-2 mb-3">Sua Conta</p>
 
-                {isApproved && !isPlayer && (
-                  <Link to={`${basePath}/meu-perfil`} onClick={() => setOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start gap-3 px-3">
-                      <User className="h-5 w-5" />
-                      Meu Perfil
-                    </Button>
-                  </Link>
-                )}
-                
-                {isPlayer && (
-                  <Link to={`${basePath}/meu-perfil`} onClick={() => setOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start gap-3 px-3">
-                      <User className="h-5 w-5" />
-                      Minha Área
-                    </Button>
-                  </Link>
-                )}
+                <div className="space-y-1">
+                  {isApproved && !isPlayer && (
+                    <Link to={`${basePath}/meu-perfil`} onClick={() => setOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start gap-4 px-4 h-12 text-white/70 hover:text-white hover:bg-white/5 rounded-xl font-semibold">
+                        <User className="h-5 w-5 opacity-70" />
+                        Gerenciar Perfil
+                      </Button>
+                    </Link>
+                  )}
+                  
+                  {isPlayer && (
+                    <Link to={`${basePath}/meu-perfil`} onClick={() => setOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start gap-4 px-4 h-12 text-white/70 hover:text-white hover:bg-white/5 rounded-xl font-semibold">
+                        <User className="h-5 w-5 opacity-70" />
+                        Minha Área de Atleta
+                      </Button>
+                    </Link>
+                  )}
 
+                  <Button variant="ghost" className="w-full justify-start gap-4 px-4 h-12 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl font-bold" onClick={handleSignOut}>
+                    <LogOut className="h-5 w-5 opacity-70" />
+                    Encerrar Sessão
+                  </Button>
+                </div>
 
-
-                <Button variant="ghost" className="w-full justify-start gap-3 px-3 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleSignOut}>
-                  <LogOut className="h-5 w-5" />
-                  Sair
-                </Button>
-
-                <div className="my-4 border-t" />
+                <div className="my-6 border-t border-white/10 mx-2" />
                 <div className="flex gap-2 px-2">
                   {redesSociais?.instagram && (
                     <a href={redesSociais.instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">

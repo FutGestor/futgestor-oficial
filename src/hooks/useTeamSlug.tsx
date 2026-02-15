@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import NotFound from "@/pages/NotFound";
 import { Skeleton } from "@/components/ui/skeleton";
 import { applyTeamTheme } from "@/lib/colors";
+import { ESCUDO_PADRAO } from "@/lib/constants";
 
 export interface TeamSlugData {
   id: string;
@@ -12,7 +13,11 @@ export interface TeamSlugData {
   slug: string;
   escudo_url: string | null;
   banner_url: string | null;
+  cidade: string | null;
+  estado: string | null;
   cores: any;
+  invite_code?: string | null;
+  owner_contact?: string | null;
   redes_sociais: Record<string, string>;
   bio_config?: {
     text: string | null;
@@ -90,9 +95,13 @@ export function TeamSlugLayout() {
       id: teamData.id,
       nome: teamData.nome,
       slug: teamData.slug,
-      escudo_url: teamData.escudo_url,
+      escudo_url: teamData.escudo_url || ESCUDO_PADRAO,
       banner_url: (teamData as any).banner_url || null,
+      cidade: (teamData as any).cidade,
+      estado: (teamData as any).estado,
       cores: teamData.cores,
+      invite_code: teamData.invite_code,
+      owner_contact: (teamData as any).owner_contact,
       redes_sociais: (teamData.redes_sociais as Record<string, string>) || {},
       bio_config: (teamData as any).bio_config || null,
     },

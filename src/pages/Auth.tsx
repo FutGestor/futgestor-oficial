@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Layout } from "@/components/layout/Layout";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,7 +52,14 @@ export default function Auth() {
     if (passwordRecovery || searchParams.get("type") === "recovery") {
       setView("reset");
     }
-  }, [passwordRecovery, searchParams]);
+
+    if (searchParams.get("confirmed") === "true") {
+      toast({
+        title: "E-mail confirmado!",
+        description: "Agora você pode entrar no painel.",
+      });
+    }
+  }, [passwordRecovery, searchParams, toast]);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -261,180 +269,185 @@ export default function Auth() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex items-center justify-center">
-            <FutGestorLogo className="h-16 w-16" />
-          </div>
-          <CardTitle className="text-2xl">FutGestor</CardTitle>
-          <CardDescription>
-            Acesse o painel do seu time
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {view === "forgot" ? (
-            <ForgotPasswordForm onBack={() => setView("auth")} />
-          ) : view === "reset" ? (
-            <ResetPasswordForm onSuccess={() => { clearPasswordRecovery(); setView("auth"); navigate("/auth"); }} />
-          ) : (
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
-            </TabsList>
+    <Layout>
+      <div className="flex min-h-[80vh] items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-black/40 backdrop-blur-xl border-white/10 shadow-2xl">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex items-center justify-center">
+              <FutGestorLogo className="h-16 w-16" />
+            </div>
+            <CardTitle className="text-2xl text-white italic font-black uppercase tracking-tighter drop-shadow-[0_0_10px_rgba(230,179,37,0.3)]">
+              FUT<span className="text-primary">GESTOR</span>
+            </CardTitle>
+            <CardDescription className="text-slate-400">
+              Acesse o painel do seu time
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {view === "forgot" ? (
+              <ForgotPasswordForm onBack={() => setView("auth")} />
+            ) : view === "reset" ? (
+              <ResetPasswordForm onSuccess={() => { clearPasswordRecovery(); setView("auth"); navigate("/auth"); }} />
+            ) : (
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")}>
+              <TabsList className="grid w-full grid-cols-2 bg-black/40 border border-white/10">
+                <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-black font-bold uppercase italic text-xs">Entrar</TabsTrigger>
+                <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-black font-bold uppercase italic text-xs">Cadastrar</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="login" className="mt-4">
-              <Form {...loginForm}>
-                <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
-                  <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="seu@email.com"
-                              className="pl-10"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Senha</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              type="password"
-                              placeholder="••••••"
-                              className="pl-10"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="remember" 
-                      checked={rememberMe}
-                      onCheckedChange={(checked) => setRememberMe(checked === true)}
+              <TabsContent value="login" className="mt-4">
+                <Form {...loginForm}>
+                  <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+                    <FormField
+                      control={loginForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-300 uppercase text-[10px] font-bold tracking-widest">Email</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Mail className="absolute left-3 top-3 h-4 w-4 text-primary" />
+                              <Input
+                                placeholder="seu@email.com"
+                                className="pl-10 bg-black/40 border-white/10 text-white focus:border-primary/50"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                    <label 
-                      htmlFor="remember" 
-                      className="text-sm text-muted-foreground cursor-pointer"
+                    <FormField
+                      control={loginForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-300 uppercase text-[10px] font-bold tracking-widest">Senha</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Lock className="absolute left-3 top-3 h-4 w-4 text-primary" />
+                              <Input
+                                type="password"
+                                placeholder="••••••"
+                                className="pl-10 bg-black/40 border-white/10 text-white focus:border-primary/50"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="remember" 
+                        checked={rememberMe}
+                        onCheckedChange={(checked) => setRememberMe(checked === true)}
+                        className="border-white/20 data-[state=checked]:bg-primary data-[state=checked]:text-black"
+                      />
+                      <label 
+                        htmlFor="remember" 
+                        className="text-sm text-slate-400 cursor-pointer hover:text-white transition-colors"
+                      >
+                        Lembrar email e senha
+                      </label>
+                    </div>
+                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-black font-black uppercase italic shadow-[0_0_20px_rgba(230,179,37,0.2)]" disabled={isLoading}>
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Entrar
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => setView("forgot")}
+                      className="w-full text-center text-sm text-primary hover:underline font-bold"
                     >
-                      Lembrar email e senha
-                    </label>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Entrar
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={() => setView("forgot")}
-                    className="w-full text-center text-sm text-primary hover:underline"
-                  >
-                    Esqueci minha senha
-                  </button>
-                </form>
-              </Form>
-            </TabsContent>
+                      Esqueci minha senha
+                    </button>
+                  </form>
+                </Form>
+              </TabsContent>
 
-            <TabsContent value="signup" className="mt-4">
-              <Form {...signupForm}>
-                <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
-                  <FormField
-                    control={signupForm.control}
-                    name="nome"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome completo</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="Seu nome completo"
-                              className="pl-10"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={signupForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="seu@email.com"
-                              className="pl-10"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={signupForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Senha</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              type="password"
-                              placeholder="••••••"
-                              className="pl-10"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Cadastrar
-                  </Button>
-                </form>
-              </Form>
-              <p className="mt-4 text-center text-sm text-muted-foreground">
-                Após o cadastro, você poderá criar seu time imediatamente.
-              </p>
-            </TabsContent>
-          </Tabs>
-          )}
+              <TabsContent value="signup" className="mt-4">
+                <Form {...signupForm}>
+                  <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
+                    <FormField
+                      control={signupForm.control}
+                      name="nome"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-300 uppercase text-[10px] font-bold tracking-widest">Nome completo</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <User className="absolute left-3 top-3 h-4 w-4 text-primary" />
+                              <Input
+                                placeholder="Seu nome completo"
+                                className="pl-10 bg-black/40 border-white/10 text-white focus:border-primary/50"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={signupForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-300 uppercase text-[10px] font-bold tracking-widest">Email</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Mail className="absolute left-3 top-3 h-4 w-4 text-primary" />
+                              <Input
+                                placeholder="seu@email.com"
+                                className="pl-10 bg-black/40 border-white/10 text-white focus:border-primary/50"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={signupForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-300 uppercase text-[10px] font-bold tracking-widest">Senha</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Lock className="absolute left-3 top-3 h-4 w-4 text-primary" />
+                              <Input
+                                type="password"
+                                placeholder="••••••"
+                                className="pl-10 bg-black/40 border-white/10 text-white focus:border-primary/50"
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-black font-black uppercase italic shadow-[0_0_20px_rgba(230,179,37,0.2)]" disabled={isLoading}>
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Cadastrar
+                    </Button>
+                  </form>
+                </Form>
+                <p className="mt-4 text-center text-sm text-slate-500 font-medium italic">
+                  Após o cadastro, você poderá criar seu time imediatamente.
+                </p>
+              </TabsContent>
+            </Tabs>
+            )}
 
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>
+      </div>
+    </Layout>
   );
 }

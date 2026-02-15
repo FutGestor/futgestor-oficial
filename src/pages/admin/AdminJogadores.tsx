@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit, Trash2, User, Upload, X, KeyRound, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, User, Upload, X, KeyRound, Loader2, QrCode, Copy, Share2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,8 @@ import { positionLabels, type Jogador, type PlayerPosition } from "@/lib/types";
 import { usePlanAccess } from "@/hooks/useSubscription";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { cn } from "@/lib/utils";
+import { Layout } from "@/components/layout/Layout";
 
 type JogadorFormData = {
   nome: string;
@@ -52,10 +54,8 @@ export default function AdminJogadores() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Gerar Acesso state
-  const [accessDialog, setAccessDialog] = useState<{ open: boolean; jogador: Jogador | null }>({ open: false, jogador: null });
-  const [accessEmail, setAccessEmail] = useState("");
-  const [isCreatingAccess, setIsCreatingAccess] = useState(false);
+  // Invite Link state
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   const { team } = useTeamConfig();
   const { basePath } = useTeamSlug();
@@ -226,54 +226,114 @@ export default function AdminJogadores() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este jogador?")) return;
+  const handleDelete = async (id: string, email: string | null) => {
+    const message = email 
+      ? `ATENÇÃO: Você está prestes a excluir este jogador DEFINITIVAMENTE. \n\nIsso removerá o acesso ao sistema (e-mail: ${email}) e todos os dados vinculados a ele. \n\nESTA AÇÃO NÃO PODE SER DESFEITA. Deseja continuar?`
+      : "Tem certeza que deseja excluir este jogador? Todos os dados vinculados serão removidos.";
+
+    if (!confirm(message)) return;
 
     try {
-      const { error } = await supabase.from("jogadores").delete().eq("id", id);
+      const { error } = await supabase.rpc('delete_player_permanent', { _player_id: id });
+      
       if (error) throw error;
-      toast({ title: "Jogador excluído com sucesso!" });
+      
+      toast({ title: "Jogador e acesso removidos com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["jogadores"] });
     } catch (error: unknown) {
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: error instanceof Error ? error.message : "Ocorreu um erro",
+        title: "Erro ao excluir",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao tentar excluir permanentemente.",
       });
     }
   };
 
-  const handleCreateAccess = async () => {
-    if (!accessDialog.jogador || !accessEmail) return;
-    setIsCreatingAccess(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-player-access", {
-        body: { jogador_id: accessDialog.jogador.id, email: accessEmail },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+  const copyInviteLink = () => {
+    if (!team?.invite_code || team.invite_code === "undefined") {
       toast({
-        title: "Acesso criado!",
-        description: data?.message || `E-mail: ${accessEmail} / Senha: 2508futgestor5515@`,
+        variant: "destructive",
+        title: "Erro",
+        description: "O código de convite ainda não foi gerado. Verifique a configuração do banco de dados.",
       });
-      queryClient.invalidateQueries({ queryKey: ["jogadores"] });
-      setAccessDialog({ open: false, jogador: null });
-      setAccessEmail("");
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Erro", description: err.message });
-    } finally {
-      setIsCreatingAccess(false);
+      return;
     }
+    const link = `${window.location.origin}/convite/${team.invite_code}`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: "Link copiado!",
+      description: "O link de convite foi copiado para sua área de transferência.",
+    });
+  };
+
+  const shareOnWhatsApp = () => {
+    if (!team?.invite_code || team.invite_code === "undefined") {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "O código de convite ainda não foi gerado.",
+      });
+      return;
+    }
+    const link = `${window.location.origin}/convite/${team.invite_code}`;
+    const text = `Entre para o time ${team?.nome} no FutGestor: ${link}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   return (
-    <div className="space-y-6">
+    <Layout>
+      <div className="space-y-6 container py-8 px-4 md:px-6">
       <ManagementHeader 
         title="Gerenciar Elenco" 
         subtitle="Adicione jogadores, edite informações e gerencie acessos." 
       />
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="border-primary text-primary hover:bg-primary/5">
+              <Share2 className="mr-2 h-4 w-4" />
+              Convidar Atletas
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Convidar Atletas</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col items-center gap-6 py-4">
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Código do Time</span>
+                <span className="text-4xl font-bold tracking-widest text-primary">{team?.invite_code || "------"}</span>
+              </div>
+              
+              <div className="w-full space-y-4">
+                <div className="space-y-2">
+                  <Label>Link de Convite</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      readOnly 
+                      value={`${window.location.origin}/convite/${team?.invite_code}`}
+                      className="bg-black/20 border-white/10"
+                    />
+                    <Button size="icon" variant="secondary" onClick={copyInviteLink}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <Button 
+                  className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white" 
+                  onClick={shareOnWhatsApp}
+                  disabled={!team?.invite_code || team.invite_code === "undefined"}
+                >
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Enviar no WhatsApp
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog}>
@@ -437,7 +497,7 @@ export default function AdminJogadores() {
       ) : jogadores && jogadores.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {jogadores.map((jogador) => (
-            <Card key={jogador.id} className={!jogador.ativo ? "opacity-60" : ""}>
+            <Card key={jogador.id} className={cn("bg-black/40 backdrop-blur-xl border-white/10", !jogador.ativo ? "opacity-60" : "")}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -453,9 +513,9 @@ export default function AdminJogadores() {
                       </div>
                     )}
                     <div>
-                      <h3 className="font-semibold">{jogador.nome}</h3>
+                      <h3 className="font-black uppercase italic tracking-tight text-white">{jogador.nome}</h3>
                       {jogador.apelido && (
-                        <p className="text-sm text-muted-foreground">"{jogador.apelido}"</p>
+                        <p className="text-xs font-medium uppercase tracking-widest text-primary/80">"{jogador.apelido}"</p>
                       )}
                     </div>
                   </div>
@@ -463,7 +523,7 @@ export default function AdminJogadores() {
                     <Button variant="ghost" size="icon" onClick={() => openEditDialog(jogador)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(jogador.id)}>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(jogador.id, jogador.email)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
@@ -472,73 +532,27 @@ export default function AdminJogadores() {
                   {jogador.numero !== null && (
                     <Badge variant="outline" className="font-mono">#{jogador.numero}</Badge>
                   )}
-                  <Badge variant="secondary">{positionLabels[jogador.posicao]}</Badge>
+                  <Badge variant="secondary" className="bg-white/5 border-white/10 uppercase tracking-widest text-[10px]">{positionLabels[jogador.posicao]}</Badge>
                   {!jogador.ativo && <Badge variant="outline">Inativo</Badge>}
-                  {jogador.user_id ? (
-                    <Badge variant="outline" className="text-xs text-green-600 border-green-600">
-                      <KeyRound className="mr-1 h-3 w-3" /> Com acesso
+                  {jogador.user_id && (
+                    <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest text-green-400 border-green-500/30 bg-green-500/10">
+                      <KeyRound className="mr-1 h-3 w-3" /> ACESSO ATIVO
                     </Badge>
-                  ) : hasLoginJogadores ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-6 text-xs"
-                      onClick={() => {
-                        setAccessEmail(jogador.email || "");
-                        setAccessDialog({ open: true, jogador });
-                      }}
-                    >
-                      <KeyRound className="mr-1 h-3 w-3" /> Gerar Acesso
-                    </Button>
-                  ) : null}
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
-        <Card>
+        <Card className="bg-black/40 backdrop-blur-xl border-white/10">
           <CardContent className="py-8 text-center text-muted-foreground">
             Nenhum jogador cadastrado.
           </CardContent>
         </Card>
       )}
 
-      {/* Dialog Gerar Acesso */}
-      <Dialog open={accessDialog.open} onOpenChange={(open) => !open && setAccessDialog({ open: false, jogador: null })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Gerar Acesso para {accessDialog.jogador?.nome}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="access-email">E-mail do jogador</Label>
-              <Input
-                id="access-email"
-                type="email"
-                value={accessEmail}
-                onChange={(e) => setAccessEmail(e.target.value)}
-                placeholder="jogador@email.com"
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Será criada uma conta com senha padrão: <strong>2508futgestor5515@</strong>
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setAccessDialog({ open: false, jogador: null })}>
-                Cancelar
-              </Button>
-              <Button onClick={handleCreateAccess} disabled={isCreatingAccess || !accessEmail}>
-                {isCreatingAccess ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando...</>
-                ) : (
-                  <><KeyRound className="mr-2 h-4 w-4" /> Gerar Acesso</>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+      </div>
+    </Layout>
   );
 }

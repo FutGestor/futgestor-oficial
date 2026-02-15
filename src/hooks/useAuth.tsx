@@ -8,6 +8,7 @@ interface Profile {
   aprovado: boolean;
   nome: string | null;
   team_id: string | null;
+  created_at: string | null;
 }
 
 interface AuthContextType {
@@ -102,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, jogador_id, aprovado, nome, team_id")
+        .select("id, jogador_id, aprovado, nome, team_id, created_at")
         .eq("id", userId)
         .maybeSingle();
 
@@ -124,7 +125,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => {
     if (user) {
-      await fetchProfile(user.id);
+      await Promise.all([
+        fetchProfile(user.id),
+        checkAdminRole(user.id)
+      ]);
     }
   };
 
