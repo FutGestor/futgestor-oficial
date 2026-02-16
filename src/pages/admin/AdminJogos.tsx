@@ -427,6 +427,14 @@ export default function AdminJogos() {
                     <Label>Data</Label>
                     <DatePickerPopover
                       date={formData.data_hora ? new Date(formData.data_hora) : undefined}
+                      modifiers={{
+                        booked: (jogos || [])
+                          .filter(j => !editingJogo || j.id !== editingJogo.id)
+                          .map(j => new Date(j.data_hora))
+                      }}
+                      modifiersClassNames={{
+                        booked: "relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-primary"
+                      }}
                       setDate={(date) => {
                         if (date) {
                           const currentTime = formData.data_hora ? formData.data_hora.split('T')[1] : "19:00";

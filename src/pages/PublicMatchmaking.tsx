@@ -107,19 +107,19 @@ export default function PublicMatchmaking() {
       <Layout>
         <div className="flex min-h-[80vh] items-center justify-center p-4">
           <Card className="max-w-md w-full border border-white/10 bg-black/40 backdrop-blur-3xl shadow-2xl relative z-10 overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#E6B325] to-transparent animate-pulse" />
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#1B3A5C] to-transparent animate-pulse" />
           
           <CardHeader className="text-center pt-10 pb-4">
             <div className="flex justify-center mb-6">
               <div className="relative">
-                <div className="absolute inset-0 bg-[#E6B325] blur-2xl opacity-20 animate-pulse" />
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#E6B325] to-[#D4A220] flex items-center justify-center relative z-10 shadow-[0_0_30px_rgba(230,179,37,0.4)]">
-                  <Zap className="w-12 h-12 text-black fill-current animate-bounce" />
+                <div className="absolute inset-0 bg-[#1B3A5C] blur-2xl opacity-20 animate-pulse" />
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#1B3A5C] to-[#D4A220] flex items-center justify-center relative z-10 shadow-[0_0_30px_rgba(27,58,92,0.4)]">
+                  <Zap className="w-12 h-12 text-white fill-current animate-bounce" />
                 </div>
               </div>
             </div>
             
-            <Badge className="mx-auto mb-4 bg-[#E6B325]/20 text-[#E6B325] border-[#E6B325]/30 animate-in fade-in zoom-in duration-500">
+            <Badge className="mx-auto mb-4 bg-[#1B3A5C]/20 text-[#1B3A5C] border-[#1B3A5C]/30 animate-in fade-in zoom-in duration-500">
               CONQUISTA DESBLOQUEADA
             </Badge>
             
@@ -133,7 +133,7 @@ export default function PublicMatchmaking() {
 
           <CardContent className="space-y-6 pb-10">
             <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 mt-2 shadow-inner">
-              <h4 className="font-black text-[#E6B325] uppercase italic text-sm mb-2 flex items-center gap-2">
+              <h4 className="font-black text-[#1B3A5C] uppercase italic text-sm mb-2 flex items-center gap-2">
                 <Trophy className="w-4 h-4" />
                 QUER UM SITE ASSIM PARA O SEU TIME?
               </h4>
@@ -142,7 +142,7 @@ export default function PublicMatchmaking() {
               </p>
               <Button 
                 onClick={() => window.location.href = '/auth'}
-                className="w-full bg-[#E6B325] hover:bg-[#D4A220] text-black font-black uppercase italic rounded-xl h-14 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(230,179,37,0.3)] transition-all hover:scale-[1.03] active:scale-[0.97]"
+                className="w-full bg-[#1B3A5C] hover:bg-[#D4A220] text-white font-black uppercase italic rounded-xl h-14 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(230,179,37,0.3)] transition-all hover:scale-[1.03] active:scale-[0.97]"
               >
                 CRIAR MEU TIME AGORA <CheckCircle2 className="w-5 h-5" />
               </Button>
@@ -187,7 +187,7 @@ export default function PublicMatchmaking() {
       <div className="max-w-6xl mx-auto px-4 -mt-32 relative z-10 pb-20">
         <div className="flex flex-col md:flex-row items-center md:items-end gap-6 mb-12">
           <div className="w-36 h-36 md:w-48 md:h-48 rounded-3xl bg-white/5 backdrop-blur-xl shadow-2xl p-4 flex items-center justify-center border-2 border-white/10 group overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#E6B325]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1B3A5C]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
              {team.escudo_url ? (
                <img src={team.escudo_url} className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-transform group-hover:scale-110" alt="Escudo" />
              ) : (
@@ -199,16 +199,16 @@ export default function PublicMatchmaking() {
               {team.nome}
             </h1>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-               <div className="flex gap-0.5 text-[#E6B325]">
+               <div className="flex gap-0.5 text-[#1B3A5C]">
                  <Star className="w-4 h-4 fill-current" />
                  <Star className="w-4 h-4 fill-current" />
                  <Star className="w-4 h-4 fill-current" />
                  <Star className="w-4 h-4 fill-current" />
                  <Star className="w-4 h-4 fill-current" />
                </div>
-               <Badge className="bg-[#E6B325]/20 text-[#E6B325] border-[#E6B325]/30 text-[10px] font-black italic">TIMELINE VERIFICADA</Badge>
+               <Badge className="bg-[#1B3A5C]/20 text-[#1B3A5C] border-[#1B3A5C]/30 text-[10px] font-black italic">TIMELINE VERIFICADA</Badge>
                <span className="text-xs font-bold text-slate-400 uppercase italic flex items-center gap-1.5">
-                <MapPin className="w-3 h-3 text-[#E6B325]" />
+                <MapPin className="w-3 h-3 text-[#1B3A5C]" />
                 {team.cidade}, {team.estado}
                </span>
             </div>
@@ -219,8 +219,8 @@ export default function PublicMatchmaking() {
           <div className="lg:col-span-8 space-y-8">
             <div className="space-y-4">
               <h2 className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tight flex items-center gap-3">
-                <div className="p-2 bg-[#E6B325] rounded-lg">
-                  <Sword className="w-6 h-6 text-black" />
+                <div className="p-2 bg-[#1B3A5C] rounded-lg">
+                  <Sword className="w-6 h-6 text-white" />
                 </div>
                 DESAFIE O {team.nome}
               </h2>
@@ -237,31 +237,31 @@ export default function PublicMatchmaking() {
                <div className="relative z-10 space-y-8">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                    <div className="space-y-3">
-                     <Label className="text-[10px] font-black uppercase text-[#E6B325] italic tracking-[0.2em]">NOME DO TIME VISITANTE</Label>
+                     <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">NOME DO TIME VISITANTE</Label>
                      <Input 
                       required
                       placeholder="Ex: Real Madrid FC"
                       value={formData.nome_time}
                       onChange={e => setFormData(p => ({...p, nome_time: e.target.value}))}
-                      className="h-12 rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#E6B325] focus:ring-[#E6B325]/20 transition-all font-bold"
+                      className="h-12 rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 transition-all font-bold"
                      />
                    </div>
                    <div className="space-y-3">
-                     <Label className="text-[10px] font-black uppercase text-[#E6B325] italic tracking-[0.2em]">WHATSAPP DO RESPONSÁVEL</Label>
+                     <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">WHATSAPP DO RESPONSÁVEL</Label>
                      <Input 
                       required
                       type="tel"
                       placeholder="(00) 00000-0000"
                       value={formData.telefone_contato}
                       onChange={e => setFormData(p => ({...p, telefone_contato: e.target.value}))}
-                      className="h-12 rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#E6B325] focus:ring-[#E6B325]/20 transition-all font-bold"
+                      className="h-12 rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 transition-all font-bold"
                      />
                    </div>
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                    <div className="space-y-3">
-                     <Label className="text-[10px] font-black uppercase text-[#E6B325] italic tracking-[0.2em]">SUGESTÃO DE DATA</Label>
+                     <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">SUGESTÃO DE DATA</Label>
                      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                       <PopoverTrigger asChild>
                         <Button
@@ -271,7 +271,7 @@ export default function PublicMatchmaking() {
                             !date ? "text-slate-600" : "text-white hover:text-white"
                           )}
                         >
-                          <CalendarIcon className="mr-3 h-4 w-4 text-[#E6B325]" />
+                          <CalendarIcon className="mr-3 h-4 w-4 text-[#1B3A5C]" />
                           {date ? format(date, "dd 'de' MMMM", { locale: ptBR }) : <span>Selecione no calendário</span>}
                         </Button>
                       </PopoverTrigger>
@@ -300,61 +300,61 @@ export default function PublicMatchmaking() {
                     </Popover>
                    </div>
                    <div className="space-y-3">
-                     <Label className="text-[10px] font-black uppercase text-[#E6B325] italic tracking-[0.2em]">HORÁRIO DA PARTIDA</Label>
+                     <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">HORÁRIO DA PARTIDA</Label>
                      <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#E6B325]" />
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1B3A5C]" />
                         <Input 
                           required
                           type="time"
                           value={formData.horario_preferido}
                           onChange={e => setFormData(p => ({...p, horario_preferido: e.target.value}))}
-                          className="h-12 pl-10 rounded-xl border-white/10 bg-black/40 text-white focus:border-[#E6B325] focus:ring-[#E6B325]/20 font-bold"
+                          className="h-12 pl-10 rounded-xl border-white/10 bg-black/40 text-white focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 font-bold"
                         />
                      </div>
                    </div>
                  </div>
 
                  <div className="space-y-3">
-                   <Label className="text-[10px] font-black uppercase text-[#E6B325] italic tracking-[0.2em]">LOCAL SUGERIDO</Label>
+                   <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">LOCAL SUGERIDO</Label>
                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#E6B325]" />
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1B3A5C]" />
                       <Input 
                         required
                         placeholder="Ex: Arena Principal do Bairro"
                         value={formData.local_sugerido}
                         onChange={e => setFormData(p => ({...p, local_sugerido: e.target.value}))}
-                        className="h-12 pl-10 rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#E6B325] focus:ring-[#E6B325]/20 font-bold"
+                        className="h-12 pl-10 rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 font-bold"
                       />
                    </div>
                  </div>
 
                  <div className="space-y-3">
-                   <Label className="text-[10px] font-black uppercase text-[#E6B325] italic tracking-[0.2em]">OBSERVAÇÕES ADICIONAIS</Label>
+                   <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">OBSERVAÇÕES ADICIONAIS</Label>
                    <Textarea 
                     placeholder="Conte um pouco sobre o nível do seu time..."
                     value={formData.observacoes}
                     onChange={e => setFormData(p => ({...p, observacoes: e.target.value}))}
-                    className="rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#E6B325] focus:ring-[#E6B325]/20 min-h-[120px] font-medium leading-relaxed"
+                    className="rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 min-h-[120px] font-medium leading-relaxed"
                    />
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
                     <div className="space-y-4">
-                      <Label className="text-[10px] font-black uppercase text-[#E6B325] italic tracking-[0.2em]">DESAFIO HUMANO: QUANTO É {captcha.num1} + {captcha.num2}?</Label>
+                      <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">DESAFIO HUMANO: QUANTO É {captcha.num1} + {captcha.num2}?</Label>
                       <Input 
                         required
                         type="number"
                         placeholder="Sua resposta"
                         value={formData.captcha_answer}
                         onChange={e => setFormData(p => ({...p, captcha_answer: e.target.value}))}
-                        className="h-12 rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#E6B325] focus:ring-[#E6B325]/20 font-bold"
+                        className="h-12 rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 font-bold"
                       />
                     </div>
 
                     <Button 
                       type="submit"
                       disabled={createSolicitacao.isPending}
-                      className="w-full bg-[#E6B325] hover:bg-[#D4A220] text-black font-black italic rounded-xl h-14 text-lg shadow-[0_0_30px_rgba(230,179,37,0.2)] transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 group/btn overflow-hidden"
+                      className="w-full bg-[#1B3A5C] hover:bg-[#D4A220] text-white font-black italic rounded-xl h-14 text-lg shadow-[0_0_30px_rgba(230,179,37,0.2)] transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 group/btn overflow-hidden"
                     >
                       {createSolicitacao.isPending ? (
                         "ENVIANDO DESAFIO..." 
@@ -377,14 +377,14 @@ export default function PublicMatchmaking() {
              {/* Widget: Agenda Real */}
              <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
                 <div className="flex items-center justify-between mb-8">
-                  <h4 className="font-black text-white uppercase italic text-sm border-l-4 border-[#E6B325] pl-3">Agenda do Mês</h4>
-                  <CalendarIcon className="w-4 h-4 text-[#E6B325]" />
+                  <h4 className="font-black text-white uppercase italic text-sm border-l-4 border-[#1B3A5C] pl-3">Agenda do Mês</h4>
+                  <CalendarIcon className="w-4 h-4 text-[#1B3A5C]" />
                 </div>
                 
                 <div className="space-y-6">
                    {proximosTresJogos.length > 0 ? proximosTresJogos.map((jogo, i) => (
                       <div key={jogo.id} className="flex items-center gap-4 group cursor-help anim-in-up" style={{ animationDelay: `${i * 100}ms` }}>
-                        <div className="w-12 h-12 rounded-2xl bg-black/60 flex flex-col items-center justify-center font-black text-[#E6B325] border border-white/10 shadow-inner group-hover:border-[#E6B325]/40 transition-colors">
+                        <div className="w-12 h-12 rounded-2xl bg-black/60 flex flex-col items-center justify-center font-black text-[#1B3A5C] border border-white/10 shadow-inner group-hover:border-[#1B3A5C]/40 transition-colors">
                           <span className="text-xs leading-none">{format(new Date(jogo.data_hora), "dd")}</span>
                           <span className="text-[8px] uppercase tracking-tighter opacity-60 font-bold">{format(new Date(jogo.data_hora), "MMM", { locale: ptBR })}</span>
                         </div>
@@ -418,17 +418,17 @@ export default function PublicMatchmaking() {
                    toast({ title: "Ops!", description: "Este time ainda não configurou um contato oficial." });
                  }
                }}
-               className="bg-gradient-to-br from-slate-900 to-black rounded-3xl p-8 text-white border border-white/10 overflow-hidden relative group cursor-pointer hover:border-[#E6B325]/30 transition-all shadow-2xl"
+               className="bg-gradient-to-br from-slate-900 to-black rounded-3xl p-8 text-white border border-white/10 overflow-hidden relative group cursor-pointer hover:border-[#1B3A5C]/30 transition-all shadow-2xl"
              >
                 <div className="relative z-10">
-                   <div className="w-12 h-12 rounded-2xl bg-[#E6B325] flex items-center justify-center mb-6 shadow-lg shadow-[#E6B325]/20 group-hover:scale-110 transition-transform">
-                    <MessageSquare className="w-6 h-6 text-black" />
+                   <div className="w-12 h-12 rounded-2xl bg-[#1B3A5C] flex items-center justify-center mb-6 shadow-lg shadow-[#1B3A5C]/20 group-hover:scale-110 transition-transform">
+                    <MessageSquare className="w-6 h-6 text-white" />
                    </div>
                    <h4 className="font-black uppercase italic text-sm mb-3 tracking-tight">Falar com o Responsável</h4>
                    <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-6">
                       Dúvidas sobre o local, nível do jogo ou coordenação? Resolva agora pelo WhatsApp.
                    </p>
-                   <div className="flex items-center gap-2 text-[10px] font-black uppercase text-[#E6B325]">
+                   <div className="flex items-center gap-2 text-[10px] font-black uppercase text-[#1B3A5C]">
                       Abrir Conversa <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                    </div>
                 </div>

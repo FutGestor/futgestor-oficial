@@ -20,22 +20,23 @@ export function ScheduleGameCard({ teamId }: ScheduleGameCardProps) {
 
   return (
     <>
-      <Card className="border-2 border-dashed border-primary/50 bg-gradient-to-r from-primary/5 via-secondary/10 to-primary/5">
-        <div className="flex flex-col items-center gap-4 p-6 md:flex-row md:justify-between">
-          <div className="flex flex-col items-center gap-4 text-center md:flex-row md:text-left">
-            <CalendarPlus className="h-12 w-12 text-foreground" />
+      <Card className="border border-dashed border-primary/30 bg-black/20 backdrop-blur-sm">
+        <div className="flex flex-col items-center gap-3 p-4 md:flex-row md:justify-between">
+          <div className="flex items-center gap-3 text-left">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <CalendarPlus className="h-6 w-6 text-primary" />
+            </div>
             <div>
-              <h3 className="text-xl font-bold text-foreground">Quer jogar contra a gente?</h3>
-              <p className="text-muted-foreground">Agende uma partida amistosa! Envie uma proposta com a data e local de sua preferência.</p>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Quer jogar contra a gente?</h3>
+              <p className="text-[11px] text-muted-foreground leading-tight max-w-[280px]">Agende uma partida amistosa enviando uma proposta.</p>
             </div>
           </div>
           <Button
             onClick={() => setDialogOpen(true)}
-            size="lg"
+            size="sm"
             variant="secondary"
-            className="w-full md:w-auto"
+            className="w-full md:w-auto text-xs font-black uppercase tracking-widest h-9 px-4"
           >
-            <CalendarPlus className="mr-2 h-5 w-5" />
             Agendar Partida
           </Button>
         </div>

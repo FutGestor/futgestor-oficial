@@ -1,3 +1,4 @@
+import React from "react";
 import { User } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,11 +13,68 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Users, UserCheck, Settings2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { AchievementGrid } from "@/components/achievements/AchievementGrid";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription 
+} from "@/components/ui/dialog";
+import { Trophy } from "lucide-react";
+import { usePlayerAchievements } from "@/hooks/useAchievements";
+import { AchievementBadge } from "@/components/achievements/AchievementBadge";
 
-function JogadorCard({ jogador, stats }: { jogador: JogadorPublico; stats: any }) {
+function PlayerMiniAchievements({ jogadorId, posicao }: { jogadorId: string; posicao: string }) {
+  const { data: achievements, isLoading } = usePlayerAchievements(jogadorId);
+
+  if (isLoading || !achievements) return <div className="h-7" />;
+
+  const tierOrder: Record<string, number> = { diamante: 4, ouro: 3, prata: 2, bronze: 1, unica: 5 };
+  
+  const filtered = achievements
+    .filter(a => {
+      const pos = a.achievement.applicable_positions || [];
+      return pos.length === 0 || pos.some(p => p.toLowerCase() === posicao.toLowerCase());
+    })
+    .filter(a => !!a.current_tier)
+    .sort((a, b) => (tierOrder[b.current_tier!] || 0) - (tierOrder[a.current_tier!] || 0));
+
+  const display = filtered.slice(0, 4);
+  const extra = filtered.length > 4 ? filtered.length - 4 : 0;
+
+  if (filtered.length === 0) return null;
+
   return (
-    <Card className="overflow-hidden transition-all bg-black/40 backdrop-blur-xl border-white/10">
-      <div style={{ backgroundColor: 'transparent' }} className="aspect-square bg-muted">
+    <div className="flex items-center gap-1 mb-3">
+      {display.map(a => (
+        <AchievementBadge 
+          key={a.achievement_id}
+          slug={a.achievement.slug}
+          tier={a.current_tier}
+          iconName={a.achievement.icon}
+          size="xs"
+        />
+      ))}
+      {extra > 0 && (
+        <span className="text-[10px] font-bold text-muted-foreground ml-1">+{extra}</span>
+      )}
+    </div>
+  );
+}
+
+function JogadorCard({ 
+  jogador, 
+  stats, 
+  onViewAchievements 
+}: { 
+  jogador: JogadorPublico; 
+  stats: any;
+  onViewAchievements: (id: string, nome: string) => void;
+}) {
+  return (
+    <Card className="overflow-hidden transition-all bg-black/40 backdrop-blur-xl border-white/10 group">
+      <div style={{ backgroundColor: 'transparent' }} className="aspect-square bg-muted relative">
         {jogador.foto_url ? (
           <img
             src={jogador.foto_url}
@@ -28,6 +86,19 @@ function JogadorCard({ jogador, stats }: { jogador: JogadorPublico; stats: any }
             <User className="h-20 w-20 text-primary/40" />
           </div>
         )}
+        
+        {/* Achievement Overlay Button */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="gap-2"
+            onClick={() => onViewAchievements(jogador.id, jogador.nome)}
+          >
+            <Trophy className="h-4 w-4 text-yellow-500" />
+            Ver Conquistas
+          </Button>
+        </div>
       </div>
       <CardContent className="p-4">
         <div className="mb-2 flex items-start justify-between">
@@ -44,9 +115,14 @@ function JogadorCard({ jogador, stats }: { jogador: JogadorPublico; stats: any }
           )}
         </div>
 
-        <Badge variant="secondary" className="mb-3">
+        <Badge variant="secondary" className="mb-2">
           {positionLabels[jogador.posicao]}
         </Badge>
+
+        <PlayerMiniAchievements 
+          jogadorId={jogador.id} 
+          posicao={jogador.posicao} 
+        />
 
         <JogadorStats stats={stats} />
       </CardContent>
@@ -60,6 +136,7 @@ export default function JogadoresPage() {
   const navigate = useNavigate();
   const { data: jogadores, isLoading } = useJogadoresPublicos(team?.id);
   const { data: estatisticas } = useEstatisticasJogadores();
+  const [selectedPlayer, setSelectedPlayer] = React.useState<{ id: string; nome: string } | null>(null);
 
   const jogadoresPorPosicao = jogadores?.reduce((acc, j) => {
     if (!acc[j.posicao]) acc[j.posicao] = [];
@@ -148,6 +225,7 @@ export default function JogadoresPage() {
                         key={jogador.id}
                         jogador={jogador}
                         stats={estatisticas?.[jogador.id]}
+                        onViewAchievements={(id, nome) => setSelectedPlayer({ id, nome })}
                       />
                     ))}
                   </div>
@@ -163,6 +241,29 @@ export default function JogadoresPage() {
             </CardContent>
           </Card>
         )}
+
+        <Dialog open={!!selectedPlayer} onOpenChange={(open) => !open && setSelectedPlayer(null)}>
+          <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                <Trophy className="h-6 w-6 text-yellow-500" />
+                Conquistas de {selectedPlayer?.nome}
+              </DialogTitle>
+              <DialogDescription className="text-zinc-400">
+                Veja o progresso e medalhas desbloqueadas por este jogador.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              {selectedPlayer && (
+                <AchievementGrid 
+                  jogadorId={selectedPlayer.id} 
+                  jogadorNome={selectedPlayer.nome}
+                  jogadorPosicao={jogadores?.find(j => j.id === selectedPlayer.id)?.posicao}
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

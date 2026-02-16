@@ -38,7 +38,7 @@ export function FutGestorLogo({
         <img 
           src={logoFutgestor} 
           alt="FutGestor" 
-          className={cn(className || currentSize, "object-contain transition-transform hover:scale-110 drop-shadow-[0_0_10px_rgba(230,179,37,0.3)]")}
+          className={cn(className || currentSize, "object-contain transition-transform hover:scale-110 drop-shadow-[0_0_10px_rgba(5,96,179,0.5)]")}
         />
       )}
       
@@ -52,7 +52,7 @@ export function FutGestorLogo({
           textClassName
         )}>
           <span className="text-white drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)]">Fut</span>
-          <span className="text-primary drop-shadow-[0_4px_12px_rgba(230,179,37,0.3)]">Gestor</span>
+          <span className="text-primary drop-shadow-[0_4px_12px_rgba(5,96,179,0.5)]">Gestor</span>
         </span>
       )}
     </div>

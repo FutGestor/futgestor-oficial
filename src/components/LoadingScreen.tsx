@@ -20,7 +20,7 @@ export function LoadingScreen({ message }: LoadingScreenProps) {
         }}
         className="flex flex-col items-center gap-8"
       >
-        <FutGestorLogo className="h-28 w-28 md:h-36 md:w-36 filter drop-shadow-[0_0_20px_rgba(230,179,37,0.4)]" showText={true} textClassName="text-3xl md:text-5xl" />
+        <FutGestorLogo className="h-28 w-28 md:h-36 md:w-36 filter drop-shadow-[0_0_20px_rgba(27,58,92,0.6)]" showText={true} textClassName="text-3xl md:text-5xl" />
         {message && (
           <p className="text-primary font-black uppercase italic tracking-[0.3em] animate-pulse text-sm md:text-base">
             {message}

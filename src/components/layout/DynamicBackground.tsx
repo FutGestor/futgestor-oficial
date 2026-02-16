@@ -11,7 +11,7 @@ const BACKGROUNDS: Record<string, string> = {
   jogadores: "https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=80&w=2000", // Players Training
   ranking: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000", // Reutilizando Estádio Gramado Noite (Garantido)
   ligas: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000", // Reuse working Stadium Night
-  auth: "https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=2000", // Night Stadium
+  auth: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000", // Estádio Gramado Noite (Garantido)
 };
 
 export function DynamicBackground() {

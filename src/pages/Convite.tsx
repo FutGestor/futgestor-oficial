@@ -248,12 +248,12 @@ export default function Convite() {
           <CardHeader className="text-center pb-2">
             <div className="mx-auto mb-4 flex items-center justify-center">
               <div className="relative">
-                <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-[#E6B325] to-transparent opacity-50 blur-sm"></div>
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-[#0560B3] to-transparent opacity-50 blur-sm"></div>
                 <img src={teamData?.escudo_url || ESCUDO_PADRAO} alt={teamData?.nome} className="relative h-24 w-24 object-contain" />
               </div>
             </div>
             <CardTitle className="text-3xl font-black italic uppercase tracking-tighter text-white">
-              CADASTRAR NO <span className="text-[#E6B325]">{teamData?.nome}</span>
+              CADASTRAR NO <span className="text-[#0560B3]">{teamData?.nome}</span>
             </CardTitle>
             <CardDescription className="text-slate-400">
               Complete seu cadastro para se juntar ao elenco
@@ -265,14 +265,14 @@ export default function Convite() {
                 {/* Upload de Foto */}
                 <div className="flex flex-col items-center justify-center space-y-3">
                   <div className="relative group cursor-pointer" onClick={() => document.getElementById('foto-upload')?.click()}>
-                    <div className={`h-24 w-24 rounded-full border-2 border-dashed border-white/20 overflow-hidden flex items-center justify-center bg-black/40 transition-all group-hover:border-[#E6B325] ${fotoPreview ? 'border-solid border-[#E6B325]' : ''}`}>
+                    <div className={`h-24 w-24 rounded-full border-2 border-dashed border-white/20 overflow-hidden flex items-center justify-center bg-black/40 transition-all group-hover:border-[#0560B3] ${fotoPreview ? 'border-solid border-[#0560B3]' : ''}`}>
                       {fotoPreview ? (
                         <img src={fotoPreview} alt="Preview" className="h-full w-full object-cover" />
                       ) : (
-                        <Camera className="h-8 w-8 text-slate-500 group-hover:text-[#E6B325]" />
+                        <Camera className="h-8 w-8 text-slate-500 group-hover:text-[#0560B3]" />
                       )}
                     </div>
-                    <div className="absolute bottom-0 right-0 bg-[#E6B325] p-1.5 rounded-full text-black shadow-lg">
+                    <div className="absolute bottom-0 right-0 bg-[#0560B3] p-1.5 rounded-full text-black shadow-lg">
                       <Camera className="h-4 w-4" />
                     </div>
                     <input 
@@ -318,7 +318,7 @@ export default function Convite() {
                           </FormControl>
                           <SelectContent className="bg-slate-900 border-white/10 text-white">
                             {Object.entries(positionLabels).map(([value, label]) => (
-                              <SelectItem key={value} value={value} className="focus:bg-primary focus:text-black">
+                              <SelectItem key={value} value={value} className="focus:bg-primary focus:text-white">
                                 {label}
                               </SelectItem>
                             ))}
@@ -364,7 +364,7 @@ export default function Convite() {
                   )}
                 />
 
-                <Button type="submit" className="w-full h-14 text-lg font-black uppercase italic bg-primary hover:bg-primary/90 text-black transition-all shadow-[0_0_20px_rgba(230,179,37,0.2)]" disabled={isSubmitting}>
+                <Button type="submit" className="w-full h-14 text-lg font-black uppercase italic bg-primary hover:bg-primary/90 text-white transition-all shadow-[0_0_20px_rgba(5,96,179,0.35)]" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />

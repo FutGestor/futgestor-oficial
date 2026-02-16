@@ -198,8 +198,8 @@ export default function AdminSolicitacoes() {
       <Card className="bg-black/40 backdrop-blur-xl border-white/10 mb-6">
         <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#E6B325]/20 rounded-lg">
-              <Sword className="h-5 w-5 text-[#E6B325]" />
+            <div className="p-2 bg-primary/20 rounded-lg">
+              <Sword className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase italic">Link de Desafio do Time</p>
@@ -213,7 +213,7 @@ export default function AdminSolicitacoes() {
             <Button 
               variant="outline"
               size="sm"
-              className="border-[#E6B325]/50 text-[#E6B325] hover:bg-[#E6B325]/10 h-8"
+              className="border-primary/50 text-primary hover:bg-primary/10 h-8"
               onClick={() => {
                 const url = `${window.location.origin}/time/${slug}/desafio`;
                 navigator.clipboard.writeText(url);

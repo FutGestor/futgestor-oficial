@@ -133,7 +133,7 @@ export default function Discovery() {
                     </div>
                   </div>
                   <Button 
-                    className="bg-primary hover:bg-primary/90 text-black font-bold h-12 px-6 rounded-xl shadow-lg shadow-primary/20"
+                    className="bg-primary hover:bg-primary/90 text-white font-bold h-12 px-6 rounded-xl shadow-lg shadow-primary/20"
                     onClick={() => {
                       setSelectedTeam(teamItem);
                       setIsChallengeModalOpen(true);
@@ -151,7 +151,7 @@ export default function Discovery() {
             <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground bg-black/20 border-2 border-dashed border-white/10 rounded-2xl">
               <Info className="mb-4 h-12 w-12 opacity-20" />
               <p className="text-lg font-medium">Nenhum time encontrado com esse nome.</p>
-              <Button variant="link" onClick={() => { setSearchTerm(""); setCityFilter(""); }} className="text-[#E6B325]">Limpar busca</Button>
+              <Button variant="link" onClick={() => { setSearchTerm(""); setCityFilter(""); }} className="text-primary">Limpar busca</Button>
             </div>
           )}
         </div>
@@ -162,7 +162,7 @@ export default function Discovery() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sword className="h-5 w-5 text-[#E6B325]" />
+              <Sword className="h-5 w-5 text-primary" />
               Desafiar {selectedTeam?.nome}
             </DialogTitle>
             <DialogDescription>
@@ -203,7 +203,7 @@ export default function Discovery() {
               Cancelar
             </Button>
             <Button 
-              className="bg-[#E6B325] hover:bg-[#E6B325]/90 text-black font-bold"
+              className="bg-primary hover:bg-primary/90 text-white font-bold"
               onClick={handleSendChallenge}
               disabled={sendingChallenge}
             >

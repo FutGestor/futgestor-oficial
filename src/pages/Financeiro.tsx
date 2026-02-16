@@ -173,7 +173,7 @@ function FinanceiroContent() {
           </div>
 
           {/* Summary Cards */}
-          <div className="mb-8 grid gap-4 grid-cols-2 md:grid-cols-4">
+          <div className="mb-8 grid gap-4 grid-cols-2 lg:grid-cols-4">
             <SummaryCard
               label="Saldo Atual"
               value={summary?.saldoAtual ?? 0}

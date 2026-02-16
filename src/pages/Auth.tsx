@@ -69,14 +69,16 @@ export default function Auth() {
     },
   });
 
-  // Carregar email salvo (nunca salvar senha)
+  // Carregar dados salvos
   useEffect(() => {
     const savedEmail = localStorage.getItem("savedEmail");
-    // Clean up any previously stored passwords
-    localStorage.removeItem("savedPassword");
+    const savedPassword = localStorage.getItem("savedPassword");
     
     if (savedEmail) {
       loginForm.setValue("email", savedEmail);
+    }
+    if (savedPassword) {
+      loginForm.setValue("password", savedPassword);
     }
   }, [loginForm]);
 
@@ -147,15 +149,16 @@ export default function Auth() {
         teamSlug = teamData?.slug || "";
       }
 
-      // Salvar apenas email (nunca senha) baseado no checkbox
+      // Salvar dados baseado no checkbox
       if (rememberMe) {
         localStorage.setItem("savedEmail", data.email);
+        localStorage.setItem("savedPassword", data.password);
         localStorage.setItem("rememberMe", "true");
       } else {
         localStorage.removeItem("savedEmail");
+        localStorage.removeItem("savedPassword");
         localStorage.removeItem("rememberMe");
       }
-      localStorage.removeItem("savedPassword"); // Always clean up
 
       // No team yet → redirect to onboarding to create one (only for admins/new users)
       if (!profile?.team_id && !profile?.jogador_id) {
@@ -276,7 +279,7 @@ export default function Auth() {
             <div className="mx-auto mb-4 flex items-center justify-center">
               <FutGestorLogo className="h-16 w-16" />
             </div>
-            <CardTitle className="text-2xl text-white italic font-black uppercase tracking-tighter drop-shadow-[0_0_10px_rgba(230,179,37,0.3)]">
+            <CardTitle className="text-2xl text-white italic font-black uppercase tracking-tighter drop-shadow-[0_0_10px_rgba(5,96,179,0.5)]">
               FUT<span className="text-primary">GESTOR</span>
             </CardTitle>
             <CardDescription className="text-slate-400">
@@ -291,8 +294,8 @@ export default function Auth() {
             ) : (
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")}>
               <TabsList className="grid w-full grid-cols-2 bg-black/40 border border-white/10">
-                <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-black font-bold uppercase italic text-xs">Entrar</TabsTrigger>
-                <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-black font-bold uppercase italic text-xs">Cadastrar</TabsTrigger>
+                <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-white font-bold uppercase italic text-xs transition-all">Entrar</TabsTrigger>
+                <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-white font-bold uppercase italic text-xs transition-all">Cadastrar</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login" className="mt-4">
@@ -344,7 +347,7 @@ export default function Auth() {
                         id="remember" 
                         checked={rememberMe}
                         onCheckedChange={(checked) => setRememberMe(checked === true)}
-                        className="border-white/20 data-[state=checked]:bg-primary data-[state=checked]:text-black"
+                        className="border-white/20 data-[state=checked]:bg-primary data-[state=checked]:text-white"
                       />
                       <label 
                         htmlFor="remember" 
@@ -353,7 +356,7 @@ export default function Auth() {
                         Lembrar email e senha
                       </label>
                     </div>
-                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-black font-black uppercase italic shadow-[0_0_20px_rgba(230,179,37,0.2)]" disabled={isLoading}>
+                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase italic shadow-[0_0_20px_rgba(5,96,179,0.4)] transition-all" disabled={isLoading}>
                       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Entrar
                     </Button>
@@ -432,7 +435,7 @@ export default function Auth() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-black font-black uppercase italic shadow-[0_0_20px_rgba(230,179,37,0.2)]" disabled={isLoading}>
+                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase italic shadow-[0_0_20px_rgba(5,96,179,0.4)] transition-all" disabled={isLoading}>
                       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Cadastrar
                     </Button>

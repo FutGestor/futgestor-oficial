@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Lock, Download } from "lucide-react";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface StickerAlbumProps {
   teamId: string;
@@ -16,6 +18,21 @@ export function StickerAlbum({ teamId, layout = 'grid' }: StickerAlbumProps) {
   const { data: jogadores, isLoading } = useJogadoresPublicos(teamId);
   const { hasAlbumFigurinhas } = usePlanAccess(teamId);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Buscar conquistas de todos os jogadores do time de uma vez
+  const { data: allAchievements } = useQuery({
+    queryKey: ["team-player-achievements", teamId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_achievements" as any)
+        .select("*, achievement:achievements(*)")
+        .in("jogador_id", jogadores?.map(j => j.id) || []);
+      
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!jogadores && jogadores.length > 0,
+  });
 
   const handleDownload = async (jogadorId: string, nome: string) => {
     const element = cardRefs.current[jogadorId];
@@ -48,7 +65,7 @@ export function StickerAlbum({ teamId, layout = 'grid' }: StickerAlbumProps) {
           <p className="text-muted-foreground mb-6 max-w-md">
             Desbloqueie o álbum digital do seu time e gere cards estilo FIFA para compartilhar no Instagram. Disponível no plano Liga.
           </p>
-          <Button size="lg" className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white border-0">
+          <Button size="lg" className="bg-primary hover:bg-primary/90 text-white border-0 transition-all font-black uppercase italic tracking-widest">
             Fazer Upgrade para Liga
           </Button>
         </div>
@@ -80,6 +97,7 @@ export function StickerAlbum({ teamId, layout = 'grid' }: StickerAlbumProps) {
               <div ref={(el) => (cardRefs.current[jogador.id] = el)}>
                 <StickerCard 
                   jogador={jogador} 
+                  achievements={allAchievements?.filter(a => a.jogador_id === jogador.id)}
                   className="transform transition-transform group-hover:-translate-y-2 duration-300"
                   variant="gold" 
                 />
@@ -103,6 +121,7 @@ export function StickerAlbum({ teamId, layout = 'grid' }: StickerAlbumProps) {
               <div ref={(el) => (cardRefs.current[jogador.id] = el)}>
                 <StickerCard 
                   jogador={jogador} 
+                  achievements={allAchievements?.filter(a => a.jogador_id === jogador.id)}
                   className="transform transition-transform group-hover:-translate-y-2 duration-300 scale-90 sm:scale-100 origin-top"
                   variant="gold" 
                 />

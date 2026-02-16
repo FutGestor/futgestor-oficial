@@ -173,10 +173,10 @@ export default function AdminDashboard() {
         <div className="lg:col-span-5 flex flex-col gap-6 lg:gap-8">
           
           {/* Card de Link de Desafio Rápido */}
-          <Card className="bg-black/40 backdrop-blur-xl border-[#E6B325]/30 bg-[#E6B325]/5 soft-shadow overflow-hidden group">
+          <Card className="bg-black/40 backdrop-blur-xl border-primary/30 bg-primary/5 soft-shadow overflow-hidden group">
             <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4 text-[#E6B325]">
-                <div className="p-2 bg-[#E6B325]/20 rounded-lg">
+              <div className="flex items-center gap-3 mb-4 text-primary">
+                <div className="p-2 bg-primary/20 rounded-lg">
                   <Sword className="h-5 w-5" />
                 </div>
                 <h3 className="text-base font-black uppercase italic tracking-tight">Link de Desafio</h3>
@@ -188,7 +188,7 @@ export default function AdminDashboard() {
                 </div>
                 <Button 
                   size="sm"
-                  className="bg-[#E6B325] hover:bg-[#E6B325]/90 text-black h-8 shrink-0 font-black uppercase italic text-[10px]"
+                  className="bg-primary hover:bg-primary/90 text-white h-8 shrink-0 font-black uppercase italic text-[10px]"
                   onClick={() => {
                     const url = `${window.location.origin}/time/${team.slug}/desafio`;
                     navigator.clipboard.writeText(url);

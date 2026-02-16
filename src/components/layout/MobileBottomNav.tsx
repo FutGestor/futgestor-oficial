@@ -64,6 +64,7 @@ export function MobileBottomNav() {
     { href: `${basePath}/escalacao`, label: "Escalação", icon: ClipboardList },
     ...(hasAvisos ? [{ href: `${basePath}/avisos`, label: "Avisos", icon: Bell }] : []),
     { href: `${basePath}/suporte`, label: "Suporte", icon: Headphones },
+    { href: `${basePath}/conquistas`, label: "Arena de Conquistas", icon: Trophy },
     { href: `${basePath}/guia`, label: "Guia", icon: BookOpen },
   ];
 
@@ -103,7 +104,7 @@ export function MobileBottomNav() {
                 )}
               >
                 <Icon className={cn("h-6 w-6", isActive && "fill-current")} strokeWidth={isActive ? 2.5 : 2} />
-                <span className="text-[10px] font-medium">{item.label}</span>
+                <span className="text-[9px] sm:text-[10px] font-medium">{item.label}</span>
               </Link>
             );
           })}
@@ -139,8 +140,8 @@ export function MobileBottomNav() {
                     <span className="truncate text-xl font-black uppercase tracking-tight leading-none bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent">
                       {team?.nome || "FutGestor"}
                     </span>
-                    <span className="text-[10px] text-primary font-bold uppercase tracking-widest mt-1 opacity-80">
-                      Painel do Clube
+                    <span className="text-[10px] text-primary font-black uppercase tracking-widest mt-1 shadow-sm">
+                      PAINEL DO CLUBE
                     </span>
                   </div>
                 </SheetTitle>
@@ -179,9 +180,9 @@ export function MobileBottomNav() {
                 {isAdmin && (
                   <>
                     <div className="my-6 border-t border-white/10 mx-2" />
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary px-2 mb-3 flex items-center gap-2">
-                       <ShieldCheck className="h-3 w-3" />
-                       Módulo Administrativo
+                    <p className="text-[11px] font-black uppercase tracking-[0.2em] text-primary px-2 mb-3 flex items-center gap-2 shadow-sm">
+                       <ShieldCheck className="h-3.5 w-3.5" />
+                       MÓDULO ADMINISTRATIVO
                     </p>
                     <div className="grid grid-cols-2 gap-2">
                       {adminMenuItems.map((item) => {
@@ -200,7 +201,7 @@ export function MobileBottomNav() {
                                 : "bg-white/5 border-white/5 text-white/50 hover:bg-white/10 hover:text-white"
                             )}
                           >
-                            <Icon className={cn("h-6 w-6", isActive ? "text-primary" : "opacity-50")} />
+                            <Icon className={cn("h-6 w-6 transition-all duration-300", isActive ? "text-primary drop-shadow-[0_0_8px_rgba(5,96,179,0.5)]" : "opacity-50 group-hover:opacity-100")} />
                             {item.label}
                           </Link>
                         );

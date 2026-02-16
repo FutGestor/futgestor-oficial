@@ -48,6 +48,7 @@ import AdminCampeonatos from "./pages/admin/AdminCampeonatos";
 import AdminCampeonatoDetalhe from "./pages/admin/AdminCampeonatoDetalhe";
 import GameDetails from "./pages/GameDetails";
 import Convite from "./pages/Convite";
+import Conquistas from "./pages/Conquistas";
 
 const queryClient = new QueryClient();
 
@@ -106,8 +107,9 @@ const App = () => (
                 <Route path="resultados" element={<Resultados />} />
                 <Route path="ligas" element={<Ligas />} />
                 <Route path="avisos" element={<Avisos />} />
-                <Route path="suporte" element={<Suporte />} />
+                 <Route path="suporte" element={<Suporte />} />
                 <Route path="guia" element={<AdminGuia />} />
+                <Route path="conquistas" element={<Conquistas />} />
                 <Route path="jogo/:id" element={<GameDetails />} />
 
                 {/* Rotas de Gestão (Admin Only) */}

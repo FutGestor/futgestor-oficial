@@ -47,7 +47,7 @@ export function Footer() {
                   className="group relative flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/10 transition-all hover:bg-primary hover:border-primary hover:-translate-y-1 active:scale-95 shadow-xl"
                   title={social.id.charAt(0).toUpperCase() + social.id.slice(1)}
                 >
-                  <Icon className="h-6 w-6 text-white group-hover:text-black transition-colors" />
+                  <Icon className="h-6 w-6 text-white group-hover:text-white transition-colors" />
                   <div className="absolute -inset-1 rounded-2xl bg-primary/20 blur opacity-0 group-hover:opacity-100 transition-opacity" />
                 </a>
               );
@@ -56,21 +56,9 @@ export function Footer() {
 
           {/* Bottom Bar - Elegant & Minimal */}
           <div className="w-full max-w-4xl border-t border-white/5 pt-10 flex flex-col md:flex-row items-center justify-between gap-6 opacity-60">
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em]">
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-center w-full break-words max-w-[250px] md:max-w-none">
               © {new Date().getFullYear()} {team.nome}. Corporativo Exclusivo.
             </p>
-            
-            <Link 
-              to="/site" 
-              className="group flex items-center gap-3 text-[10px] font-black uppercase italic tracking-[0.3em] hover:text-primary transition-all"
-            >
-              POWERED BY 
-              <span className="flex items-center gap-1 grayscale group-hover:grayscale-0 transition-all opacity-50 group-hover:opacity-100">
-                <FutGestorLogo size="sm" />
-                <span className="text-white">FUT</span>
-                <span className="text-primary">GESTOR</span>
-              </span>
-            </Link>
           </div>
         </div>
       </div>

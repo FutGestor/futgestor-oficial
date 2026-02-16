@@ -63,6 +63,7 @@ export function Header() {
     ? [
       { href: `${basePath}/escalacao`, label: "Escalação" },
       { href: `${basePath}/jogadores`, label: "Jogadores" },
+      { href: `${basePath}/conquistas`, label: "Conquistas" },
     ]
     : [];
 
@@ -178,8 +179,8 @@ export function Header() {
                 className={cn(
                   "relative rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300",
                   isActive(item.href.split('?')[0])
-                    ? "bg-primary text-black shadow-lg shadow-primary/20"
-                    : "text-white/80 hover:bg-primary hover:text-black hover:shadow-lg hover:shadow-primary/20"
+                    ? "bg-primary text-white shadow-lg shadow-primary/40"
+                    : "text-white/80 hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/40 mx-0.5 lg:mx-0"
                 )}
               >
                 <span className="text-shadow-sm">{item.label}</span>
@@ -196,15 +197,14 @@ export function Header() {
         {/* Actions */}
         <div className="flex items-center gap-2">
 
-          {isSuperAdmin && (
             <Link to="/super-admin">
               <Button
                 variant="ghost"
                 size="sm"
-                className="hidden text-[#D4A84B] hover:bg-[#D4A84B]/10 md:inline-flex relative border border-[#D4A84B]/20"
+                className="hidden text-[#D4A84B] hover:bg-[#D4A84B]/10 md:inline-flex lg:inline-flex relative border border-[#D4A84B]/20"
               >
-                <ShieldAlert className="mr-1 h-4 w-4" />
-                Painel Master
+                <ShieldAlert className="h-4 w-4 lg:mr-1" />
+                <span className="hidden lg:inline">Painel Master</span>
                 {chamados?.filter(c => c.status === "aberto").length ? (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
                     {chamados.filter(c => c.status === "aberto").length}
@@ -212,7 +212,6 @@ export function Header() {
                 ) : null}
               </Button>
             </Link>
-          )}
 
         {/* Mobile menu button */}
 
@@ -226,16 +225,16 @@ export function Header() {
                     className="hidden hover:bg-white/10 md:inline-flex"
                     style={{ color: "inherit" }}
                   >
-                    <User className="mr-1 h-4 w-4" />
-                    <span className="text-shadow-sm">Meu Perfil</span>
+                    <User className="h-4 w-4 lg:mr-1" />
+                    <span className="hidden lg:inline text-shadow-sm">Meu Perfil</span>
                   </Button>
                 </Link>
               )}
               {isPlayer && (
                 <Link to={`${basePath}/meu-perfil`}>
                   <Button variant="secondary" size="sm" className="hidden md:inline-flex">
-                    <User className="mr-1 h-4 w-4" />
-                    <span className="text-shadow-sm">Minha Área</span>
+                    <User className="h-4 w-4 lg:mr-1" />
+                    <span className="hidden lg:inline text-shadow-sm">Minha Área</span>
                   </Button>
                 </Link>
               )}

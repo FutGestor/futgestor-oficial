@@ -16,7 +16,8 @@ interface DatePickerPopoverProps {
     date: Date | undefined;
     setDate: (date: Date | undefined) => void;
     placeholder?: string;
-    className?: string;
+    modifiers?: Record<string, any>; // Usando any pois react-day-picker modifiers é complexo e dinâmico
+    modifiersClassNames?: Record<string, string>;
 }
 
 export function DatePickerPopover({
@@ -24,6 +25,8 @@ export function DatePickerPopover({
     setDate,
     placeholder = "Selecione uma data",
     className,
+    modifiers,
+    modifiersClassNames,
 }: DatePickerPopoverProps) {
     const [isOpen, setIsOpen] = React.useState(false);
 
@@ -52,6 +55,8 @@ export function DatePickerPopover({
                     }}
                     initialFocus
                     locale={ptBR}
+                    modifiers={modifiers}
+                    modifiersClassNames={modifiersClassNames}
                 />
             </PopoverContent>
         </Popover>

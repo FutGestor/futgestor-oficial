@@ -188,7 +188,7 @@ function EscalacaoContent() {
                 {loadingJogadores ? (
                   <Skeleton className="mx-auto aspect-[3/4] w-full max-w-md" />
                 ) : (
-                <div className="w-full overflow-visible py-4">
+                <div className="w-full overflow-hidden py-4">
                   <SocietyField
                     modalidade={((currentEscalacao as any)?.modalidade as GameModality) || 'society-6'}
                     formacao={currentEscalacao?.formacao || '2-2-2'}

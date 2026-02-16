@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { VotacaoDestaque } from "@/components/VotacaoDestaque";
 import { cn } from "@/lib/utils";
+import { AchievementGrid } from "@/components/achievements/AchievementGrid";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -318,6 +319,19 @@ export default function PlayerDashboard() {
                 <span className="text-xl font-bold text-green-500">Em dia ✅</span>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Card Conquistas (Gamificação) */}
+        <Card className="bg-black/20 border-white/5">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-bold text-slate-300">🏅 Suas Conquistas</CardTitle>
+              <Trophy className="h-4 w-4 text-primary opacity-50" />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {jogadorId && <AchievementGrid jogadorId={jogadorId} jogadorPosicao={jogador.data?.posicao} />}
           </CardContent>
         </Card>
 
