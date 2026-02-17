@@ -114,14 +114,6 @@ const App = () => (
 
                 {/* Rotas de Gestão (Admin Only) */}
                 <Route element={<RequireAdmin />}>
-                  <Route path="agenda/gerenciar" element={<AdminJogos />} />
-                  <Route path="financeiro/gerenciar" element={<AdminTransacoes />} />
-                  <Route path="escalacao/gerenciar" element={<AdminEscalacoes />} />
-                  <Route path="jogadores/gerenciar" element={<AdminJogadores />} />
-                  <Route path="ligas/gerenciar">
-                    <Route index element={<AdminCampeonatos />} />
-                    <Route path=":leagueId" element={<AdminCampeonatoDetalhe />} />
-                  </Route>
                   <Route path="gestao" element={<AdminDashboard />} />
 
                   <Route path="solicitacoes" element={<AdminSolicitacoes />} />

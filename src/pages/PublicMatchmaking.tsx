@@ -16,6 +16,7 @@ import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { TeamShield } from "@/components/TeamShield";
 import { useCreateSolicitacao } from "@/hooks/useSolicitacoes";
 import { useToast } from "@/hooks/use-toast";
 import { useJogosFuturos } from "@/hooks/useData";
@@ -188,11 +189,12 @@ export default function PublicMatchmaking() {
         <div className="flex flex-col md:flex-row items-center md:items-end gap-6 mb-12">
           <div className="w-36 h-36 md:w-48 md:h-48 rounded-3xl bg-white/5 backdrop-blur-xl shadow-2xl p-4 flex items-center justify-center border-2 border-white/10 group overflow-hidden relative">
             <div className="absolute inset-0 bg-gradient-to-br from-[#1B3A5C]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-             {team.escudo_url ? (
-               <img src={team.escudo_url} className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-transform group-hover:scale-110" alt="Escudo" />
-             ) : (
-               <Shield className="w-20 h-20 text-white/20" />
-             )}
+             <TeamShield 
+               escudoUrl={team.escudo_url} 
+               teamName={team.nome} 
+               size="2xl"
+               className="h-full w-full border-0 shadow-none bg-transparent relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-transform group-hover:scale-110"
+             />
           </div>
           <div className="text-center md:text-left pb-4 flex-1">
             <h1 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter leading-none mb-3">

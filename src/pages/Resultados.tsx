@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import { TeamFormStreak } from "@/components/TeamFormStreak";
 import { TeamApprovalDonut } from "@/components/TeamApprovalDonut";
 import { SeasonSelector } from "@/components/SeasonSelector";
+import { TeamShield } from "@/components/TeamShield";
 import { MonthSelector } from "@/components/MonthSelector";
 import { useState } from "react";
 
@@ -233,19 +234,11 @@ function ResultadosContent() {
                         <div className="flex items-center justify-between mb-6">
                           {/* Meu Time */}
                           <div className="flex flex-col items-center gap-2 w-1/3">
-                             <div className="relative h-16 w-16 sm:h-20 sm:w-20">
-                              {team.escudo_url ? (
-                                <img 
-                                  src={team.escudo_url} 
-                                  alt={team.nome} 
-                                  className="h-full w-full object-contain drop-shadow-md"
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center rounded-full bg-primary/10 text-primary">
-                                  <Shield className="h-8 w-8" />
-                                </div>
-                              )}
-                            </div>
+                             <TeamShield 
+                               escudoUrl={team.escudo_url} 
+                               teamName={team.nome} 
+                               size="lg" 
+                             />
                             <span className="text-xs sm:text-sm font-bold text-center line-clamp-2 leading-tight">
                               {team.nome}
                             </span>
@@ -270,19 +263,11 @@ function ResultadosContent() {
 
                           {/* Adversário */}
                           <div className="flex flex-col items-center gap-2 w-1/3">
-                            <div className="relative h-16 w-16 sm:h-20 sm:w-20">
-                              {adversarioInfo?.escudo_url ? (
-                                <img 
-                                  src={adversarioInfo.escudo_url} 
-                                  alt={adversarioInfo.nome} 
-                                  className="h-full w-full object-contain drop-shadow-md"
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center rounded-full bg-muted text-muted-foreground">
-                                  <Shield className="h-8 w-8" />
-                                </div>
-                              )}
-                            </div>
+                            <TeamShield 
+                              escudoUrl={adversarioInfo?.escudo_url} 
+                              teamName={adversarioInfo?.nome || resultado.jogo?.adversario || "Adversário"} 
+                              size="lg" 
+                            />
                             <span className="text-xs sm:text-sm font-bold text-center line-clamp-2 leading-tight text-muted-foreground">
                               {adversarioInfo?.nome || resultado.jogo?.adversario || "Adversário"}
                             </span>

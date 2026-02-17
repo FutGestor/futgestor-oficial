@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/sheet";
 import { useState } from "react";
 import logoFutgestor from "@/assets/logo-futgestor.png";
+import { TeamShield } from "@/components/TeamShield";
 
 export function MobileBottomNav() {
   const location = useLocation();
@@ -123,11 +124,12 @@ export function MobileBottomNav() {
                 <SheetTitle className="flex items-center gap-3">
                   <div className="relative group">
                     <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-amber-500/50 rounded-full blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                    {team?.escudo_url ? (
-                      <img src={team.escudo_url} alt={team.nome} className="relative h-12 w-12 object-contain rounded-full border border-white/20 shadow-xl" />
-                    ) : (
-                      <img src={logoFutgestor} alt="FutGestor" className="relative h-12 w-12 object-contain" />
-                    )}
+                    <TeamShield 
+                      escudoUrl={team?.escudo_url || null} 
+                      teamName={team?.nome || "FutGestor"} 
+                      size="md" 
+                      className="relative border-white/20 shadow-xl"
+                    />
                   </div>
                   <div className="flex flex-col">
                     <span className="truncate text-xl font-black uppercase tracking-tight leading-none bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent">
@@ -231,18 +233,10 @@ export function MobileBottomNav() {
                   </Button>
                 </div>
 
-                <div className="my-6 border-t border-white/10 mx-2" />
-                <div className="flex gap-2 px-2">
-                  {redesSociais?.instagram && (
-                    <a href={redesSociais.instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
-                      <Instagram className="h-5 w-5" />
-                    </a>
-                  )}
-                  {redesSociais?.whatsapp && (
-                    <a href={redesSociais.whatsapp} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
-                      <MessageCircle className="h-5 w-5" />
-                    </a>
-                  )}
+                <div className="mt-auto pt-8 pb-4 text-center">
+                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/10">
+                    FutGestor Pro v2.0
+                  </p>
                 </div>
               </div>
             </SheetContent>

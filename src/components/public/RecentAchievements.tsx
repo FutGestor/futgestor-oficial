@@ -18,15 +18,16 @@ export function RecentAchievements({ teamId }: { teamId: string }) {
         .from("player_achievements")
         .select(`
           *,
-          jogador:jogadores(nome, apelido, foto_url),
+          jogador:jogadores!inner(nome, apelido, foto_url, team_id),
           achievement:achievements(*)
         `)
+        .eq('jogador.team_id', teamId)
         .not("unlocked_at", "is", null)
         .order("unlocked_at", { ascending: false })
         .limit(20);
 
       if (error) throw error;
-      return data as any[]; // TODO: Define Achievement type if needed, but removing one 'any' casting for now
+      return data as any[];
     }
   });
 

@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ESCUDO_PADRAO } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { TeamShield } from "@/components/TeamShield";
 
 export function FeaturedGameCard({ teamId }: { teamId: string }) {
   const { data: proximoJogo, isLoading: loadingNext } = useProximoJogo(teamId);
@@ -101,7 +102,11 @@ export function FeaturedGameCard({ teamId }: { teamId: string }) {
 
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col items-center gap-2">
-                <img src={team.escudo_url || ESCUDO_PADRAO} alt={team.nome} className="h-16 w-16 object-contain md:h-20 md:w-20" />
+                <TeamShield 
+                  escudoUrl={team.escudo_url} 
+                  teamName={team.nome} 
+                  size="lg" 
+                />
                 <span className="text-sm font-bold md:text-base text-center max-w-[80px] leading-tight text-shadow-sm">{team.nome}</span>
               </div>
 
@@ -111,7 +116,11 @@ export function FeaturedGameCard({ teamId }: { teamId: string }) {
               </div>
 
               <div className="flex flex-col items-center gap-2">
-                <img src={proximoJogo.time_adversario?.escudo_url || ESCUDO_PADRAO} alt={proximoJogo.time_adversario?.nome || proximoJogo.adversario} className="h-16 w-16 object-contain md:h-20 md:w-20" />
+                <TeamShield 
+                  escudoUrl={proximoJogo.time_adversario?.escudo_url} 
+                  teamName={proximoJogo.time_adversario?.nome || proximoJogo.adversario} 
+                  size="lg" 
+                />
                   <span className="text-sm font-bold md:text-base text-center max-w-[80px] leading-tight text-shadow-sm">
                     {proximoJogo.time_adversario?.nome || proximoJogo.adversario || "Adversário"}
                   </span>
@@ -168,9 +177,11 @@ export function FeaturedGameCard({ teamId }: { teamId: string }) {
             <div className="flex flex-col items-center justify-center space-y-6 py-2">
               <div className="flex w-full items-center justify-between px-2 md:px-8">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-muted/50 p-3 flex items-center justify-center border border-border shadow-inner">
-                    <img src={team?.escudo_url || ESCUDO_PADRAO} alt="" className="h-full w-full object-contain" />
-                  </div>
+                  <TeamShield 
+                    escudoUrl={team?.escudo_url} 
+                    teamName={team.nome} 
+                    size="lg" 
+                  />
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground text-center max-w-[100px] leading-tight">
                     {team.nome}
                   </span>
@@ -185,9 +196,11 @@ export function FeaturedGameCard({ teamId }: { teamId: string }) {
                 </div>
 
                 <div className="flex flex-col items-center gap-3">
-                  <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-muted/50 p-3 flex items-center justify-center border border-border shadow-inner">
-                    <img src={ultimoResultado.jogo.time_adversario?.escudo_url || ESCUDO_PADRAO} alt="" className="h-full w-full object-contain" />
-                  </div>
+                  <TeamShield 
+                    escudoUrl={ultimoResultado.jogo.time_adversario?.escudo_url} 
+                    teamName={ultimoResultado.jogo.adversario} 
+                    size="lg" 
+                  />
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground text-center max-w-[100px] leading-tight">
                     {ultimoResultado.jogo.adversario}
                   </span>

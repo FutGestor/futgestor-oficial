@@ -16,11 +16,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFinancialSummary, useResultados } from "@/hooks/useData";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
-import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { FutGestorLogo } from "@/components/FutGestorLogo";
+import { TeamShield } from "@/components/TeamShield";
 import { Layout } from "@/components/layout/Layout";
 import { 
   PieChart, 
@@ -34,7 +34,8 @@ export default function AdminDashboard() {
   const { team } = useTeamConfig();
   const { data: summary, isLoading: loadingSummary } = useFinancialSummary(team.id);
   const { data: resultados, isLoading: loadingResultados } = useResultados(team.id);
-  const { basePath } = useTeamSlug();
+  const teamContext = useOptionalTeamSlug();
+  const basePath = teamContext?.basePath || (team.slug ? `/time/${team.slug}` : "");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -71,13 +72,17 @@ export default function AdminDashboard() {
           <ChevronLeft className="h-4 w-4 md:h-5 md:w-5 group-hover:-translate-x-1 transition-transform" />
           <span className="text-lg md:text-xl font-bold tracking-tight">Voltar para o Início</span>
         </Button>
-        <div className="text-center md:text-right w-full md:w-auto">
-          <FutGestorLogo 
-            teamEscudo={team.escudo_url} 
-            showText={true} 
-            size="md" 
-            textClassName="text-2xl md:text-5xl"
-          />
+        <div className="text-center md:text-right w-full md:w-auto flex flex-col items-center md:items-end gap-2">
+          <div className="flex items-center gap-4">
+            <TeamShield 
+              escudoUrl={team.escudo_url} 
+              teamName={team.nome} 
+              size="lg"
+            />
+            <span className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)]">
+              {team.nome}
+            </span>
+          </div>
           <p className="text-muted-foreground font-black uppercase tracking-[0.2em] text-[9px] md:text-xs mt-1 md:mt-2 opacity-60">
             Painel Executivo • {team.nome}
           </p>

@@ -40,6 +40,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ImageCropperModal } from "@/components/ui/ImageCropperModal";
 
 type PlayerPosition = Database["public"]["Enums"]["player_position"];
 
@@ -96,6 +97,10 @@ export default function MeuPerfil() {
   const [savingTeam, setSavingTeam] = useState(false);
   const [uploadingEscudo, setUploadingEscudo] = useState(false);
   const escudoInputRef = useRef<HTMLInputElement>(null);
+
+  const [tempImage, setTempImage] = useState<string | null>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [cropType, setCropType] = useState<"perfil" | "escudo" | null>(null);
 
   useEffect(() => {
     if (team && !teamNome) {
@@ -157,7 +162,7 @@ export default function MeuPerfil() {
         const { data, error } = await supabase.from("jogadores").select("*").eq("id", profile.jogador_id).single();
         if (error) throw error;
         if (data) {
-          setJogador(data);
+          setJogador(data as any);
           setFotoUrl(data.foto_url);
           form.reset({
             nome: data.nome,
@@ -181,22 +186,71 @@ export default function MeuPerfil() {
     if (profile) loadJogador();
   }, [profile, form]);
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user) return;
-    setIsUploading(true);
-    try {
-      const ext = file.name.split(".").pop();
-      const path = `${user.id}-${Date.now()}.${ext}`;
-      await supabase.storage.from("jogadores").upload(path, file, { upsert: true });
-      const { data: { publicUrl } } = supabase.storage.from("jogadores").getPublicUrl(path);
-      setFotoUrl(publicUrl);
-      toast({ title: "Foto enviada!" });
-    } catch (err: any) {
-      toast({ title: "Erro no upload", description: err.message, variant: "destructive" });
-    } finally {
-      setIsUploading(false);
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setTempImage(reader.result as string);
+      setCropType("perfil");
+      setIsCropModalOpen(true);
+    };
+    reader.readAsDataURL(file);
+    event.target.value = "";
+  };
+
+  const handleEscudoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setTempImage(reader.result as string);
+      setCropType("escudo");
+      setIsCropModalOpen(true);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const onCropComplete = async (croppedBlob: Blob) => {
+    if (!user || !cropType) return;
+    setIsCropModalOpen(false);
+
+    if (cropType === "perfil") {
+      setIsUploading(true);
+      try {
+        const ext = "jpg";
+        const path = `${user.id}-${Date.now()}.${ext}`;
+        await supabase.storage.from("jogadores").upload(path, croppedBlob, { contentType: "image/jpeg" });
+        const { data: { publicUrl } } = supabase.storage.from("jogadores").getPublicUrl(path);
+        setFotoUrl(publicUrl);
+        toast({ title: "Foto enviada!" });
+      } catch (err: any) {
+        toast({ title: "Erro no upload", description: err.message, variant: "destructive" });
+      } finally {
+        setIsUploading(false);
+      }
+    } else if (cropType === "escudo" && profile?.team_id) {
+      setUploadingEscudo(true);
+      try {
+        const ext = "jpg";
+        const path = `${profile.team_id}/escudo-${Date.now()}.${ext}`;
+        await supabase.storage.from("times").upload(path, croppedBlob, { contentType: "image/jpeg" });
+        const { data: { publicUrl } } = supabase.storage.from("times").getPublicUrl(path);
+        await supabase.from("teams").update({ escudo_url: publicUrl }).eq("id", profile.team_id);
+        queryClient.invalidateQueries({ queryKey: ["team-config"] });
+        toast({ title: "Escudo atualizado!" });
+      } catch (err: any) {
+        toast({ title: "Erro", description: err.message, variant: "destructive" });
+      } finally {
+        setUploadingEscudo(false);
+      }
     }
+
+    setTempImage(null);
+    setCropType(null);
   };
 
   const onSubmit = async (data: FormData) => {
@@ -229,7 +283,7 @@ export default function MeuPerfil() {
         }).select().single();
         if (ie) throw ie;
         await supabase.from("profiles").update({ jogador_id: nj.id }).eq("id", user.id);
-        setJogador(nj);
+        setJogador(nj as any);
         await refreshProfile();
         toast({ title: "Perfil criado!" });
       }
@@ -276,24 +330,6 @@ export default function MeuPerfil() {
     }
   };
 
-  const handleEscudoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !profile?.team_id) return;
-    setUploadingEscudo(true);
-    try {
-      const ext = file.name.split(".").pop();
-      const path = `${profile.team_id}/escudo-${Date.now()}.${ext}`;
-      await supabase.storage.from("times").upload(path, file);
-      const { data: { publicUrl } } = supabase.storage.from("times").getPublicUrl(path);
-      await supabase.from("teams").update({ escudo_url: publicUrl }).eq("id", profile.team_id);
-      queryClient.invalidateQueries({ queryKey: ["team-config"] });
-      toast({ title: "Escudo atualizado!" });
-    } catch (err: any) {
-      toast({ title: "Erro", description: err.message, variant: "destructive" });
-    } finally {
-      setUploadingEscudo(false);
-    }
-  };
 
   if (authLoading || isLoadingJogador) {
     return <Layout><div className="flex min-h-[50vh] items-center justify-center"><Loader2 className="animate-spin" /></div></Layout>;
@@ -624,6 +660,19 @@ export default function MeuPerfil() {
           </div>
         </div>
       </div>
+
+      {tempImage && (
+        <ImageCropperModal
+          image={tempImage}
+          isOpen={isCropModalOpen}
+          onClose={() => {
+            setIsCropModalOpen(false);
+            setTempImage(null);
+          }}
+          onCropComplete={onCropComplete}
+          aspect={1}
+        />
+      )}
     </Layout>
   );
 }

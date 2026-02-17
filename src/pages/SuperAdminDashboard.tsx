@@ -17,14 +17,29 @@ import {
 } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 
 import { useTodosChamados } from "@/hooks/useChamados";
 
 export default function SuperAdminDashboard() {
-    const { isSuperAdmin, isLoading } = useAuth();
+    const { isSuperAdmin, isLoading, profile } = useAuth();
     const navigate = useNavigate();
     const { data: chamados } = useTodosChamados();
+
+    const { data: teamData } = useQuery({
+        queryKey: ["team-slug", profile?.team_id],
+        enabled: !!profile?.team_id,
+        queryFn: async () => {
+            const { data } = await supabase
+                .from("teams")
+                .select("slug")
+                .eq("id", profile!.team_id!)
+                .maybeSingle();
+            return data;
+        }
+    });
 
     if (isLoading) return null;
     if (!isSuperAdmin) return <Navigate to="/" replace />;
@@ -100,7 +115,10 @@ export default function SuperAdminDashboard() {
 
                         <Button
                             variant="outline"
-                            onClick={() => navigate("/")}
+                            onClick={() => {
+                                const slug = teamData?.slug;
+                                navigate(slug ? `/time/${slug}` : "/auth");
+                            }}
                             className="bg-white/5 border-white/10 text-white hover:bg-white/10 w-fit self-center md:self-auto"
                         >
                             <ArrowLeft className="mr-2 h-4 w-4" />

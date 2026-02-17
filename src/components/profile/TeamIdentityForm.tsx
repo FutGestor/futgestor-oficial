@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ESCUDO_PADRAO } from "@/lib/constants";
+import { TeamShield } from "@/components/TeamShield";
 
 interface TeamIdentityFormProps {
   team: any;
@@ -62,11 +63,12 @@ export const TeamIdentityForm: React.FC<TeamIdentityFormProps> = ({
       </CardHeader>
       <CardContent className="space-y-8">
         <div className="flex flex-col md:flex-row items-center gap-8 border-b border-white/5 pb-8">
-          <div className="relative group">
-            <Avatar className="h-32 w-32 border-2 border-primary/30 ring-4 ring-black/50">
-              <AvatarImage src={team?.escudo_url || ESCUDO_PADRAO} className="object-contain p-2" />
-              <AvatarFallback><Building2 className="w-12 h-12" /></AvatarFallback>
-            </Avatar>
+          <div className="relative group cursor-pointer" onClick={() => escudoInputRef.current?.click()}>
+            <TeamShield 
+              escudoUrl={team?.escudo_url} 
+              teamName={teamNome} 
+              size="2xl" 
+            />
             <button 
               onClick={() => escudoInputRef.current?.click()}
               className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"

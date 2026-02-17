@@ -14,6 +14,7 @@ import {
 import { ESCUDO_PADRAO } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { FutGestorLogo } from "@/components/FutGestorLogo";
+import { TeamShield } from "@/components/TeamShield";
 
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -116,9 +117,9 @@ export function Header() {
         {/* Logo area */}
         <div className="flex items-center gap-2 md:hidden">
           <Link to={basePath || "/"}>
-            <FutGestorLogo 
-              teamEscudo={teamEscudo} 
-              showText={false} 
+            <TeamShield 
+              escudoUrl={teamEscudo} 
+              teamName={teamName}
               size="sm" 
             />
           </Link>
@@ -228,21 +229,23 @@ export function Header() {
             </Link>
           )}
 
-          <Link to="/super-admin">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden text-[#D4A84B] hover:bg-[#D4A84B]/10 md:inline-flex lg:inline-flex relative border border-[#D4A84B]/20"
-            >
-              <ShieldAlert className="h-4 w-4 lg:mr-1" />
-              <span className="hidden lg:inline">Painel Master</span>
-              {chamados?.filter(c => c.status === "aberto").length ? (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
-                  {chamados.filter(c => c.status === "aberto").length}
-                </span>
-              ) : null}
-            </Button>
-          </Link>
+          {isSuperAdmin && (
+            <Link to="/super-admin">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden text-[#D4A84B] hover:bg-[#D4A84B]/10 md:inline-flex lg:inline-flex relative border border-[#D4A84B]/20"
+              >
+                <ShieldAlert className="h-4 w-4 lg:mr-1" />
+                <span className="hidden lg:inline">Painel Master</span>
+                {chamados?.filter(c => c.status === "aberto").length ? (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
+                    {chamados.filter(c => c.status === "aberto").length}
+                  </span>
+                ) : null}
+              </Button>
+            </Link>
+          )}
 
           {user ? (
             <>

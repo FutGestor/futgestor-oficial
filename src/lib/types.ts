@@ -55,6 +55,8 @@ export interface Time {
   escudo_url: string | null;
   cores_principais: string | null;
   cidade: string | null;
+  uf: string | null;
+  cep: string | null;
   is_casa: boolean;
   ativo: boolean;
   team_id: string | null;

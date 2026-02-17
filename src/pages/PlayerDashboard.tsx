@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { VotacaoDestaque } from "@/components/VotacaoDestaque";
 import { cn } from "@/lib/utils";
+import { TeamShield } from "@/components/TeamShield";
 import { AchievementGrid } from "@/components/achievements/AchievementGrid";
 import {
   DropdownMenu,
@@ -232,7 +233,11 @@ export default function PlayerDashboard() {
               </h1>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 {teamData?.escudo_url && (
-                  <img src={teamData.escudo_url} alt="" className="h-4 w-4 rounded-full" />
+                  <TeamShield 
+                    escudoUrl={teamData.escudo_url} 
+                    teamName={teamData.nome} 
+                    size="xs" 
+                  />
                 )}
                 {teamData?.nome}
               </div>
@@ -260,9 +265,12 @@ export default function PlayerDashboard() {
                 <div className="flex w-full items-center justify-between px-4">
                   <div className="flex flex-col items-center gap-2">
                     <div className="h-14 w-14 rounded-full bg-white/10 p-2 flex items-center justify-center backdrop-blur-sm border border-white/5">
-                       {teamData?.escudo_url ? (
-                         <img src={teamData.escudo_url} alt="" className="h-full w-full object-contain" />
-                       ) : <FutGestorLogo className="h-full w-full opacity-50" />}
+                       <TeamShield 
+                         escudoUrl={teamData?.escudo_url || null} 
+                         teamName={teamData?.nome || "Seu Time"} 
+                         size="lg"
+                         className="h-full w-full border-0 shadow-none bg-transparent"
+                       />
                     </div>
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Seu Time</span>
                   </div>

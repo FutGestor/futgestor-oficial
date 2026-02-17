@@ -34,6 +34,7 @@ import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { ESCUDO_PADRAO } from "@/lib/constants";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Layout } from "@/components/layout/Layout";
+import { TeamShield } from "@/components/TeamShield";
 
 type JogoFormData = {
   data_hora: string;
@@ -411,7 +412,11 @@ export default function AdminJogos() {
                       {times?.filter(t => !t.is_casa).map((time) => (
                         <SelectItem key={time.id} value={time.id}>
                           <div className="flex items-center gap-2">
-                            <img src={time.escudo_url || ESCUDO_PADRAO} alt="" className="h-5 w-5 rounded-full object-contain" />
+                             <TeamShield 
+                               escudoUrl={time.escudo_url} 
+                               teamName={time.nome} 
+                               size="xs" 
+                             />
                             {time.nome}
                           </div>
                         </SelectItem>
@@ -697,10 +702,11 @@ export default function AdminJogos() {
                       {/* Escudo ocupando todo o quadrado */}
                       {hasGames && (
                         <div className="absolute inset-0 flex items-center justify-center p-0.5 opacity-60">
-                          <img
-                            src={time?.escudo_url || ESCUDO_PADRAO}
-                            alt={time?.nome || firstGame.adversario}
-                            className="h-full w-full rounded-full object-contain"
+                          <TeamShield 
+                            escudoUrl={time?.escudo_url || null} 
+                            teamName={time?.nome || firstGame.adversario} 
+                            size="sm"
+                            className="h-full w-full border-0 shadow-none bg-transparent"
                           />
                         </div>
                       )}

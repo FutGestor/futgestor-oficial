@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ESCUDO_PADRAO } from "@/lib/constants";
 import { Layout } from "@/components/layout/Layout";
+import { TeamShield } from "@/components/TeamShield";
 
 export default function Discovery() {
   const { team: myTeam } = useTeamConfig();
@@ -118,10 +119,11 @@ export default function Discovery() {
                   <div className="flex items-center gap-4">
                     <div className="relative">
                       <div className="absolute -inset-1 bg-primary/20 rounded-full blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                      <img
-                        src={teamItem.escudo_url || ESCUDO_PADRAO}
-                        alt={teamItem.nome}
-                        className="relative h-16 w-16 object-contain rounded-full border border-white/10"
+                      <TeamShield 
+                        escudoUrl={teamItem.escudo_url || null} 
+                        teamName={teamItem.nome || "Time"} 
+                        size="lg" 
+                        className="relative border-white/10"
                       />
                     </div>
                     <div>
@@ -173,16 +175,22 @@ export default function Discovery() {
             <div className="flex justify-center flex-col items-center gap-4">
               <div className="flex items-center gap-6">
                 <div className="text-center">
-                  <div className="mx-auto h-16 w-16 mb-2">
-                    <img src={myTeam.escudo_url || ESCUDO_PADRAO} alt="" className="h-full w-full object-contain" />
-                  </div>
+                  <TeamShield 
+                    escudoUrl={myTeam.escudo_url || null} 
+                    teamName={myTeam.nome || "Meu Time"} 
+                    size="lg" 
+                    className="mx-auto mb-2"
+                  />
                   <p className="text-xs font-bold truncate max-w-[80px]">{myTeam.nome}</p>
                 </div>
                 <div className="font-italic font-black text-2xl text-muted-foreground italic">VS</div>
                 <div className="text-center">
-                  <div className="mx-auto h-16 w-16 mb-2">
-                    <img src={selectedTeam?.escudo_url || ESCUDO_PADRAO} alt="" className="h-full w-full object-contain" />
-                  </div>
+                  <TeamShield 
+                    escudoUrl={selectedTeam?.escudo_url || null} 
+                    teamName={selectedTeam?.nome || "Adversário"} 
+                    size="lg" 
+                    className="mx-auto mb-2"
+                  />
                   <p className="text-xs font-bold truncate max-w-[80px]">{selectedTeam?.nome}</p>
                 </div>
               </div>

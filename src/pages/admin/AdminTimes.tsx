@@ -19,6 +19,7 @@ import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { ESCUDO_PADRAO } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Layout } from "@/components/layout/Layout";
+import { ImageCropperModal } from "@/components/ui/ImageCropperModal";
 
 type TimeFormData = {
   nome: string;
@@ -49,6 +50,10 @@ export default function AdminTimes() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [tempImage, setTempImage] = useState<string | null>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [croppedBlob, setCroppedBlob] = useState<Blob | null>(null);
 
   const { profile } = useAuth();
   const { team, basePath } = useTeamSlug();
@@ -63,6 +68,7 @@ export default function AdminTimes() {
     setFormData(initialFormData);
     setSelectedImage(null);
     setImagePreview(null);
+    setCroppedBlob(null);
     setIsDialogOpen(true);
   };
 
@@ -77,6 +83,7 @@ export default function AdminTimes() {
       ativo: time.ativo,
     });
     setSelectedImage(null);
+    setCroppedBlob(null);
     setImagePreview(time.escudo_url);
     setIsDialogOpen(true);
   };
@@ -84,33 +91,35 @@ export default function AdminTimes() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedImage(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+      reader.onload = () => {
+        setTempImage(reader.result as string);
+        setIsCropModalOpen(true);
       };
       reader.readAsDataURL(file);
+      e.target.value = "";
     }
   };
 
+  const handleCropComplete = (blob: Blob) => {
+    setCroppedBlob(blob);
+    setImagePreview(URL.createObjectURL(blob));
+    setIsCropModalOpen(false);
+    setTempImage(null);
+  };
+
   const uploadEscudo = async (timeId: string): Promise<string | null> => {
-    if (!selectedImage) return editingTime?.escudo_url || null;
+    if (!croppedBlob) return editingTime?.escudo_url || null;
 
-    const fileExt = selectedImage.name.split(".").pop();
-    const fileName = `${timeId}.${fileExt}`;
+    const fileName = `${timeId}.jpg`;
     const filePath = `escudos/${fileName}`;
-
-    // Remove escudo antigo se existir
-    if (editingTime?.escudo_url) {
-      const oldPath = editingTime.escudo_url.split("/").pop();
-      if (oldPath) {
-        await supabase.storage.from("times").remove([`escudos/${oldPath}`]);
-      }
-    }
 
     const { error: uploadError } = await supabase.storage
       .from("times")
-      .upload(filePath, selectedImage, { upsert: true });
+      .upload(filePath, croppedBlob, { 
+        contentType: "image/jpeg",
+        upsert: true 
+      });
 
     if (uploadError) throw uploadError;
 
@@ -125,7 +134,7 @@ export default function AdminTimes() {
     try {
       if (editingTime) {
         let escudo_url = editingTime.escudo_url;
-        if (selectedImage) {
+        if (croppedBlob) {
           escudo_url = await uploadEscudo(editingTime.id);
         }
 
@@ -155,7 +164,7 @@ export default function AdminTimes() {
         });
 
         // Faz upload do escudo se existir
-        if (selectedImage && newTime) {
+        if (croppedBlob && newTime) {
           const escudo_url = await uploadEscudo(newTime.id);
           await updateTime.mutateAsync({
             id: newTime.id,
@@ -446,6 +455,19 @@ export default function AdminTimes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {tempImage && (
+        <ImageCropperModal
+          image={tempImage}
+          isOpen={isCropModalOpen}
+          onClose={() => {
+            setIsCropModalOpen(false);
+            setTempImage(null);
+          }}
+          onCropComplete={handleCropComplete}
+          aspect={1}
+        />
+      )}
       </div>
     </Layout>
   );

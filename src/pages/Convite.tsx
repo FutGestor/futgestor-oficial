@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { positionLabels, PlayerPosition } from "@/lib/types";
 import { ESCUDO_PADRAO } from "@/lib/constants";
+import { TeamShield } from "@/components/TeamShield";
 
 const conviteSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
@@ -247,10 +248,11 @@ export default function Convite() {
         <Card className="w-full max-w-md bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
           <CardHeader className="text-center pb-2">
             <div className="mx-auto mb-4 flex items-center justify-center">
-              <div className="relative">
-                <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-[#0560B3] to-transparent opacity-50 blur-sm"></div>
-                <img src={teamData?.escudo_url || ESCUDO_PADRAO} alt={teamData?.nome} className="relative h-24 w-24 object-contain" />
-              </div>
+              <TeamShield 
+                escudoUrl={teamData?.escudo_url || null} 
+                teamName={teamData?.nome || "Clube"} 
+                size="xl" 
+              />
             </div>
             <CardTitle className="text-3xl font-black italic uppercase tracking-tighter text-white">
               CADASTRAR NO <span className="text-[#0560B3]">{teamData?.nome}</span>

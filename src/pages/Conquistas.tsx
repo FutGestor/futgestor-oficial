@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { AchievementDetailsModal } from "@/components/achievements/AchievementDetailsModal";
 import { PlayerRadarChart } from "@/components/PlayerRadarChart";
 import { ActivityCalendar } from "@/components/ActivityCalendar";
@@ -26,6 +27,10 @@ export default function Conquistas() {
   const [selectedJogadorId, setSelectedJogadorId] = useState<string | null>(null);
   const [selectedAchievement, setSelectedAchievement] = useState<PlayerAchievement | null>(null);
   const [season, setSeason] = useState(new Date().getFullYear().toString());
+  
+  // Estados para colapsar/expandir
+  const [showAllUniversal, setShowAllUniversal] = useState(false);
+  const [showAllPosition, setShowAllPosition] = useState(false);
 
   const userJogadorId = (profile as any)?.jogador_id as string | undefined;
   const targetJogadorId = (isAdmin && selectedJogadorId) ? selectedJogadorId : userJogadorId;
@@ -40,12 +45,12 @@ export default function Conquistas() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jogadores")
-        .select("id, nome, apelido, posicao, foto_url, pe_preferido, peso_kg, altura_cm, bio, data_entrada")
+        .select("*")
         .eq("team_id", team!.id)
         .eq("ativo", true)
         .order("nome");
       if (error) throw error;
-      return data;
+      return data as any[];
     }
   });
 
@@ -62,7 +67,7 @@ export default function Conquistas() {
   const { data: performance } = usePlayerPerformance(targetJogadorId || undefined, team?.id);
 
   // Filtragem de Stats por Temporada em memória
-  const filteredPlayerStats = performance?.playerStats?.filter(s => {
+  const filteredPlayerStats = (performance as any)?.playerStats?.filter((s: any) => {
     if (season === "all") return true;
     const gameYear = new Date(s.resultado?.jogo?.data_hora || "").getFullYear().toString();
     return gameYear === season;
@@ -73,6 +78,8 @@ export default function Conquistas() {
   const progressPercent = totalCount > 0 ? (unlockedCount / totalCount) * 100 : 0;
 
   const achievementsResults = achievementsData as PlayerAchievement[] | undefined;
+  
+  // Separação por Categoria
   const universalAchievements = achievementsResults?.filter(a => a.achievement.category === 'universal') || [];
   const positionAchievements = achievementsResults?.filter(a => a.achievement.category !== 'universal') || [];
 
@@ -85,10 +92,10 @@ export default function Conquistas() {
   };
 
   const stats = filteredPlayerStats ? {
-    gols: filteredPlayerStats.reduce((acc, s) => acc + (s.gols || 0), 0),
-    assists: filteredPlayerStats.reduce((acc, s) => acc + (s.assistencias || 0), 0),
-    jogos: filteredPlayerStats.filter(s => s.participou).length,
-    mvps: filteredPlayerStats.filter(s => s.resultado?.mvp_jogador_id === targetJogadorId).length,
+    gols: filteredPlayerStats.reduce((acc: number, s: any) => acc + (s.gols || 0), 0),
+    assists: filteredPlayerStats.reduce((acc: number, s: any) => acc + (s.assistencias || 0), 0),
+    jogos: filteredPlayerStats.filter((s: any) => s.participou).length,
+    mvps: filteredPlayerStats.filter((s: any) => s.resultado?.mvp_jogador_id === targetJogadorId).length,
   } : { gols: 0, assists: 0, jogos: 0, mvps: 0 };
 
   return (
@@ -150,35 +157,35 @@ export default function Conquistas() {
                         <Target className="h-3 w-3" />
                         {currentJogador?.posicao || "Atleta"}
                       </span>
-                            <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest bg-white/5 px-2 py-1 rounded">
-                              Membro desde {currentJogador?.data_entrada ? format(new Date(currentJogador.data_entrada), "MMM/yyyy", { locale: ptBR }) : (profile?.created_at ? format(new Date(profile.created_at), "MMM/yyyy", { locale: ptBR }) : "--")}
-                            </span>
-                          </div>
-                        </div>
+                      <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest bg-white/5 px-2 py-1 rounded">
+                        Membro desde {currentJogador?.data_entrada ? format(new Date(currentJogador.data_entrada), "MMM/yyyy", { locale: ptBR }) : (profile?.created_at ? format(new Date(profile.created_at), "MMM/yyyy", { locale: ptBR }) : "--")}
+                      </span>
+                    </div>
+                  </div>
 
-                        {/* Dados Físicos Premium */}
-                        {(currentJogador?.pe_preferido || currentJogador?.altura_cm || currentJogador?.peso_kg) && (
-                          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                            {currentJogador.pe_preferido && (
-                              <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
-                                <Shield className="h-3 w-3 text-primary/50" />
-                                <span className="text-[10px] font-black uppercase text-zinc-400">Pé: <span className="text-white">{currentJogador.pe_preferido}</span></span>
-                              </div>
-                            )}
-                            {currentJogador.altura_cm && (
-                              <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
-                                <Shield className="h-3 w-3 text-primary/50" />
-                                <span className="text-[10px] font-black uppercase text-zinc-400">Alt: <span className="text-white">{(currentJogador.altura_cm / 100).toFixed(2)} m</span></span>
-                              </div>
-                            )}
-                            {currentJogador.peso_kg && (
-                              <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
-                                <Shield className="h-3 w-3 text-primary/50" />
-                                <span className="text-[10px] font-black uppercase text-zinc-400">Peso: <span className="text-white">{currentJogador.peso_kg}kg</span></span>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                  {/* Dados Físicos Premium */}
+                  {(currentJogador?.pe_preferido || currentJogador?.altura_cm || currentJogador?.peso_kg) && (
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                      {currentJogador.pe_preferido && (
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
+                          <Shield className="h-3 w-3 text-primary/50" />
+                          <span className="text-[10px] font-black uppercase text-zinc-400">Pé: <span className="text-white">{currentJogador.pe_preferido}</span></span>
+                        </div>
+                      )}
+                      {currentJogador.altura_cm && (
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
+                          <Shield className="h-3 w-3 text-primary/50" />
+                          <span className="text-[10px] font-black uppercase text-zinc-400">Alt: <span className="text-white">{(currentJogador.altura_cm / 100).toFixed(2)} m</span></span>
+                        </div>
+                      )}
+                      {currentJogador.peso_kg && (
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
+                          <Shield className="h-3 w-3 text-primary/50" />
+                          <span className="text-[10px] font-black uppercase text-zinc-400">Peso: <span className="text-white">{currentJogador.peso_kg}kg</span></span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Bio do Atleta */}
@@ -248,6 +255,29 @@ export default function Conquistas() {
           year={selectedYear} 
         />
 
+        {/*Achievements Summary Counter */}
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Trophy className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                    <p className="text-white font-black uppercase tracking-tight leading-none">
+                        {unlockedCount} de {totalCount} Conquistas Desbloqueadas
+                    </p>
+                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                        Sua evolução como atleta de elite
+                    </p>
+                </div>
+            </div>
+            <div className="w-full sm:w-48 h-1.5 bg-black/40 rounded-full overflow-hidden">
+                <div 
+                    className="h-full bg-primary transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(212,168,75,0.4)]" 
+                    style={{ width: `${progressPercent}%` }}
+                />
+            </div>
+        </div>
+
         {/* Achievements Sections */}
         {loadingAchievements ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-8">
@@ -256,29 +286,46 @@ export default function Conquistas() {
             ))}
           </div>
         ) : (
-          <div className="space-y-12 pb-12">
-            {/* Universais */}
-            <div className="space-y-6">
-              <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                <h3 className="text-sm font-black uppercase tracking-[0.3em] text-zinc-400">
-                  ━━ Conquistas Universais ({universalAchievements.filter(a => !!a.current_tier).length}/{universalAchievements.length}) ━━
-                </h3>
+          <div className="space-y-16 pb-12">
+            {/* Universais — Somente se houver conquistas universais no sistema */}
+            {universalAchievements.length > 0 && universalAchievements.some(a => !!a.current_tier || showAllUniversal) && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                  <h3 className="text-sm font-black uppercase tracking-[0.3em] text-zinc-400">
+                    ━━ Conquistas Universais ({universalAchievements.filter(a => !!a.current_tier).length}/{universalAchievements.length}) ━━
+                  </h3>
+                </div>
+                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-12 justify-items-center transition-all duration-500">
+                  {sortAchievements(universalAchievements)
+                    .filter(a => !!a.current_tier || showAllUniversal)
+                    .map((a) => (
+                      <AchievementBadge
+                        key={a.achievement_id}
+                        slug={a.achievement.slug}
+                        tier={a.current_tier}
+                        name={a.achievement.name}
+                        showName={true}
+                        size="sm"
+                        locked={!a.current_tier}
+                        onClick={() => setSelectedAchievement(a)}
+                      />
+                  ))}
+                </div>
+                
+                {universalAchievements.length > universalAchievements.filter(a => !!a.current_tier).length && (
+                  <div className="flex justify-center pt-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setShowAllUniversal(!showAllUniversal)}
+                      className="text-zinc-500 hover:text-white hover:bg-white/5 gap-2 uppercase text-[10px] font-black tracking-widest"
+                    >
+                      {showAllUniversal ? "Ocultar bloqueadas ▲" : `Ver todas as ${universalAchievements.length} conquistas ▼`}
+                    </Button>
+                  </div>
+                )}
               </div>
-              <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-12 justify-items-center">
-                {sortAchievements(universalAchievements).map((a) => (
-                  <AchievementBadge
-                    key={a.achievement_id}
-                    slug={a.achievement.slug}
-                    tier={a.current_tier}
-                    name={a.achievement.name}
-                    showName={true}
-                    size="sm"
-                    locked={!a.current_tier}
-                    onClick={() => setSelectedAchievement(a)}
-                  />
-                ))}
-              </div>
-            </div>
+            )}
 
             {/* De Posição */}
             {positionAchievements.length > 0 && (
@@ -288,20 +335,60 @@ export default function Conquistas() {
                     ━━ Conquistas de {currentJogador?.posicao || "Posição"} ({positionAchievements.filter(a => !!a.current_tier).length}/{positionAchievements.length}) ━━
                   </h3>
                 </div>
-                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-12 justify-items-center">
-                  {sortAchievements(positionAchievements).map((a) => (
-                    <AchievementBadge
-                      key={a.achievement_id}
-                      slug={a.achievement.slug}
-                      tier={a.current_tier}
-                      name={a.achievement.name}
-                      showName={true}
-                      size="sm"
-                      locked={!a.current_tier}
-                      onClick={() => setSelectedAchievement(a)}
-                    />
-                  ))}
-                </div>
+
+                {/* Lógica de Lista: Desbloqueadas ou Motivacional se 0 */}
+                {positionAchievements.filter(a => !!a.current_tier).length === 0 && !showAllPosition ? (
+                   <div className="bg-white/5 border border-dashed border-white/10 rounded-2xl p-10 flex flex-col items-center justify-center text-center space-y-4">
+                        <div className="h-16 w-16 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center mb-2">
+                            <Trophy className="h-8 w-8 text-zinc-700" />
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-white font-black uppercase italic tracking-tighter text-lg">Jogue mais partidas para brilhar!</p>
+                            <p className="text-zinc-500 text-sm max-w-xs mx-auto">Você ainda não desbloqueou conquistas de posição. Veja o que você pode conquistar:</p>
+                        </div>
+                        <div className="flex gap-6 pt-4">
+                            {positionAchievements.slice(0, 3).map((a) => (
+                                <div key={a.achievement_id} className="opacity-30 grayscale hover:opacity-50 transition-all cursor-help" onClick={() => setSelectedAchievement(a)}>
+                                    <AchievementBadge 
+                                        slug={a.achievement.slug} 
+                                        tier={null} 
+                                        size="sm" 
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                   </div>
+                ) : (
+                  <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-12 justify-items-center transition-all duration-500">
+                    {sortAchievements(positionAchievements)
+                        .filter(a => !!a.current_tier || showAllPosition)
+                        .map((a) => (
+                      <AchievementBadge
+                        key={a.achievement_id}
+                        slug={a.achievement.slug}
+                        tier={a.current_tier}
+                        name={a.achievement.name}
+                        showName={true}
+                        size="sm"
+                        locked={!a.current_tier}
+                        onClick={() => setSelectedAchievement(a)}
+                      />
+                    ))}
+                  </div>
+                )}
+                
+                {positionAchievements.length > positionAchievements.filter(a => !!a.current_tier).length && (
+                  <div className="flex justify-center pt-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setShowAllPosition(!showAllPosition)}
+                      className="text-zinc-500 hover:text-white hover:bg-white/5 gap-2 uppercase text-[10px] font-black tracking-widest"
+                    >
+                      {showAllPosition ? "Ocultar bloqueadas ▲" : `Ver todas as ${positionAchievements.length} conquistas ▼`}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

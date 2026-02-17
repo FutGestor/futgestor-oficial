@@ -1,7 +1,8 @@
 import { format, subMonths, addMonths, isSameMonth, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Users, Calendar, Shield, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { Users, Calendar, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
+import { TeamShield } from "@/components/TeamShield";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -122,17 +123,11 @@ function EscalacaoContent() {
                     <div className="flex items-start justify-between sm:px-8">
                       {/* Meu Time */}
                       <div className="flex flex-1 flex-col items-center gap-2">
-                        {team.escudo_url ? (
-                          <img 
-                            src={team.escudo_url} 
-                            alt={team.nome} 
-                            className="h-16 w-16 object-contain md:h-20 md:w-20" 
-                          />
-                        ) : (
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 md:h-20 md:w-20">
-                            <Users className="h-8 w-8 text-primary" />
-                          </div>
-                        )}
+                        <TeamShield 
+                          escudoUrl={team.escudo_url || null} 
+                          teamName={team.nome || "Meu Time"} 
+                          size="2xl" 
+                        />
                         <span className="text-center font-bold leading-tight md:text-lg">
                           {team.nome}
                         </span>
@@ -145,17 +140,11 @@ function EscalacaoContent() {
 
                       {/* Adversário */}
                       <div className="flex flex-1 flex-col items-center gap-2">
-                        {currentEscalacao.jogo?.time_adversario?.escudo_url ? (
-                          <img 
-                            src={currentEscalacao.jogo.time_adversario.escudo_url} 
-                            alt={currentEscalacao.jogo.time_adversario.nome} 
-                            className="h-16 w-16 object-contain md:h-20 md:w-20" 
-                          />
-                        ) : (
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black/20 border border-white/10 md:h-20 md:w-20">
-                            <Shield className="h-8 w-8 text-muted-foreground/50" />
-                          </div>
-                        )}
+                        <TeamShield 
+                          escudoUrl={currentEscalacao.jogo?.time_adversario?.escudo_url || null} 
+                          teamName={currentEscalacao.jogo?.time_adversario?.nome || currentEscalacao.jogo?.adversario || "Adversário"} 
+                          size="2xl" 
+                        />
                         <span className="text-center font-bold leading-tight md:text-lg">
                           {currentEscalacao.jogo?.time_adversario?.nome || currentEscalacao.jogo?.adversario || "Adversário"}
                         </span>

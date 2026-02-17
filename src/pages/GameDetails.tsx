@@ -21,6 +21,7 @@ import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 import { useJogo, useEscalacaoByJogoId, useEscalacaoJogadores } from "@/hooks/useData";
 import { cn } from "@/lib/utils";
 import { SocietyField } from "@/components/SocietyField";
+import { TeamShield } from "@/components/TeamShield";
 import { positionLabels, type GameModality } from "@/lib/types";
 
 function getResultType(golsFavor: number, golsContra: number) {
@@ -113,17 +114,11 @@ export default function GameDetails() {
               <div className="flex items-center justify-between max-w-2xl mx-auto">
                 {/* Meu Time */}
                 <div className="flex flex-col items-center gap-3 w-1/3">
-                  <div className="relative h-20 w-20 md:h-28 md:w-28 bg-primary/5 rounded-full flex items-center justify-center p-2 ring-1 ring-border">
-                     {team?.escudo_url ? (
-                        <img 
-                          src={team.escudo_url} 
-                          alt={team.nome} 
-                          className="h-full w-full object-contain"
-                        />
-                     ) : (
-                        <Shield className="h-10 w-10 text-primary" />
-                     )}
-                  </div>
+                  <TeamShield 
+                    escudoUrl={team?.escudo_url || null} 
+                    teamName={team?.nome || "Meu Time"} 
+                    size="xl" 
+                  />
                   <span className="text-sm md:text-base font-bold text-center leading-tight">
                     {team?.nome || "Meu Time"}
                   </span>
@@ -152,17 +147,11 @@ export default function GameDetails() {
 
                 {/* Adversário */}
                 <div className="flex flex-col items-center gap-3 w-1/3">
-                  <div className="relative h-20 w-20 md:h-28 md:w-28 bg-muted/30 rounded-full flex items-center justify-center p-2 ring-1 ring-border">
-                    {adversarioInfo?.escudo_url ? (
-                      <img 
-                        src={adversarioInfo.escudo_url} 
-                        alt={adversarioInfo.nome} 
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <Shield className="h-10 w-10 text-muted-foreground" />
-                    )}
-                  </div>
+                  <TeamShield 
+                    escudoUrl={adversarioInfo?.escudo_url || null} 
+                    teamName={adversarioInfo?.nome || jogo.adversario} 
+                    size="xl" 
+                  />
                   <span className="text-sm md:text-base font-bold text-center leading-tight text-muted-foreground">
                     {adversarioInfo?.nome || jogo.adversario}
                   </span>

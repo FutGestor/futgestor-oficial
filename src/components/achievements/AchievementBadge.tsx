@@ -174,7 +174,7 @@ export const AchievementBadge: React.FC<AchievementBadgeProps> = ({
       )}
 
       {showName && name && (
-        <p className="mt-2 text-[10px] font-bold text-white uppercase tracking-tighter text-center line-clamp-1 max-w-[80px]">
+        <p className="mt-2 text-[10px] font-bold text-white uppercase tracking-tighter text-center max-w-[100px] leading-tight break-words">
           {name}
         </p>
       )}

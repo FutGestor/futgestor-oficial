@@ -267,22 +267,22 @@ export function ActivityCalendar({ jogadorId, teamId, year: initialYear = new Da
               })}
             </div>
 
-            {/* Legend - Melhorada para mobile */}
-            <div className="mt-6 flex flex-wrap items-center justify-start sm:justify-end gap-x-3 gap-y-3 text-[9px] font-black uppercase tracking-widest text-zinc-500 pr-2">
-              <span className="flex items-center gap-1 whitespace-nowrap">
-                <div className="w-2.5 h-2.5 bg-transparent rounded-full border border-white/[0.05]" /> <span className="hidden xs:inline">Sem jogo</span><span className="xs:hidden">-</span>
+            {/* Legend - Sem abreviações */}
+            <div className="mt-6 flex flex-wrap items-center justify-start sm:justify-end gap-x-4 gap-y-3 text-[9px] font-black uppercase tracking-widest text-zinc-500 pr-2">
+              <span className="flex items-center gap-1.5 whitespace-nowrap">
+                <div className="w-2.5 h-2.5 bg-transparent rounded-full border border-white/[0.05]" /> Sem jogo
               </span>
-              <span className="flex items-center gap-1 whitespace-nowrap">
-                <div className="w-2.5 h-2.5 bg-zinc-600 rounded-full" /> <span className="hidden xs:inline">Não jogou</span><span className="xs:hidden">NJ</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap">
+                <div className="w-2.5 h-2.5 bg-zinc-600 rounded-full" /> Não jogou
               </span>
-              <span className="flex items-center gap-1 whitespace-nowrap">
-                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full" /> <span className="hidden xs:inline">Vitória</span><span className="xs:hidden">V</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap">
+                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full" /> Vitória
               </span>
-              <span className="flex items-center gap-1 whitespace-nowrap">
-                <div className="w-2.5 h-2.5 bg-sky-300 rounded-full" /> <span className="hidden xs:inline">Empate</span><span className="xs:hidden">E</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap">
+                <div className="w-2.5 h-2.5 bg-sky-300 rounded-full" /> Empate
               </span>
-              <span className="flex items-center gap-1 whitespace-nowrap">
-                <div className="w-2.5 h-2.5 bg-purple-600 rounded-full" /> <span className="hidden xs:inline">Derrota</span><span className="xs:hidden">D</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap">
+                <div className="w-2.5 h-2.5 bg-purple-600 rounded-full" /> Derrota
               </span>
             </div>
           </div>

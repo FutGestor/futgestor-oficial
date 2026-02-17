@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { useNavigate } from "react-router-dom";
 import { Settings2 } from "lucide-react";
+import { TeamShield } from "@/components/TeamShield";
 
 
 function GameCard({ jogo, timeCasa, resultado }: { jogo: Jogo; timeCasa?: Time | null; resultado?: Resultado | null }) {
@@ -43,9 +44,11 @@ function GameCard({ jogo, timeCasa, resultado }: { jogo: Jogo; timeCasa?: Time |
             <div className="flex items-center gap-3">
               {/* Time da Casa */}
               <div className="flex items-center gap-2">
-                {timeCasa?.escudo_url && (
-                  <img src={timeCasa.escudo_url} alt={timeCasa.nome} className="h-8 w-8 rounded-full object-contain" />
-                )}
+                <TeamShield 
+                  escudoUrl={timeCasa?.escudo_url || null} 
+                  teamName={timeCasa?.nome || 'Meu Time'} 
+                  size="sm" 
+                />
                 <span className={cn("font-semibold", isFinalizado && "hidden sm:inline")}>
                   {timeCasa?.nome || 'Meu Time'}
                 </span>
@@ -69,9 +72,11 @@ function GameCard({ jogo, timeCasa, resultado }: { jogo: Jogo; timeCasa?: Time |
 
               {/* Adversário */}
               <div className="flex items-center gap-2">
-                {time?.escudo_url && (
-                  <img src={time.escudo_url} alt={time.nome} className="h-8 w-8 rounded-full object-contain" />
-                )}
+                <TeamShield 
+                  escudoUrl={time?.escudo_url || null} 
+                  teamName={time?.nome || jogo.adversario} 
+                  size="sm" 
+                />
                 <span className={cn("font-semibold", isFinalizado && "hidden sm:inline")}>
                   {time?.nome || jogo.adversario}
                 </span>
@@ -235,10 +240,11 @@ function AgendaContent() {
                       {/* Escudo circular centralizado */}
                       {hasGames && time?.escudo_url && (
                         <div className="absolute inset-0 flex items-center justify-center p-0.5">
-                          <img
-                            src={time.escudo_url}
-                            alt={time.nome || firstGame.adversario}
-                            className="h-full w-full rounded-full object-contain"
+                          <TeamShield 
+                            escudoUrl={time.escudo_url} 
+                            teamName={time.nome || firstGame.adversario} 
+                            size="sm"
+                            className="h-full w-full border-0 shadow-none bg-transparent"
                           />
                         </div>
                       )}
