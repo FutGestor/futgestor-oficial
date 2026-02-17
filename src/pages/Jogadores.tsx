@@ -11,7 +11,7 @@ import { positionLabels, type JogadorPublico } from "@/lib/types";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Users, UserCheck, Settings2 } from "lucide-react";
+import { Trophy, Users, UserCheck, Settings2, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AchievementGrid } from "@/components/achievements/AchievementGrid";
 import { 
@@ -21,7 +21,8 @@ import {
   DialogTitle, 
   DialogDescription 
 } from "@/components/ui/dialog";
-import { Trophy } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { usePlayerAchievements } from "@/hooks/useAchievements";
 import { AchievementBadge } from "@/components/achievements/AchievementBadge";
 
@@ -115,9 +116,43 @@ function JogadorCard({
           )}
         </div>
 
-        <Badge variant="secondary" className="mb-2">
-          {positionLabels[jogador.posicao]}
-        </Badge>
+        <div className="flex flex-col gap-2 mb-3">
+          <Badge variant="secondary" className="w-fit bg-white/5 border-white/10 uppercase tracking-widest text-[10px]">
+            {positionLabels[jogador.posicao]}
+          </Badge>
+
+          {/* Dados Físicos */}
+          {(jogador.pe_preferido || jogador.altura_cm || jogador.peso_kg) && (
+            <div className="text-[10px] text-muted-foreground font-medium flex items-center gap-1.5 px-1 uppercase tracking-tight">
+              {jogador.pe_preferido && (
+                <span className="capitalize">{jogador.pe_preferido}</span>
+              )}
+              {jogador.pe_preferido && (jogador.altura_cm || jogador.peso_kg) && <span>•</span>}
+              {jogador.altura_cm && (
+                <span>{(jogador.altura_cm / 100).toFixed(2)} m</span>
+              )}
+              {jogador.altura_cm && jogador.peso_kg && <span>•</span>}
+              {jogador.peso_kg && (
+                <span>{jogador.peso_kg}kg</span>
+              )}
+            </div>
+          )}
+
+          {/* Data de Entrada */}
+          {jogador.data_entrada && (
+            <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 font-medium px-1">
+              <Calendar className="h-3 w-3" />
+              <span>Membro desde {format(new Date(jogador.data_entrada), "MMM/yyyy", { locale: ptBR })}</span>
+            </div>
+          )}
+
+          {/* Bio Truncada */}
+          {jogador.bio && (
+            <p className="text-[10px] text-muted-foreground/60 italic px-1 line-clamp-2 mt-1 leading-tight">
+              "{jogador.bio}"
+            </p>
+          )}
+        </div>
 
         <PlayerMiniAchievements 
           jogadorId={jogador.id} 

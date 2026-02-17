@@ -21,7 +21,7 @@ import { useJogos, useResultados } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { useTimesAtivos } from "@/hooks/useTimes";
 import { useConfirmacoesContagem } from "@/hooks/useConfirmacoes";
-import { statusLabels, type Jogo, type GameStatus, type Resultado } from "@/lib/types";
+import { statusLabels, tipoJogoLabels, mandoLabels, type Jogo, type GameStatus, type Resultado, type TipoJogo, type MandoJogo } from "@/lib/types";
 import AdminPresencaManager from "@/components/AdminPresencaManager";
 import EstatisticasPartidaForm from "@/components/EstatisticasPartidaForm";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,8 @@ type JogoFormData = {
   adversario: string;
   time_adversario_id: string | null;
   status: GameStatus;
+  tipo_jogo: TipoJogo;
+  mando: MandoJogo;
   observacoes: string;
 };
 
@@ -57,6 +59,8 @@ const initialFormData: JogoFormData = {
   adversario: "",
   time_adversario_id: null,
   status: "agendado",
+  tipo_jogo: "amistoso",
+  mando: "mandante",
   observacoes: "",
 };
 
@@ -170,6 +174,8 @@ export default function AdminJogos() {
       adversario: jogo.adversario,
       time_adversario_id: jogo.time_adversario_id,
       status: jogo.status,
+      tipo_jogo: (jogo.tipo_jogo as TipoJogo) || "amistoso",
+      mando: (jogo.mando as MandoJogo) || "mandante",
       observacoes: jogo.observacoes || "",
     });
     setIsDialogOpen(true);
@@ -225,6 +231,8 @@ export default function AdminJogos() {
             adversario: formData.adversario,
             time_adversario_id: formData.time_adversario_id,
             status: formData.status,
+            tipo_jogo: formData.tipo_jogo,
+            mando: formData.mando,
             observacoes: formData.observacoes || null,
           })
           .eq("id", editingJogo.id);
@@ -238,6 +246,8 @@ export default function AdminJogos() {
           adversario: formData.adversario,
           time_adversario_id: formData.time_adversario_id,
           status: formData.status,
+          tipo_jogo: formData.tipo_jogo,
+          mando: formData.mando,
           observacoes: formData.observacoes || null,
           team_id: profile?.team_id,
         });
@@ -248,11 +258,11 @@ export default function AdminJogos() {
 
       queryClient.invalidateQueries({ queryKey: ["jogos"] });
       setIsDialogOpen(false);
-    } catch (error: unknown) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: error instanceof Error ? error.message : "Ocorreu um erro",
+        description: error.message || "Ocorreu um erro ao salvar o jogo",
       });
     } finally {
       setIsSubmitting(false);
@@ -469,6 +479,45 @@ export default function AdminJogos() {
                     required
                   />
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tipo_jogo">Tipo de Jogo</Label>
+                    <Select
+                      value={formData.tipo_jogo}
+                      onValueChange={(value: TipoJogo) => setFormData({ ...formData, tipo_jogo: value })}
+                    >
+                      <SelectTrigger id="tipo_jogo">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(tipoJogoLabels).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="mando">Mando de Campo</Label>
+                    <Select
+                      value={formData.mando}
+                      onValueChange={(value: MandoJogo) => setFormData({ ...formData, mando: value })}
+                    >
+                      <SelectTrigger id="mando">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(mandoLabels).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <Select

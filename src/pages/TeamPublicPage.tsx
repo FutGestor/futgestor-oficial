@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout/Layout";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
-import { Trophy, Bell, Shield, Settings, CalendarPlus, Award, BarChart3, Users } from "lucide-react";
+import { Trophy, Bell, Shield, LayoutDashboard, CalendarPlus, Award, BarChart3, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanAccess } from "@/hooks/useSubscription";
 import { ScheduleGameCard } from "@/components/ScheduleGameCard";
@@ -20,13 +20,11 @@ export default function TeamPublicPage() {
       <section className="container px-4 pt-10 pb-6 relative z-20">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {hasSolicitacoes && <QuickAccessCard to={`${basePath}/solicitacoes`} icon={CalendarPlus} label="Solicitações" />}
-          <QuickAccessCard to={`${basePath}/ranking`} icon={Trophy} label="Ranking" />
           <QuickAccessCard to={`${basePath}/jogadores`} icon={Users} label="Jogadores" />
           <QuickAccessCard to={`${basePath}/escalacao`} icon={Shield} label="Escalação" />
           {hasCampeonatos && <QuickAccessCard to={`${basePath}/ligas`} icon={Award} label="Ligas" />}
           <QuickAccessCard to={`${basePath}/resultados`} icon={BarChart3} label="Resultados" />
-          {hasAvisos && <QuickAccessCard to={`${basePath}/avisos`} icon={Bell} label="Avisos" />}
-          {isAdmin && <QuickAccessCard to={`${basePath}/gestao`} icon={Settings} label="Gestão" className="bg-primary/10 border-primary/20" />}
+          {isAdmin && <QuickAccessCard to={`${basePath}/gestao`} icon={LayoutDashboard} label="Gestão" className="bg-primary/10 border-primary/20" />}
         </div>
       </section>
 

@@ -7,6 +7,7 @@ import { LeagueRoundMatches } from "@/components/LeagueRoundMatches";
 import { Trophy, Settings2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -59,7 +60,7 @@ export default function LigasPage() {
   const { team, basePath } = useTeamSlug();
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
-  const { data: leagues } = useLeagues(team.id);
+  const { data: leagues, isLoading } = useLeagues(team.id);
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>("");
 
   useEffect(() => {
@@ -72,6 +73,22 @@ export default function LigasPage() {
   }, [leagues, selectedLeagueId]);
 
   const selectedLeague = leagues?.find(l => l.id === selectedLeagueId);
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container py-8 px-4 md:px-6">
+          <div className="mb-6 space-y-2">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

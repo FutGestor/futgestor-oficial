@@ -13,6 +13,11 @@ export interface Jogador {
   nome: string;
   apelido: string | null;
   posicao: PlayerPosition;
+  pe_preferido: 'destro' | 'canhoto' | 'ambos' | null;
+  peso_kg: number | null;
+  altura_cm: number | null;
+  bio: string | null;
+  data_entrada: string | null;
   numero: number | null;
   foto_url: string | null;
   telefone: string | null;
@@ -30,6 +35,11 @@ export interface JogadorPublico {
   nome: string;
   apelido: string | null;
   posicao: PlayerPosition;
+  pe_preferido: 'destro' | 'canhoto' | 'ambos' | null;
+  peso_kg: number | null;
+  altura_cm: number | null;
+  bio: string | null;
+  data_entrada: string | null;
   numero: number | null;
   foto_url: string | null;
   ativo: boolean;
@@ -52,12 +62,17 @@ export interface Time {
   updated_at: string;
 }
 
+export type TipoJogo = 'amistoso' | 'campeonato' | 'copa' | 'torneio' | 'outro';
+export type MandoJogo = 'mandante' | 'visitante';
+
 export interface Jogo {
   id: string;
   data_hora: string;
   local: string;
   adversario: string;
   status: GameStatus;
+  tipo_jogo: TipoJogo | null;
+  mando: MandoJogo | null;
   observacoes: string | null;
   temporada: string | null;
   time_adversario_id: string | null;
@@ -189,6 +204,19 @@ export const presenceStatusLabels: Record<PresenceStatus, string> = {
   confirmado: 'Confirmado',
   indisponivel: 'Indisponível',
   pendente: 'Pendente',
+};
+
+export const tipoJogoLabels: Record<TipoJogo, string> = {
+  amistoso: 'Amistoso',
+  campeonato: 'Campeonato',
+  copa: 'Copa',
+  torneio: 'Torneio',
+  outro: 'Outro',
+};
+
+export const mandoLabels: Record<MandoJogo, string> = {
+  mandante: 'Mandante',
+  visitante: 'Visitante',
 };
 
 // Society/Campo modality types

@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +32,11 @@ type JogadorFormData = {
   email: string;
   ativo: boolean;
   foto_url: string | null;
+  pe_preferido: Jogador['pe_preferido'];
+  peso_kg: string;
+  altura_cm: string;
+  bio: string;
+  data_entrada: string;
 };
 
 const initialFormData: JogadorFormData = {
@@ -42,6 +48,11 @@ const initialFormData: JogadorFormData = {
   email: "",
   ativo: true,
   foto_url: null,
+  pe_preferido: null,
+  peso_kg: "",
+  altura_cm: "",
+  bio: "",
+  data_entrada: new Date().toISOString().split('T')[0],
 };
 
 export default function AdminJogadores() {
@@ -84,6 +95,11 @@ export default function AdminJogadores() {
       email: jogador.email || "",
       ativo: jogador.ativo,
       foto_url: jogador.foto_url || null,
+      pe_preferido: jogador.pe_preferido || null,
+      peso_kg: jogador.peso_kg?.toString() || "",
+      altura_cm: jogador.altura_cm?.toString() || "",
+      bio: jogador.bio || "",
+      data_entrada: jogador.data_entrada || new Date().toISOString().split('T')[0],
     });
     setSelectedFile(null);
     setPreviewUrl(jogador.foto_url || null);
@@ -178,6 +194,11 @@ export default function AdminJogadores() {
             telefone: formData.telefone || null,
             email: formData.email || null,
             ativo: formData.ativo,
+            pe_preferido: formData.pe_preferido || null,
+            peso_kg: formData.peso_kg ? parseFloat(formData.peso_kg) : null,
+            altura_cm: formData.altura_cm ? parseInt(formData.altura_cm) : null,
+            bio: formData.bio || null,
+            data_entrada: formData.data_entrada || null,
             team_id: profile?.team_id,
           })
           .select()
@@ -206,6 +227,11 @@ export default function AdminJogadores() {
             email: formData.email || null,
             ativo: formData.ativo,
             foto_url: fotoUrl,
+            pe_preferido: formData.pe_preferido || null,
+            peso_kg: formData.peso_kg ? parseFloat(formData.peso_kg) : null,
+            altura_cm: formData.altura_cm ? parseInt(formData.altura_cm) : null,
+            bio: formData.bio || null,
+            data_entrada: formData.data_entrada || null,
           })
           .eq("id", jogadorId);
 
@@ -467,6 +493,75 @@ export default function AdminJogadores() {
                   />
                 </div>
               </div>
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                <h4 className="text-sm font-bold uppercase tracking-widest text-primary">Dados Físicos e Bio</h4>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="pe_preferido">Pé Preferido</Label>
+                    <Select
+                      value={formData.pe_preferido || "nao_informado"}
+                      onValueChange={(value: any) => setFormData({ ...formData, pe_preferido: value === "nao_informado" ? null : value })}
+                    >
+                      <SelectTrigger id="pe_preferido">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="nao_informado">Não informado</SelectItem>
+                        <SelectItem value="destro">Destro</SelectItem>
+                        <SelectItem value="canhoto">Canhoto</SelectItem>
+                        <SelectItem value="ambos">Ambos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="peso_kg">Peso (kg)</Label>
+                    <Input
+                      id="peso_kg"
+                      type="number"
+                      step="0.1"
+                      placeholder="75.0"
+                      value={formData.peso_kg}
+                      onChange={(e) => setFormData({ ...formData, peso_kg: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="altura_cm">Altura (cm)</Label>
+                    <Input
+                      id="altura_cm"
+                      type="number"
+                      placeholder="178"
+                      value={formData.altura_cm}
+                      onChange={(e) => setFormData({ ...formData, altura_cm: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="data_entrada">Data de Entrada</Label>
+                    <Input
+                      id="data_entrada"
+                      type="date"
+                      value={formData.data_entrada}
+                      onChange={(e) => setFormData({ ...formData, data_entrada: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio (máx 300 caracteres)</Label>
+                  <Textarea
+                    id="bio"
+                    placeholder="Uma breve descrição do jogador..."
+                    maxLength={300}
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    className="resize-none h-20"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center gap-2">
                 <Switch
                   id="ativo"

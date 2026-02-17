@@ -22,7 +22,7 @@ const tierConfig = {
     label: "",
     starColor: "",
     bannerColor: "",
-    imageFilter: "grayscale(100%) opacity(0.3)",
+    imageFilter: "grayscale(100%) opacity(0.6)",
     glow: "drop-shadow(0 0 0 transparent)",
   },
   bronze: {
@@ -158,7 +158,7 @@ export const AchievementBadge: React.FC<AchievementBadgeProps> = ({
           className={cn(
             "object-contain transition-all duration-300",
             imageSizes[size],
-            isLocked && "grayscale opacity-30"
+            isLocked && "grayscale opacity-60"
           )}
           onError={(e) => {
             (e.target as HTMLImageElement).src = "/achievements/presenca.png";

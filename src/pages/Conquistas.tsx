@@ -3,33 +3,44 @@ import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { usePlayerPerformance } from "@/hooks/useEstatisticas";
-import { usePlayerAchievements } from "@/hooks/useAchievements";
 import { AchievementBadge } from "@/components/achievements/AchievementBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { Trophy, Target, History, Calendar, Medal, Users, ChevronRight, GraduationCap } from "lucide-react";
+import { Trophy, Target, History, Calendar, Medal, Users, ChevronRight, GraduationCap, Shield } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AchievementDetailsModal } from "@/components/achievements/AchievementDetailsModal";
+import { PlayerRadarChart } from "@/components/PlayerRadarChart";
+import { ActivityCalendar } from "@/components/ActivityCalendar";
+import { SeasonSelector } from "@/components/SeasonSelector";
+
+import { usePlayerAchievements, type PlayerAchievement } from "@/hooks/useAchievements";
 
 export default function Conquistas() {
   const { profile, isAdmin } = useAuth();
   const { team } = useTeamSlug();
   const [selectedJogadorId, setSelectedJogadorId] = useState<string | null>(null);
-  const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
+  const [selectedAchievement, setSelectedAchievement] = useState<PlayerAchievement | null>(null);
+  const [season, setSeason] = useState(new Date().getFullYear().toString());
 
-  const targetJogadorId = (isAdmin && selectedJogadorId) ? selectedJogadorId : profile?.jogador_id;
+  const userJogadorId = (profile as any)?.jogador_id as string | undefined;
+  const targetJogadorId = (isAdmin && selectedJogadorId) ? selectedJogadorId : userJogadorId;
+  
+  // Para o calendário, "Todas" volta para o ano atual, mas os stats serão de todas
+  const selectedYear = season === "all" ? new Date().getFullYear() : parseInt(season);
 
   // Carregar lista de jogadores se for Admin
   const { data: jogadores } = useQuery({
     queryKey: ["team-players", team?.id],
-    enabled: !!team?.id && isAdmin,
+    enabled: !!team?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jogadores")
-        .select("id, nome, apelido, posicao, foto_url")
+        .select("id, nome, apelido, posicao, foto_url, pe_preferido, peso_kg, altura_cm, bio, data_entrada")
         .eq("team_id", team!.id)
         .eq("ativo", true)
         .order("nome");
@@ -38,23 +49,34 @@ export default function Conquistas() {
     }
   });
 
-  const currentJogador = jogadores?.find(j => j.id === targetJogadorId) || (targetJogadorId === profile?.jogador_id ? {
-    nome: profile?.nome,
-    posicao: "Atleta",
-    foto_url: (profile as any)?.foto_url
-  } : null);
+  const currentJogador = (jogadores?.find(j => j.id === targetJogadorId) || (targetJogadorId === (profile as any)?.jogador_id ? {
+    id: targetJogadorId,
+    nome: (profile as any)?.nome as string,
+    apelido: (profile as any)?.nome as string,
+    posicao: "Atleta" as any,
+    foto_url: (profile as any)?.foto_url as string | null,
+    data_entrada: (profile as any)?.created_at as string | null
+  } : null)) as any;
 
   const { data: achievementsData, isLoading: loadingAchievements } = usePlayerAchievements(targetJogadorId || undefined);
   const { data: performance } = usePlayerPerformance(targetJogadorId || undefined, team?.id);
+
+  // Filtragem de Stats por Temporada em memória
+  const filteredPlayerStats = performance?.playerStats?.filter(s => {
+    if (season === "all") return true;
+    const gameYear = new Date(s.resultado?.jogo?.data_hora || "").getFullYear().toString();
+    return gameYear === season;
+  });
 
   const unlockedCount = achievementsData?.filter(a => !!a.current_tier).length || 0;
   const totalCount = achievementsData?.length || 0;
   const progressPercent = totalCount > 0 ? (unlockedCount / totalCount) * 100 : 0;
 
-  const universalAchievements = achievementsData?.filter(a => a.achievement.category === 'universal') || [];
-  const positionAchievements = achievementsData?.filter(a => a.achievement.category !== 'universal') || [];
+  const achievementsResults = achievementsData as PlayerAchievement[] | undefined;
+  const universalAchievements = achievementsResults?.filter(a => a.achievement.category === 'universal') || [];
+  const positionAchievements = achievementsResults?.filter(a => a.achievement.category !== 'universal') || [];
 
-  const sortAchievements = (list: any[]) => {
+  const sortAchievements = (list: PlayerAchievement[]) => {
     return [...list].sort((a, b) => {
       if (a.current_tier && !b.current_tier) return -1;
       if (!a.current_tier && b.current_tier) return 1;
@@ -62,11 +84,12 @@ export default function Conquistas() {
     });
   };
 
-  const stats = performance?.playerStats ? {
-    gols: performance.playerStats.reduce((acc, s) => acc + (s.gols || 0), 0),
-    assists: performance.playerStats.reduce((acc, s) => acc + (s.assistencias || 0), 0),
-    jogos: performance.playerStats.filter(s => s.participou).length,
-  } : { gols: 0, assists: 0, jogos: 0 };
+  const stats = filteredPlayerStats ? {
+    gols: filteredPlayerStats.reduce((acc, s) => acc + (s.gols || 0), 0),
+    assists: filteredPlayerStats.reduce((acc, s) => acc + (s.assistencias || 0), 0),
+    jogos: filteredPlayerStats.filter(s => s.participou).length,
+    mvps: filteredPlayerStats.filter(s => s.resultado?.mvp_jogador_id === targetJogadorId).length,
+  } : { gols: 0, assists: 0, jogos: 0, mvps: 0 };
 
   return (
     <Layout>
@@ -81,79 +104,149 @@ export default function Conquistas() {
             <p className="text-zinc-500 font-medium">Sua jornada rumo à glória eterna no {team?.nome || "clube"}.</p>
           </div>
 
-          {isAdmin && (
-            <div className="w-full md:w-64">
-              <Select value={targetJogadorId || ""} onValueChange={setSelectedJogadorId}>
-                <SelectTrigger className="bg-black/40 border-white/10 text-white h-11">
-                  <SelectValue placeholder="Selecionar Jogador" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                  {jogadores?.map(j => (
-                    <SelectItem key={j.id} value={j.id}>{j.apelido || j.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </div>
-
-        {/* Athlete Profile Card */}
-        <div className="bg-black/60 backdrop-blur-3xl border border-white/10 rounded-3xl p-6 md:p-8 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Medal className="h-64 w-64 rotate-12" />
-          </div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-            <div className="relative">
-              <Avatar className="h-32 w-32 border-4 border-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.3)]">
-                <AvatarImage src={currentJogador?.foto_url || ""} />
-                <AvatarFallback className="bg-zinc-800 text-zinc-500">
-                  <Users className="h-12 w-12" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute -bottom-2 -right-2 bg-primary text-black font-black text-xs px-3 py-1 rounded-full shadow-lg">
-                ATIVO
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            <SeasonSelector value={season} onChange={setSeason} />
+            {isAdmin && (
+              <div className="w-full md:w-64">
+                <Select value={targetJogadorId || ""} onValueChange={setSelectedJogadorId}>
+                  <SelectTrigger className="bg-black/40 border-white/10 text-white h-11">
+                    <SelectValue placeholder="Selecionar Jogador" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                    {jogadores?.map(j => (
+                      <SelectItem key={j.id} value={j.id}>{j.apelido || j.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-
-            <div className="flex-1 text-center md:text-left space-y-4">
-              <div>
-                <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">
-                  {currentJogador?.nome || "Atleta"}
-                </h2>
-                <div className="flex items-center justify-center md:justify-start gap-4 mt-1">
-                  <p className="text-primary font-bold uppercase tracking-widest text-xs flex items-center gap-1.5">
-                    <GraduationCap className="h-3.5 w-3.5" />
-                    {currentJogador?.posicao || "Posição"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap justify-center md:justify-start gap-6">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Gols</p>
-                  <p className="text-xl font-black text-white italic">⚽ {stats.gols}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Assists</p>
-                  <p className="text-xl font-black text-white italic">🅰️ {stats.assists}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Jogos</p>
-                  <p className="text-xl font-black text-white italic">📅 {stats.jogos}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2 max-w-sm mx-auto md:mx-0">
-                <div className="flex justify-between items-end">
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Glória Geral</p>
-                  <p className="text-xs font-bold text-primary italic">{unlockedCount} / {totalCount} Concluídas</p>
-                </div>
-                <Progress value={progressPercent} className="h-2.5 bg-zinc-900 border border-white/5" />
-              </div>
-            </div>
+            )}
           </div>
         </div>
+
+        {/* Hero Card Premium com Radar */}
+        <div className="bg-black/60 backdrop-blur-3xl border border-white/10 rounded-3xl overflow-hidden relative group transition-all hover:border-primary/30">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50" />
+          <div className="p-6 md:p-10 relative">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+              {/* Lado Esquerdo: Perfil e Stats */}
+              <div className="space-y-8">
+                <div className="flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left">
+                  <Avatar className="h-28 w-28 border-4 border-primary/20 ring-4 ring-black/50">
+                    {currentJogador?.foto_url ? (
+                      <AvatarImage src={currentJogador.foto_url} alt={currentJogador.nome} className="object-cover" />
+                    ) : (
+                      <AvatarFallback className="bg-muted text-muted-foreground">
+                        <Users className="h-12 w-12" />
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  
+                  <div className="space-y-3">
+                    <h2 className="text-4xl font-black italic tracking-tighter text-white uppercase">
+                      {currentJogador?.apelido || currentJogador?.nome}
+                    </h2>
+                    <div className="flex items-center justify-center md:justify-start gap-4">
+                      <span className="text-xs font-black text-primary uppercase tracking-[0.2em] flex items-center gap-1.5">
+                        <Target className="h-3 w-3" />
+                        {currentJogador?.posicao || "Atleta"}
+                      </span>
+                            <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest bg-white/5 px-2 py-1 rounded">
+                              Membro desde {currentJogador?.data_entrada ? format(new Date(currentJogador.data_entrada), "MMM/yyyy", { locale: ptBR }) : (profile?.created_at ? format(new Date(profile.created_at), "MMM/yyyy", { locale: ptBR }) : "--")}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Dados Físicos Premium */}
+                        {(currentJogador?.pe_preferido || currentJogador?.altura_cm || currentJogador?.peso_kg) && (
+                          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                            {currentJogador.pe_preferido && (
+                              <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
+                                <Shield className="h-3 w-3 text-primary/50" />
+                                <span className="text-[10px] font-black uppercase text-zinc-400">Pé: <span className="text-white">{currentJogador.pe_preferido}</span></span>
+                              </div>
+                            )}
+                            {currentJogador.altura_cm && (
+                              <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
+                                <Shield className="h-3 w-3 text-primary/50" />
+                                <span className="text-[10px] font-black uppercase text-zinc-400">Alt: <span className="text-white">{(currentJogador.altura_cm / 100).toFixed(2)} m</span></span>
+                              </div>
+                            )}
+                            {currentJogador.peso_kg && (
+                              <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
+                                <Shield className="h-3 w-3 text-primary/50" />
+                                <span className="text-[10px] font-black uppercase text-zinc-400">Peso: <span className="text-white">{currentJogador.peso_kg}kg</span></span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                </div>
+
+                {/* Bio do Atleta */}
+                {currentJogador?.bio && (
+                  <div className="bg-white/5 border border-white/5 p-4 rounded-2xl md:max-w-md">
+                    <p className="text-zinc-400 text-sm italic leading-relaxed">
+                      "{currentJogador.bio}"
+                    </p>
+                  </div>
+                )}
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-4 gap-4 py-6 border-y border-white/5">
+                  <div className="space-y-1">
+                    <span className="text-2xl font-black italic text-white leading-none">{stats.jogos}</span>
+                    <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Jogos</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-2xl font-black italic text-white leading-none">{stats.gols}</span>
+                    <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Gols</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-2xl font-black italic text-white leading-none">{stats.assists}</span>
+                    <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Assists</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-2xl font-black italic text-white leading-none">{stats.mvps}</span>
+                    <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">MVPs</p>
+                  </div>
+                </div>
+
+                {/* Glory Progress */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Progresso de Glória</span>
+                    <span className="text-xs font-black italic text-primary">
+                      {unlockedCount} / {totalCount} Concluídas
+                    </span>
+                  </div>
+                  <Progress value={progressPercent} className="h-2 bg-white/5" />
+                </div>
+              </div>
+
+              {/* Lado Direito: Radar Chart */}
+              <div className="flex flex-col items-center">
+                <div className="w-full flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 italic">
+                    📊 Mapa de Atleta
+                  </span>
+                  <div className="h-px flex-1 mx-4 bg-white/5" />
+                </div>
+                {targetJogadorId && team?.id ? (
+                  <PlayerRadarChart jogadorId={targetJogadorId} teamId={team.id} />
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center text-zinc-600 italic text-sm">
+                    Aguardando seleção...
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ActivityCalendar 
+          jogadorId={targetJogadorId || ""} 
+          teamId={team?.id || ""} 
+          year={selectedYear} 
+        />
 
         {/* Achievements Sections */}
         {loadingAchievements ? (

@@ -4,6 +4,8 @@ import { Trophy, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AchievementBadge } from "@/components/achievements/AchievementBadge";
+import { AchievementDetailsModal } from "@/components/achievements/AchievementDetailsModal";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 
@@ -21,12 +23,20 @@ export function RecentAchievements({ teamId }: { teamId: string }) {
         `)
         .not("unlocked_at", "is", null)
         .order("unlocked_at", { ascending: false })
-        .limit(5);
+        .limit(20);
 
       if (error) throw error;
       return data as any[]; // TODO: Define Achievement type if needed, but removing one 'any' casting for now
     }
   });
+
+  const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleBadgeClick = (achievement: any) => {
+    setSelectedAchievement(achievement);
+    setIsModalOpen(true);
+  };
 
   if (isLoading || !recent || recent.length === 0) return null;
 
@@ -43,25 +53,32 @@ export function RecentAchievements({ teamId }: { teamId: string }) {
           </Button>
         </Link>
       </div>
-      <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-y-10 gap-x-4">
+      <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-6 px-1 snap-x">
         {recent.map((a, idx) => (
-          <div key={idx} className="flex flex-col items-center">
+          <div key={idx} className="flex flex-col items-center shrink-0 w-24 snap-start">
             <AchievementBadge 
               slug={a.achievement?.slug || ""}
               tier={a.current_tier}
               size="sm"
+              onClick={() => handleBadgeClick(a)}
             />
             <div className="mt-2 text-center w-full">
-              <p className="text-[11px] font-bold text-white truncate px-1">
+              <p className="text-[10px] font-black italic text-white truncate px-1 uppercase tracking-tighter">
                 {a.jogador?.apelido || a.jogador?.nome || "Jogador"}
               </p>
-              <p className="text-[9px] text-muted-foreground">
-                {a.unlocked_at && format(new Date(a.unlocked_at), "dd/MM 'às' HH:mm")}
+              <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
+                {a.unlocked_at && format(new Date(a.unlocked_at), "dd/MM")}
               </p>
             </div>
           </div>
         ))}
       </div>
+
+      <AchievementDetailsModal 
+        playerAchievement={selectedAchievement}
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+      />
     </section>
   );
 }

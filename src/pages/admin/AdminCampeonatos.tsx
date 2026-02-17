@@ -46,7 +46,19 @@ export default function AdminCampeonatos() {
   };
 
   if (isLoading) {
-    return <div className="space-y-4">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>;
+    return (
+      <Layout>
+        <div className="space-y-6 container py-8 px-4 md:px-6">
+          <ManagementHeader 
+            title="Gerenciar Ligas" 
+            subtitle="Crie campeonatos, adicione times e acompanhe a tabela." 
+          />
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
+          </div>
+        </div>
+      </Layout>
+    );
   }
 
   return (

@@ -78,6 +78,78 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             </Select>
           </div>
         </div>
+        <div className="space-y-4 pt-6 mt-6 border-t border-white/5">
+          <h4 className="text-xs font-black uppercase tracking-[0.2em] text-primary">Scout Profissional</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="pe_preferido" className="text-muted-foreground text-[10px] uppercase font-bold">Pé Preferido</Label>
+              <Select 
+                value={form.watch("pe_preferido") || "nao_informado"} 
+                onValueChange={(val) => form.setValue("pe_preferido", val === "nao_informado" ? null : val)}
+              >
+                <SelectTrigger className="bg-black/20 border-white/10 text-foreground h-11">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10">
+                  <SelectItem value="nao_informado">Não informado</SelectItem>
+                  <SelectItem value="destro">Destro</SelectItem>
+                  <SelectItem value="canhoto">Canhoto</SelectItem>
+                  <SelectItem value="ambos">Ambos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="peso_kg" className="text-muted-foreground text-[10px] uppercase font-bold">Peso (kg)</Label>
+              <Input
+                id="peso_kg"
+                type="number"
+                step="0.1"
+                placeholder="75.0"
+                value={form.watch("peso_kg")}
+                onChange={(e) => form.setValue("peso_kg", e.target.value)}
+                className="bg-black/20 border-white/10 text-foreground h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="altura_cm" className="text-muted-foreground text-[10px] uppercase font-bold">Altura (cm)</Label>
+              <Input
+                id="altura_cm"
+                type="number"
+                placeholder="178"
+                value={form.watch("altura_cm")}
+                onChange={(e) => form.setValue("altura_cm", e.target.value)}
+                className="bg-black/20 border-white/10 text-foreground h-11"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="data_entrada" className="text-muted-foreground text-[10px] uppercase font-bold">Data de Entrada</Label>
+              <Input
+                id="data_entrada"
+                type="date"
+                value={form.watch("data_entrada")}
+                onChange={(e) => form.setValue("data_entrada", e.target.value)}
+                className="bg-black/20 border-white/10 text-foreground h-11"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="bio" className="text-muted-foreground text-[10px] uppercase font-bold">Bio / Apresentação</Label>
+            <textarea
+              id="bio"
+              maxLength={300}
+              placeholder="Fale um pouco sobre você..."
+              value={form.watch("bio")}
+              onChange={(e) => form.setValue("bio", e.target.value)}
+              className="w-full bg-black/20 border-white/10 text-foreground rounded-md p-3 h-20 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
+            />
+          </div>
+        </div>
+
         <Button onClick={form.handleSubmit(onSubmit)} className="w-full h-12 font-bold uppercase tracking-wider" disabled={isSaving}>
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar Alterações"}
         </Button>

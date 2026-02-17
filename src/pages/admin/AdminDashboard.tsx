@@ -60,25 +60,25 @@ export default function AdminDashboard() {
   return (
     <Layout>
       <div className="bg-transparent text-foreground p-4 md:p-8 animate-in fade-in duration-700">
-        {/* Header Executivo */}
-      <div className="max-w-7xl mx-auto mb-12 flex items-center justify-between">
+      {/* Header Executivo */}
+      <div className="max-w-7xl mx-auto mb-8 md:mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
         <Button 
           variant="ghost" 
-          size="lg"
+          size="sm"
           onClick={() => navigate(basePath || "/")}
-          className="group flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+          className="group flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-all self-start md:self-auto"
         >
-          <ChevronLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-xl font-bold tracking-tight">Voltar para o Início</span>
+          <ChevronLeft className="h-4 w-4 md:h-5 md:w-5 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-lg md:text-xl font-bold tracking-tight">Voltar para o Início</span>
         </Button>
-        <div className="text-right">
+        <div className="text-center md:text-right w-full md:w-auto">
           <FutGestorLogo 
             teamEscudo={team.escudo_url} 
             showText={true} 
-            size="lg" 
-            textClassName="text-3xl md:text-5xl"
+            size="md" 
+            textClassName="text-2xl md:text-5xl"
           />
-          <p className="text-muted-foreground font-black uppercase tracking-[0.2em] text-[10px] md:text-xs mt-2 opacity-60">
+          <p className="text-muted-foreground font-black uppercase tracking-[0.2em] text-[9px] md:text-xs mt-1 md:mt-2 opacity-60">
             Painel Executivo • {team.nome}
           </p>
         </div>

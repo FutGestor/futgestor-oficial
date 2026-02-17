@@ -71,9 +71,11 @@ export function StickerCard({ jogador, achievements, className, variant = "gold"
       className
     )}>
       {/* Top Info */}
-      <div className={cn("self-start flex flex-col leading-none font-bold", currentSize.rating, textColors[variant])}>
-        <span>{topAchievements.length > 0 ? 80 + (topAchievements.length * 5) : 70}</span>
-        <span className={cn("uppercase", currentSize.pos)}>{jogador.posicao?.substring(0, 3)}</span>
+      <div className={cn("self-start flex flex-col leading-none font-black italic", currentSize.rating, textColors[variant])}>
+        <span className="tracking-tighter">
+          {jogador.numero ? `#${jogador.numero}` : (topAchievements.length > 0 ? 80 + (topAchievements.length * 5) : 70)}
+        </span>
+        <span className={cn("uppercase opacity-70", currentSize.pos)}>{jogador.posicao?.substring(0, 3)}</span>
       </div>
 
       {/* Player Image */}

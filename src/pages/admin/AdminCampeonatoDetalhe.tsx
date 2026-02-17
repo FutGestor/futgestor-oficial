@@ -447,7 +447,18 @@ export default function AdminCampeonatoDetalhe() {
 
   const standings = computeStandings(teams ?? [], matches ?? []);
 
-  if (lLoading) return <Skeleton className="h-10 w-64" />;
+  if (lLoading) {
+    return (
+      <Layout>
+        <div className="space-y-6 container py-8 px-4 md:px-6">
+          <Skeleton className="h-10 w-64" />
+          <div className="space-y-4">
+            <Skeleton className="h-40 w-full" />
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { VotacaoDestaque } from "@/components/VotacaoDestaque";
-import { useProximoJogo, useUltimoResultado } from "@/hooks/useData";
+import { useProximoJogo, useUltimoResultado, useResultados } from "@/hooks/useData";
+import { TeamFormStreak } from "@/components/TeamFormStreak";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
@@ -20,6 +21,7 @@ import { cn } from "@/lib/utils";
 export function FeaturedGameCard({ teamId }: { teamId: string }) {
   const { data: proximoJogo, isLoading: loadingNext } = useProximoJogo(teamId);
   const { data: ultimoResultado, isLoading: loadingLast } = useUltimoResultado(teamId);
+  const { data: resultados, isLoading: loadingResults } = useResultados(teamId);
   const { team } = useTeamConfig();
   const { basePath } = useTeamSlug();
   const { profile } = useAuth();
@@ -66,7 +68,7 @@ export function FeaturedGameCard({ teamId }: { teamId: string }) {
   });
 
   const currentStatus = confirmacao?.status;
-  const isLoading = loadingNext || loadingLast;
+  const isLoading = loadingNext || loadingLast || loadingResults;
 
   if (isLoading) {
     return <Skeleton className="h-48 w-full rounded-2xl" />;
@@ -74,6 +76,16 @@ export function FeaturedGameCard({ teamId }: { teamId: string }) {
 
   return (
     <div className="space-y-6">
+      {resultados && resultados.length > 0 && (
+        <div className="flex items-center justify-between bg-black/40 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-lg">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-0.5">Momento Atual</span>
+            <span className="text-xs font-bold text-white italic">Sequência de Forma</span>
+          </div>
+          <TeamFormStreak resultados={resultados} />
+        </div>
+      )}
+
       {proximoJogo && (
         <div className="relative overflow-hidden rounded-2xl bg-black/40 backdrop-blur-xl p-6 text-white shadow-xl border border-white/10">
           <div className="absolute top-0 right-0 p-4 opacity-10">

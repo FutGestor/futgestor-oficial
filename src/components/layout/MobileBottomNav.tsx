@@ -58,19 +58,12 @@ export function MobileBottomNav() {
 
   // Menu Items (Inside Sheet)
   const menuItems = [
-    { href: `${basePath}/jogadores`, label: "Jogadores", icon: User },
-    { href: `${basePath}/resultados`, label: "Resultados", icon: Trophy },
-    ...(hasCampeonatos ? [{ href: `${basePath}/ligas`, label: "Ligas", icon: Award }] : []),
-    { href: `${basePath}/escalacao`, label: "Escalação", icon: ClipboardList },
-    ...(hasAvisos ? [{ href: `${basePath}/avisos`, label: "Avisos", icon: Bell }] : []),
     { href: `${basePath}/suporte`, label: "Suporte", icon: Headphones },
     { href: `${basePath}/conquistas`, label: "Arena de Conquistas", icon: Trophy },
     { href: `${basePath}/guia`, label: "Guia", icon: BookOpen },
   ];
 
   const adminMenuItems = [
-    { href: `${basePath}/gestao`, label: "Visão Geral", icon: LayoutDashboard },
-    { href: `${basePath}/solicitacoes`, label: "Solicitações", icon: CalendarPlus },
     { href: `${basePath}/descobrir`, label: "Descobrir", icon: Search },
     { href: `${basePath}/times`, label: "Times", icon: ShieldCheck },
   ];
