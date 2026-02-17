@@ -1,32 +1,31 @@
-import { motion } from "framer-motion";
+import React from "react";
 import { FutGestorLogo } from "./FutGestorLogo";
 
-interface LoadingScreenProps {
-  message?: string;
-}
-
-export function LoadingScreen({ message }: LoadingScreenProps) {
+export function LoadingScreen() {
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/95 backdrop-blur-2xl">
-      <motion.div
-        animate={{
-          scale: [0.95, 1.05, 0.95],
-          opacity: [0.3, 1, 0.3],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="flex flex-col items-center gap-8"
-      >
-        <FutGestorLogo className="h-28 w-28 md:h-36 md:w-36 filter drop-shadow-[0_0_20px_rgba(27,58,92,0.6)]" showText={true} textClassName="text-3xl md:text-5xl" />
-        {message && (
-          <p className="text-primary font-black uppercase italic tracking-[0.3em] animate-pulse text-sm md:text-base">
-            {message}
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#050505]">
+      {/* Background Glow Effect */}
+      <div className="absolute h-[300px] w-[300px] bg-primary/20 blur-[100px] rounded-full animate-pulse" />
+      
+      {/* Animated Logo Container */}
+      <div className="relative z-10 flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-500">
+        <div className="relative">
+          {/* Subtle spinning ring behind logo */}
+          <div className="absolute -inset-4 border-2 border-primary/10 border-t-primary/40 rounded-full animate-spin [animation-duration:3s]" />
+          
+          <div className="animate-pulse">
+            <FutGestorLogo size="xl" className="drop-shadow-[0_0_20px_rgba(5,96,179,0.4)]" />
+          </div>
+        </div>
+        
+        {/* Loading Text */}
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 italic animate-pulse">
+            Carregando sua arena
           </p>
-        )}
-      </motion.div>
+          <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-primary/40 to-transparent rounded-full" />
+        </div>
+      </div>
     </div>
   );
 }

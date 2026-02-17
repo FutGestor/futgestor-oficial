@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { cn } from "@/lib/utils";
 import { usePlayerPerformance } from "@/hooks/useEstatisticas";
 import { AchievementBadge } from "@/components/achievements/AchievementBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,6 +19,7 @@ import { AchievementDetailsModal } from "@/components/achievements/AchievementDe
 import { PlayerRadarChart } from "@/components/PlayerRadarChart";
 import { ActivityCalendar } from "@/components/ActivityCalendar";
 import { SeasonSelector } from "@/components/SeasonSelector";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { usePlayerAchievements, type PlayerAchievement } from "@/hooks/useAchievements";
 
@@ -104,19 +106,21 @@ export default function Conquistas() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white flex items-center gap-3">
-              <Trophy className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter text-white flex items-center gap-3">
+              <Trophy className="h-6 w-6 md:h-8 md:h-8 text-primary" />
               Arena de Conquistas
             </h1>
-            <p className="text-zinc-500 font-medium">Sua jornada rumo à glória eterna no {team?.nome || "clube"}.</p>
+            <p className="text-[10px] md:text-sm text-zinc-400 font-medium uppercase tracking-widest">Sua jornada rumo à glória eterna no {team?.nome || "clube"}.</p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-            <SeasonSelector value={season} onChange={setSeason} />
+          <div className="flex flex-row items-center gap-2 w-full md:w-auto">
+            <div className="flex-1 md:flex-none">
+              <SeasonSelector value={season} onChange={setSeason} />
+            </div>
             {isAdmin && (
-              <div className="w-full md:w-64">
+              <div className="flex-[2] md:w-64">
                 <Select value={targetJogadorId || ""} onValueChange={setSelectedJogadorId}>
-                  <SelectTrigger className="bg-black/40 border-white/10 text-white h-11">
+                  <SelectTrigger className="bg-black/40 border-white/10 text-white h-10 md:h-11 text-xs">
                     <SelectValue placeholder="Selecionar Jogador" />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10 text-white">
@@ -152,14 +156,15 @@ export default function Conquistas() {
                     <h2 className="text-4xl font-black italic tracking-tighter text-white uppercase">
                       {currentJogador?.apelido || currentJogador?.nome}
                     </h2>
-                    <div className="flex items-center justify-center md:justify-start gap-4">
-                      <span className="text-xs font-black text-primary uppercase tracking-[0.2em] flex items-center gap-1.5">
-                        <Target className="h-3 w-3" />
-                        {currentJogador?.posicao || "Atleta"}
-                      </span>
-                      <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest bg-white/5 px-2 py-1 rounded">
-                        Membro desde {currentJogador?.data_entrada ? format(new Date(currentJogador.data_entrada), "MMM/yyyy", { locale: ptBR }) : (profile?.created_at ? format(new Date(profile.created_at), "MMM/yyyy", { locale: ptBR }) : "--")}
-                      </span>
+                    <div className="flex items-center justify-center md:justify-start gap-4 mt-2">
+                       <div className="px-3 py-1 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                         <Target className="h-3 w-3" />
+                         {currentJogador?.posicao || "Atleta"}
+                       </div>
+                       <div className="px-3 py-1 rounded bg-zinc-500/10 border border-zinc-500/20 text-zinc-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                         <Calendar className="h-3 w-3" />
+                         Membro desde {currentJogador?.data_entrada ? format(new Date(currentJogador.data_entrada), "MMM/yyyy", { locale: ptBR }).toUpperCase() : (profile?.created_at ? format(new Date(profile.created_at), "MMM/yyyy", { locale: ptBR }).toUpperCase() : "--")}
+                       </div>
                     </div>
                   </div>
 
@@ -198,22 +203,29 @@ export default function Conquistas() {
                 )}
 
                 {/* Stats Row */}
-                <div className="grid grid-cols-4 gap-4 py-6 border-y border-white/5">
-                  <div className="space-y-1">
-                    <span className="text-2xl font-black italic text-white leading-none">{stats.jogos}</span>
-                    <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Jogos</p>
+                {/* Stats Row Premium */}
+                <div className="bg-black/20 backdrop-blur-md rounded-xl border border-white/5 p-4 md:p-6 mb-8 flex flex-wrap md:flex-nowrap items-center justify-between divide-y md:divide-y-0 md:divide-x divide-white/5 gap-y-4 md:gap-y-0">
+                  <div className="w-1/2 md:w-auto flex flex-col items-center justify-center px-4">
+                    <span className="text-2xl md:text-3xl font-black italic text-white leading-none mb-1">{stats.jogos}</span>
+                    <p className="text-[9px] md:text-[10px] text-zinc-500 uppercase font-black tracking-widest">Jogos</p>
                   </div>
-                  <div className="space-y-1">
-                    <span className="text-2xl font-black italic text-white leading-none">{stats.gols}</span>
-                    <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Gols</p>
+                  <div className="w-1/2 md:w-auto flex flex-col items-center justify-center px-4">
+                    <span className="text-2xl md:text-3xl font-black italic text-amber-400 leading-none mb-1">{stats.gols}</span>
+                    <p className="text-[9px] md:text-[10px] text-zinc-500 uppercase font-black tracking-widest">Gols</p>
                   </div>
-                  <div className="space-y-1">
-                    <span className="text-2xl font-black italic text-white leading-none">{stats.assists}</span>
-                    <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">Assists</p>
+                  <div className="w-1/2 md:w-auto flex flex-col items-center justify-center px-4">
+                    <span className="text-2xl md:text-3xl font-black italic text-cyan-400 leading-none mb-1">{stats.assists}</span>
+                    <p className="text-[9px] md:text-[10px] text-zinc-500 uppercase font-black tracking-widest">Assists</p>
                   </div>
-                  <div className="space-y-1">
-                    <span className="text-2xl font-black italic text-white leading-none">{stats.mvps}</span>
-                    <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">MVPs</p>
+                  <div className="w-1/2 md:w-auto flex flex-col items-center justify-center px-4">
+                    <span className="text-2xl md:text-3xl font-black italic text-purple-400 leading-none mb-1">{stats.mvps}</span>
+                    <p className="text-[9px] md:text-[10px] text-zinc-500 uppercase font-black tracking-widest">MVPs</p>
+                  </div>
+                  <div className="w-full md:w-auto flex flex-col items-center justify-center px-4 pt-2 md:pt-0">
+                    <div className="flex items-center gap-2">
+                       <span className="text-2xl md:text-3xl font-black italic text-blue-400 leading-none mb-1">{(stats.gols / (stats.jogos || 1)).toFixed(2)}</span>
+                    </div>
+                    <p className="text-[9px] md:text-[10px] text-blue-400/70 uppercase font-black tracking-widest">Média / Jogo</p>
                   </div>
                 </div>
 
@@ -232,7 +244,7 @@ export default function Conquistas() {
               {/* Lado Direito: Radar Chart */}
               <div className="flex flex-col items-center">
                 <div className="w-full flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 italic">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 italic">
                     📊 Mapa de Atleta
                   </span>
                   <div className="h-px flex-1 mx-4 bg-white/5" />
@@ -265,7 +277,7 @@ export default function Conquistas() {
                     <p className="text-white font-black uppercase tracking-tight leading-none">
                         {unlockedCount} de {totalCount} Conquistas Desbloqueadas
                     </p>
-                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                    <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-1">
                         Sua evolução como atleta de elite
                     </p>
                 </div>
@@ -288,28 +300,59 @@ export default function Conquistas() {
         ) : (
           <div className="space-y-16 pb-12">
             {/* Universais — Somente se houver conquistas universais no sistema */}
-            {universalAchievements.length > 0 && universalAchievements.some(a => !!a.current_tier || showAllUniversal) && (
+            {universalAchievements.length > 0 && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
                   <h3 className="text-sm font-black uppercase tracking-[0.3em] text-zinc-400">
-                    ━━ Conquistas Universais ({universalAchievements.filter(a => !!a.current_tier).length}/{universalAchievements.length}) ━━
+                    ━━ Conquistas Universais ━━
                   </h3>
-                </div>
-                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-12 justify-items-center transition-all duration-500">
-                  {sortAchievements(universalAchievements)
-                    .filter(a => !!a.current_tier || showAllUniversal)
-                    .map((a) => (
-                      <AchievementBadge
-                        key={a.achievement_id}
-                        slug={a.achievement.slug}
-                        tier={a.current_tier}
-                        name={a.achievement.name}
-                        showName={true}
-                        size="sm"
-                        locked={!a.current_tier}
-                        onClick={() => setSelectedAchievement(a)}
+                  <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-white/5">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                      🏆 <span className="text-white">{universalAchievements.filter(a => !!a.current_tier).length} de {universalAchievements.length}</span> desbloqueadas
+                    </span>
+                    <div className="w-20 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-primary to-cyan-400 transition-all duration-1000" 
+                        style={{ width: `${(universalAchievements.filter(a => !!a.current_tier).length / universalAchievements.length) * 100}%` }}
                       />
-                  ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-12 justify-items-center">
+                  <AnimatePresence mode="popLayout">
+                    {sortAchievements(universalAchievements)
+                      .filter(a => !!a.current_tier || showAllUniversal)
+                      .map((a) => (
+                        <motion.div 
+                          key={a.achievement_id}
+                          layout
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          transition={{ duration: 0.3 }}
+                          className={cn(
+                            "transition-all duration-300",
+                            a.current_tier 
+                              ? "scale-105" 
+                              : "opacity-40 grayscale"
+                          )}
+                        >
+                          <AchievementBadge
+                            slug={a.achievement.slug}
+                            tier={a.current_tier}
+                            name={a.achievement.name}
+                            showName={true}
+                            size="sm"
+                            locked={!a.current_tier}
+                            onClick={() => setSelectedAchievement(a)}
+                            className={cn(
+                              a.current_tier && "ring-1 ring-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)] bg-white/5 rounded-2xl"
+                            )}
+                          />
+                        </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
                 
                 {universalAchievements.length > universalAchievements.filter(a => !!a.current_tier).length && (
@@ -330,25 +373,44 @@ export default function Conquistas() {
             {/* De Posição */}
             {positionAchievements.length > 0 && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
                   <h3 className="text-sm font-black uppercase tracking-[0.3em] text-zinc-400">
-                    ━━ Conquistas de {currentJogador?.posicao || "Posição"} ({positionAchievements.filter(a => !!a.current_tier).length}/{positionAchievements.length}) ━━
+                    ━━ Conquistas de {currentJogador?.posicao || "Posição"} ━━
                   </h3>
+                  <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-white/5">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                      🏆 <span className="text-white">{positionAchievements.filter(a => !!a.current_tier).length} de {positionAchievements.length}</span> desbloqueadas
+                    </span>
+                    <div className="w-20 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-primary to-cyan-400 transition-all duration-1000" 
+                        style={{ width: `${(positionAchievements.filter(a => !!a.current_tier).length / positionAchievements.length) * 100}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Lógica de Lista: Desbloqueadas ou Motivacional se 0 */}
                 {positionAchievements.filter(a => !!a.current_tier).length === 0 && !showAllPosition ? (
-                   <div className="bg-white/5 border border-dashed border-white/10 rounded-2xl p-10 flex flex-col items-center justify-center text-center space-y-4">
-                        <div className="h-16 w-16 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center mb-2">
-                            <Trophy className="h-8 w-8 text-zinc-700" />
+                   <div className="bg-black/40 border border-white/5 rounded-3xl p-10 flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        
+                        <div className="relative">
+                          <div className="h-20 w-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mb-2 animate-pulse">
+                              <Trophy className="h-10 w-10 text-primary" />
+                          </div>
+                          <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-amber-500 flex items-center justify-center text-[10px] border-2 border-black">
+                            ✨
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-white font-black uppercase italic tracking-tighter text-lg">Jogue mais partidas para brilhar!</p>
-                            <p className="text-zinc-500 text-sm max-w-xs mx-auto">Você ainda não desbloqueou conquistas de posição. Veja o que você pode conquistar:</p>
+
+                        <div className="space-y-2 relative z-10">
+                            <h4 className="text-white font-black uppercase italic tracking-tighter text-2xl">Sua jornada começa aqui!</h4>
+                            <p className="text-zinc-500 text-sm max-w-xs mx-auto">Jogue partidas para desbloquear suas primeiras conquistas e subir de nível.</p>
                         </div>
-                        <div className="flex gap-6 pt-4">
+
+                        <div className="flex gap-8 pt-4 relative z-10">
                             {positionAchievements.slice(0, 3).map((a) => (
-                                <div key={a.achievement_id} className="opacity-30 grayscale hover:opacity-50 transition-all cursor-help" onClick={() => setSelectedAchievement(a)}>
+                                <div key={a.achievement_id} className="opacity-20 grayscale scale-110">
                                     <AchievementBadge 
                                         slug={a.achievement.slug} 
                                         tier={null} 
@@ -357,36 +419,64 @@ export default function Conquistas() {
                                 </div>
                             ))}
                         </div>
+
+                        <Button 
+                          onClick={() => setShowAllPosition(true)}
+                          className="relative z-10 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 uppercase text-[10px] font-black tracking-[0.2em] px-8 h-10 rounded-full"
+                        >
+                          Ver Desafios de Posição
+                        </Button>
                    </div>
                 ) : (
-                  <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-12 justify-items-center transition-all duration-500">
-                    {sortAchievements(positionAchievements)
-                        .filter(a => !!a.current_tier || showAllPosition)
-                        .map((a) => (
-                      <AchievementBadge
-                        key={a.achievement_id}
-                        slug={a.achievement.slug}
-                        tier={a.current_tier}
-                        name={a.achievement.name}
-                        showName={true}
-                        size="sm"
-                        locked={!a.current_tier}
-                        onClick={() => setSelectedAchievement(a)}
-                      />
-                    ))}
-                  </div>
-                )}
-                
-                {positionAchievements.length > positionAchievements.filter(a => !!a.current_tier).length && (
-                  <div className="flex justify-center pt-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setShowAllPosition(!showAllPosition)}
-                      className="text-zinc-500 hover:text-white hover:bg-white/5 gap-2 uppercase text-[10px] font-black tracking-widest"
-                    >
-                      {showAllPosition ? "Ocultar bloqueadas ▲" : `Ver todas as ${positionAchievements.length} conquistas ▼`}
-                    </Button>
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-12 justify-items-center">
+                      <AnimatePresence mode="popLayout">
+                        {sortAchievements(positionAchievements)
+                            .filter(a => !!a.current_tier || showAllPosition)
+                            .map((a) => (
+                          <motion.div 
+                            key={a.achievement_id}
+                            layout
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.3 }}
+                            className={cn(
+                              "transition-all duration-300",
+                              a.current_tier 
+                                ? "scale-105" 
+                                : "opacity-40 grayscale"
+                            )}
+                          >
+                            <AchievementBadge
+                              slug={a.achievement.slug}
+                              tier={a.current_tier}
+                              name={a.achievement.name}
+                              showName={true}
+                              size="sm"
+                              locked={!a.current_tier}
+                              onClick={() => setSelectedAchievement(a)}
+                              className={cn(
+                                a.current_tier && "ring-1 ring-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)] bg-white/5 rounded-2xl"
+                              )}
+                            />
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+
+                    {positionAchievements.length > positionAchievements.filter(a => !!a.current_tier).length && (
+                      <div className="flex justify-center pt-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setShowAllPosition(!showAllPosition)}
+                          className="text-zinc-500 hover:text-white hover:bg-white/5 gap-2 uppercase text-[10px] font-black tracking-widest"
+                        >
+                          {showAllPosition ? "Ocultar bloqueadas ▲" : `Ver todas as ${positionAchievements.length} conquistas ▼`}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

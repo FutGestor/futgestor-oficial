@@ -88,7 +88,7 @@ export function FeaturedGameCard({ teamId }: { teamId: string }) {
       )}
 
       {proximoJogo && (
-        <div className="relative overflow-hidden rounded-2xl bg-black/40 backdrop-blur-xl p-6 text-white shadow-xl border border-white/10">
+        <div className="relative overflow-hidden rounded-2xl bg-black/60 backdrop-blur-xl p-6 text-white shadow-xl border border-white/10">
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <Calendar className="h-32 w-32" />
           </div>
@@ -169,7 +169,7 @@ export function FeaturedGameCard({ teamId }: { teamId: string }) {
         <Card className="overflow-hidden border-white/10 bg-black/40 backdrop-blur-xl text-foreground shadow-xl soft-shadow rounded-2xl">
           <CardHeader className="pb-2 border-b border-white/10">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">🏁 Último Resultado</CardTitle>
+              <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 font-bold uppercase tracking-widest text-muted-foreground">🏁 Último Resultado</CardTitle>
               <Trophy className="h-4 w-4 text-primary" />
             </div>
           </CardHeader>

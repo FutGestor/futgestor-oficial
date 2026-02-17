@@ -95,16 +95,24 @@ export function useRanking(teamId?: string | null) {
             jogos: 0,
             cartoes_amarelos: 0,
             cartoes_vermelhos: 0,
-          };
+            media_gols: 0 // Nova métrica
+          } as any;
         }
 
-        const entry = jogadoresMap[stat.jogador_id];
+        const entry = jogadoresMap[stat.jogador_id] as any;
         if (stat.participou) entry.jogos++;
         entry.gols += stat.gols;
         entry.assistencias += stat.assistencias;
         if (stat.cartao_amarelo) entry.cartoes_amarelos++;
         if (stat.cartao_vermelho) entry.cartoes_vermelhos++;
       }
+
+      // Calcular médias
+      Object.values(jogadoresMap).forEach((entry: any) => {
+        if (entry.jogos > 0) {
+          entry.media_gols = Number((entry.gols / entry.jogos).toFixed(2));
+        }
+      });
 
       const jogadores = Object.values(jogadoresMap);
 
@@ -118,12 +126,15 @@ export function useRanking(teamId?: string | null) {
         .filter(j => j.assistencias > 0)
         .sort((a, b) => b.assistencias - a.assistencias);
 
-      // Ordenar por participação
-      const participacao = [...jogadores]
+      // Ordenar por média de gols (renomeando a lógica de participação para focar em média conforme pedido)
+      const mediaGols = [...jogadores]
         .filter(j => j.jogos > 0)
-        .sort((a, b) => b.jogos - a.jogos);
+        .sort((a, b) => {
+          if (b.media_gols !== a.media_gols) return b.media_gols - a.media_gols;
+          return b.gols - a.gols; // Desempate por total de gols
+        });
 
-      return { artilheiros, assistencias, participacao };
+      return { artilheiros, assistencias, participacao: mediaGols };
     },
   });
 }

@@ -17,7 +17,7 @@ export const AchievementsTab: React.FC<AchievementsTabProps> = ({
   basePath
 }) => {
   return (
-    <Card className="bg-black/40 border-white/10 backdrop-blur-xl">
+    <Card className="bg-black/40 border-white/10 backdrop-blur-xl rounded-2xl">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -37,7 +37,7 @@ export const AchievementsTab: React.FC<AchievementsTabProps> = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="bg-black/20 rounded-2xl p-6 border border-white/5">
+        <div className="bg-black/40 rounded-2xl p-6 border border-white/10 backdrop-blur-xl">
           <div className="flex flex-col items-center text-center space-y-6">
              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
                 <div className="bg-white/5 rounded-xl p-4 border border-white/5">

@@ -25,6 +25,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { ImageCropperModal } from "@/components/ui/ImageCropperModal";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const onboardingSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
@@ -70,7 +71,7 @@ export default function Onboarding() {
   
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, isLoading: authLoading } = useAuth();
   const { team: existingTeam } = useTeamConfig();
 
   useEffect(() => {
@@ -98,6 +99,10 @@ export default function Onboarding() {
 
   const currentSlug = form.watch("slug");
   const { isChecking, isAvailable, suggestions } = useSlugCheck(currentSlug);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   const fetchCep = async (cep: string) => {
     const rawCep = cep.replace(/\D/g, "");
@@ -219,7 +224,9 @@ export default function Onboarding() {
         .insert({ 
           nome: data.nome, 
           slug: data.slug,
-          escudo_url: data.escudo_url 
+          escudo_url: data.escudo_url,
+          cidade: data.cidade,
+          estado: data.uf
         })
         .select()
         .single();

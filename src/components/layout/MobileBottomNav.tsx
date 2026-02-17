@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   Home, 
   Calendar, 
@@ -43,6 +43,7 @@ export function MobileBottomNav() {
   const { basePath, team } = useTeamSlug();
   const { data: naoLidos } = useAvisosNaoLidos(team?.id);
   const { user, profile, isAdmin, isSuperAdmin, isApproved, signOut } = useAuth();
+  const navigate = useNavigate();
   const { hasCampeonatos, hasFinanceiro, hasAvisos } = usePlanAccess(team?.id);
   const [open, setOpen] = useState(false);
 
@@ -74,6 +75,7 @@ export function MobileBottomNav() {
   const handleSignOut = async () => {
     await signOut();
     setOpen(false);
+    navigate("/auth");
   };
 
   if (!basePath) return null; // Only show on team context

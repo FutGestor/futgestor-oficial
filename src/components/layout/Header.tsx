@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 import { usePlanAccess } from "@/hooks/useSubscription";
+import { useNavigate } from "react-router-dom";
 import { useTodosChamados, useChamadosNaoLidos } from "@/hooks/useChamados";
 import { useAvisosNaoLidos } from "@/hooks/useAvisoLeituras";
 
@@ -28,6 +29,7 @@ export function Header() {
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
   const location = useLocation();
   const { user, profile, isAdmin, isSuperAdmin, isApproved, signOut } = useAuth();
+  const navigate = useNavigate();
   const { data: chamados } = useTodosChamados();
   const isPlayer = !!profile?.jogador_id && !isAdmin;
   const teamSlug = useOptionalTeamSlug();
@@ -100,6 +102,7 @@ export function Header() {
   const handleSignOut = async () => {
     await signOut();
     setMobileMenuOpen(false);
+    navigate("/auth");
   };
 
   const isActive = (href: string) => {

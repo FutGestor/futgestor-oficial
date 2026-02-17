@@ -3,21 +3,17 @@ import { Link } from "react-router-dom";
 import { LogIn } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Layout } from "@/components/layout/Layout";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FutGestorLogo } from "@/components/FutGestorLogo";
 
 export function RequireTeam({ children }: { children: ReactNode }) {
   const { user, profile, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <Layout>
-        <div className="container py-16">
-          <Skeleton className="mx-auto h-64 max-w-md" />
-        </div>
-      </Layout>
-    );
+    return <LoadingScreen />;
   }
 
   if (!user || !profile?.team_id) {

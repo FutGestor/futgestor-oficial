@@ -44,7 +44,7 @@ export function RecentAchievements({ teamId }: { teamId: string }) {
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
+        <h2 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
           <Trophy className="h-5 w-5 text-primary" />
           Últimas Conquistas
         </h2>

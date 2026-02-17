@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
 import { positionLabels } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 interface BasicInfoFormProps {
   form: UseFormReturn<any>;
@@ -21,6 +22,7 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   isSaving,
   onSubmit
 }) => {
+  const { toast } = useToast();
   return (
     <Card className="bg-black/40 border-white/10 backdrop-blur-xl">
       <CardHeader>
@@ -41,6 +43,19 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="apelido" className="text-muted-foreground">Apelido</Label>
+            <Input
+              id="apelido"
+              value={form.watch("apelido") || ""}
+              onChange={(e) => form.setValue("apelido", e.target.value)}
+              placeholder="Ex: Tuck, CR7, Neymar..."
+              className="bg-black/20 border-white/10 text-foreground h-12"
+            />
+            <p className="text-[10px] text-zinc-500">Nome exibido no seu cartão de atleta</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
             <Label htmlFor="email" className="text-muted-foreground">E-mail</Label>
             <Input
               id="email"
@@ -49,8 +64,6 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
               className="bg-black/40 border-white/5 text-muted-foreground h-12"
             />
           </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="telefone" className="text-muted-foreground">WhatsApp</Label>
             <Input
@@ -78,8 +91,9 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             </Select>
           </div>
         </div>
+
         <div className="space-y-4 pt-6 mt-6 border-t border-white/5">
-          <h4 className="text-xs font-black uppercase tracking-[0.2em] text-primary">Scout Profissional</h4>
+          <h4 className="text-xs font-black uppercase tracking-[0.2em] text-primary">Dados Físicos e Bio</h4>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
@@ -145,12 +159,30 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
               placeholder="Fale um pouco sobre você..."
               value={form.watch("bio")}
               onChange={(e) => form.setValue("bio", e.target.value)}
-              className="w-full bg-black/20 border-white/10 text-foreground rounded-md p-3 h-20 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
+              className="w-full bg-black/20 border border-white/10 text-foreground rounded-md p-3 h-20 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
             />
+            <p className="text-[10px] text-zinc-500">{(form.watch("bio") || "").length}/300 caracteres</p>
           </div>
         </div>
 
-        <Button onClick={form.handleSubmit(onSubmit)} className="w-full h-12 font-bold uppercase tracking-wider" disabled={isSaving}>
+        <Button 
+          onClick={() => {
+            form.handleSubmit(
+              onSubmit,
+              (errors) => {
+                console.error("🔴 Form validation errors:", errors);
+                const errorFields = Object.keys(errors).join(", ");
+                toast({
+                  title: "Campos obrigatórios",
+                  description: `Verifique os seguintes campos: ${errorFields}`,
+                  variant: "destructive"
+                });
+              }
+            )();
+          }}
+          className="w-full h-12 font-bold uppercase tracking-wider" 
+          disabled={isSaving}
+        >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar Alterações"}
         </Button>
       </CardContent>

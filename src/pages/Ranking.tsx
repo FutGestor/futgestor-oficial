@@ -1,4 +1,4 @@
-import { Trophy, Target, Users, Star } from "lucide-react";
+import { Trophy, Target, Users, Star, Zap } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -75,7 +75,7 @@ function RankingTable({
   icon: Icon,
 }: {
   data: RankingItem[];
-  valorKey: "gols" | "assistencias" | "jogos" | "votos";
+  valorKey: "gols" | "assistencias" | "jogos" | "votos" | "media_gols";
   label: string;
   icon: React.ElementType;
 }) {
@@ -135,7 +135,7 @@ function RankingTable({
       {/* Lista completa */}
       <Card className="bg-black/40 backdrop-blur-xl border-white/10">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
             <Icon className="h-5 w-5" />
             Ranking Completo
           </CardTitle>
@@ -174,7 +174,9 @@ function RankingTable({
                   <p className="font-medium">{item.jogador.apelido || item.jogador.nome}</p>
                 </div>
                 <span className="text-lg font-bold text-foreground">
-                  {item[valorKey] ?? 0}
+                  {typeof item[valorKey] === 'number' && valorKey === 'media_gols' 
+                    ? item[valorKey].toFixed(2) 
+                    : (item[valorKey] ?? 0)}
                 </span>
               </div>
             ))}
@@ -196,8 +198,8 @@ function RankingContent() {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Ranking</h1>
-          <p className="text-muted-foreground text-shadow-sm font-medium">Artilharia e estatísticas do time</p>
+          <h1 className="text-3xl font-black italic tracking-tighter text-white uppercase">Ranking</h1>
+          <p className="text-zinc-400 font-medium tracking-wide">Artilharia e estatísticas do time</p>
         </div>
 
         {isLoading || isLoadingDestaques ? (
@@ -218,10 +220,10 @@ function RankingContent() {
                 <span className="hidden sm:inline">Assistências</span>
                 <span className="sm:hidden">Assist.</span>
               </TabsTrigger>
-              <TabsTrigger value="participacao" className="gap-1 text-xs sm:gap-2 sm:text-sm">
-                <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">Participação</span>
-                <span className="sm:hidden">Jogos</span>
+              <TabsTrigger value="media_gols" className="gap-1 text-xs sm:gap-2 sm:text-sm">
+                <Zap className="h-4 w-4" />
+                <span className="hidden sm:inline">Média de Gols</span>
+                <span className="sm:hidden">Média</span>
               </TabsTrigger>
               <TabsTrigger value="destaques" className="gap-1 text-xs sm:gap-2 sm:text-sm">
                 <Star className="h-4 w-4" />
@@ -248,12 +250,12 @@ function RankingContent() {
               />
             </TabsContent>
 
-            <TabsContent value="participacao">
+            <TabsContent value="media_gols">
               <RankingTable
                 data={ranking?.participacao || []}
-                valorKey="jogos"
-                label="jogos"
-                icon={Users}
+                valorKey="media_gols"
+                label="gols/jogos"
+                icon={Zap}
               />
             </TabsContent>
 

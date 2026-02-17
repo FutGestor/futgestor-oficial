@@ -20,7 +20,7 @@ async function inspect() {
   if (error) {
     console.error("Error:", error);
   } else {
-    console.log("Columns:", data && data.length > 0 ? Object.keys(data[0]) : "No data found");
+    
   }
 }
 

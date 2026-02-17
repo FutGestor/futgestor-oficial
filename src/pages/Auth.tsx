@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -79,54 +80,59 @@ export default function Auth() {
     }
   };
 
+  // Determina o destino do usuário ANTES de navegar
+  const determineDestination = async (userId: string) => {
+    // 1. Buscar profile
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("team_id, jogador_id")
+      .eq("id", userId)
+      .maybeSingle();
+    
+    // 2. Se tem team_id → ir para o time
+    if (prof?.team_id) {
+      const { data: teamData } = await supabase
+        .from("teams")
+        .select("slug")
+        .eq("id", prof.team_id)
+        .maybeSingle();
+      
+      if (teamData?.slug) {
+        return `/time/${teamData.slug}`;
+      }
+    }
+    
+    // 3. Se tem jogador_id mas não team_id → buscar time do jogador
+    if (prof?.jogador_id) {
+      const { data: jogData } = await supabase
+        .from("jogadores")
+        .select("team_id, teams(slug)")
+        .eq("id", prof.jogador_id)
+        .maybeSingle();
+      
+      // @ts-ignore - Handle joined query types
+      if (jogData?.teams?.slug) {
+        // @ts-ignore
+        return `/time/${jogData.teams.slug}`;
+      }
+    }
+    
+    // 4. Sem time → ir para escolha
+    return "/escolha";
+  };
+
   // Redirect if already logged in (esp. after Google callback)
   useEffect(() => {
     if (authLoading) return;
     if (!user) return;
     
     const redirectUser = async () => {
-      // If user has a team, go to team dashboard
-      if (profile?.team_id) {
-        const { data: teamData } = await supabase
-          .from("teams")
-          .select("slug")
-          .eq("id", profile.team_id)
-          .maybeSingle();
-        
-        if (teamData?.slug) {
-          navigate(`/time/${teamData.slug}`);
-          return;
-        }
-      }
-      
-      // If player, redirect logic (simplified for now to match request)
-      if (profile?.jogador_id) {
-          // Find player team
-          const { data: playerTeam } = await supabase
-            .from("jogadores")
-            .select("team_id")
-            .eq("id", profile.jogador_id)
-            .single();
-            
-          if (playerTeam?.team_id) {
-              const { data: teamData } = await supabase
-                .from("teams")
-                .select("slug")
-                .eq("id", playerTeam.team_id)
-                .maybeSingle();
-              if (teamData?.slug) {
-                navigate(`/time/${teamData.slug}`);
-                return;
-              }
-          }
-      }
-
-      // No team yet or not a player — redirect to onboarding
-      navigate("/onboarding");
+      const destination = await determineDestination(user.id);
+      navigate(destination, { replace: true });
     };
     
     redirectUser();
-  }, [user, profile, authLoading, navigate]);
+  }, [user, authLoading, navigate]);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -227,37 +233,20 @@ export default function Auth() {
         localStorage.removeItem("rememberMe");
       }
 
-      // No team yet → redirect to onboarding to create one (only for admins/new users)
-      if (!profile?.team_id && !profile?.jogador_id) {
+      const destination = await determineDestination(authData.user.id);
+
+      if (profile?.aprovado || isAdmin) {
+        toast({
+          title: "Login realizado!",
+          description: "Bem-vindo de volta!",
+        });
+        navigate(destination, { replace: true });
+      } else if (!profile?.team_id && !profile?.jogador_id) {
         toast({
           title: "Bem-vindo!",
-          description: "Crie seu time para começar.",
+          description: "Escolha como você quer começar no FutGestor.",
         });
-        navigate("/onboarding");
-        return;
-      }
-
-      const teamBase = teamSlug ? `/time/${teamSlug}` : "/";
-
-      if (isAdmin) {
-        toast({
-          title: "Login realizado!",
-          description: "Bem-vindo de volta!",
-        });
-        navigate(teamBase);
-      } else if (profile?.jogador_id) {
-        // Player - redirect to team page (can navigate freely)
-        toast({
-          title: "Login realizado!",
-          description: "Bem-vindo!",
-        });
-        navigate(teamBase);
-      } else if (profile?.aprovado) {
-        toast({
-          title: "Login realizado!",
-          description: "Bem-vindo de volta!",
-        });
-        navigate(teamBase);
+        navigate("/escolha", { replace: true });
       } else {
         toast({
           title: "Aguardando aprovação",
@@ -310,14 +299,9 @@ export default function Auth() {
       // Check if auto-confirm is on (user gets session immediately)
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData.session) {
-        // Auto-confirmed: redirect to onboarding
-        const redirectTo = searchParams.get("redirect");
-        if (redirectTo === "onboarding") {
-          navigate("/onboarding");
-        } else {
-          navigate("/onboarding");
-        }
-        toast({ title: "Cadastro realizado!", description: "Crie seu time para começar." });
+        // Auto-confirmed: redirect to escolha
+        navigate("/escolha");
+        toast({ title: "Cadastro realizado!", description: "Escolha como você quer começar." });
         return;
       }
 
@@ -337,6 +321,11 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
+  // Mostra LoadingScreen enquanto auth carrega OU enquanto o redirect está sendo processado
+  if (authLoading || user) {
+    return <LoadingScreen />;
+  }
 
   return (
     <Layout>

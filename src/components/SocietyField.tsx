@@ -190,6 +190,7 @@ export function SocietyField({
 
         {/* Jogadores Escalados (Estilo Tactical Card) */}
         {jogadores.map(({ jogador, posicao_campo }) => {
+          if (!jogador) return null;
           const { top, left, label } = getPlayerCoords(posicao_campo);
           const isDragging = draggingPlayer === jogador.id;
           

@@ -8,6 +8,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,11 +20,10 @@ import { usePlayerPerformance } from "@/hooks/useEstatisticas";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { useQueryClient } from "@tanstack/react-query";
-import { FutGestorLogo } from "@/components/FutGestorLogo";
-import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { TeamShield } from "@/components/TeamShield";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 // Subcomponents
-import { ProfileSidebar } from "@/components/profile/ProfileSidebar";
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
 import { TeamIdentityForm } from "@/components/profile/TeamIdentityForm";
 import { SecurityForm } from "@/components/profile/SecurityForm";
@@ -32,6 +32,7 @@ import { ActivityCalendar } from "@/components/ActivityCalendar";
 import { TeamFormStreak } from "@/components/TeamFormStreak";
 import { TeamApprovalDonut } from "@/components/TeamApprovalDonut";
 import { AchievementBadge } from "@/components/achievements/AchievementBadge";
+import { AchievementDetailsModal } from "@/components/achievements/AchievementDetailsModal";
 import { usePlayerAchievements } from "@/hooks/useAchievements";
 import { useResultados } from "@/hooks/useData";
 import { Calendar, Trophy, BarChart3, Settings, ShieldCheck, ChevronRight, Star, Target, Zap } from "lucide-react";
@@ -41,6 +42,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ImageCropperModal } from "@/components/ui/ImageCropperModal";
+import { 
+  Radar, 
+  RadarChart, 
+  PolarGrid, 
+  PolarAngleAxis, 
+  PolarRadiusAxis, 
+  ResponsiveContainer 
+} from 'recharts';
 
 type PlayerPosition = Database["public"]["Enums"]["player_position"];
 
@@ -50,7 +59,7 @@ const formSchema = z.object({
   posicao: z.enum(["goleiro", "zagueiro", "lateral", "volante", "meia", "atacante"]).optional(),
   telefone: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
-  pe_preferido: z.enum(["destro", "canhoto", "ambos"]).nullable().optional(),
+  pe_preferido: z.string().nullable().optional(),
   peso_kg: z.string().optional(),
   altura_cm: z.string().optional(),
   bio: z.string().max(300).optional(),
@@ -90,6 +99,8 @@ export default function MeuPerfil() {
   const [teamNome, setTeamNome] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
+  const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
+  const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
   const [instagram, setInstagram] = useState("");
   const [youtube, setYoutube] = useState("");
   const [facebook, setFacebook] = useState("");
@@ -101,9 +112,10 @@ export default function MeuPerfil() {
   const [tempImage, setTempImage] = useState<string | null>(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [cropType, setCropType] = useState<"perfil" | "escudo" | null>(null);
+  const shouldResyncTeam = useRef(true);
 
   useEffect(() => {
-    if (team && !teamNome) {
+    if (team && shouldResyncTeam.current) {
       setTeamNome(team.nome || "");
       setCidade(team.cidade || "");
       setEstado(team.estado || "");
@@ -111,8 +123,9 @@ export default function MeuPerfil() {
       setYoutube(team.redes_sociais?.youtube || "");
       setFacebook(team.redes_sociais?.facebook || "");
       setWhatsapp(team.redes_sociais?.whatsapp || "");
+      shouldResyncTeam.current = false;
     }
-  }, [team, teamNome]);
+  }, [team]);
 
   const { data: performance } = usePlayerPerformance(profile?.jogador_id || undefined, profile?.team_id || undefined);
   const { data: achievements } = usePlayerAchievements(profile?.jogador_id || undefined);
@@ -146,8 +159,9 @@ export default function MeuPerfil() {
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
     if (!authLoading && user && !isApproved) {
-      toast({ title: "Acesso restrito", description: "Cadastro pendente de aprovação.", variant: "destructive" });
-      navigate(basePath || "/");
+      // Don't redirect immediately on refresh if profile is still loading or just loaded
+      // toast remains for feedback but navigation is removed to prevent F5 lock-out
+      console.warn("User not approved yet");
     }
   }, [authLoading, user, isApproved, navigate, toast, basePath]);
 
@@ -162,19 +176,20 @@ export default function MeuPerfil() {
         const { data, error } = await supabase.from("jogadores").select("*").eq("id", profile.jogador_id).single();
         if (error) throw error;
         if (data) {
-          setJogador(data as any);
+          setJogador(data as unknown as Jogador);
           setFotoUrl(data.foto_url);
+          const d = data as any;
           form.reset({
             nome: data.nome,
             apelido: data.apelido || "",
             posicao: data.posicao as PlayerPosition,
             telefone: data.telefone || "",
             email: data.email || "",
-            pe_preferido: data.pe_preferido || null,
-            peso_kg: data.peso_kg?.toString() || "",
-            altura_cm: data.altura_cm?.toString() || "",
-            bio: data.bio || "",
-            data_entrada: data.data_entrada || "",
+            pe_preferido: d.pe_preferido || null,
+            peso_kg: d.peso_kg ? String(d.peso_kg) : "",
+            altura_cm: d.altura_cm ? String(d.altura_cm) : "",
+            bio: d.bio || "",
+            data_entrada: d.data_entrada || "",
           });
         }
       } catch (error) {
@@ -190,28 +205,30 @@ export default function MeuPerfil() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    const inputRef = event.target;
     const reader = new FileReader();
     reader.onload = () => {
       setTempImage(reader.result as string);
       setCropType("perfil");
       setIsCropModalOpen(true);
+      inputRef.value = "";
     };
     reader.readAsDataURL(file);
-    event.target.value = "";
   };
 
   const handleEscudoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const inputRef = e.target;
     const reader = new FileReader();
     reader.onload = () => {
       setTempImage(reader.result as string);
       setCropType("escudo");
       setIsCropModalOpen(true);
+      inputRef.value = "";
     };
     reader.readAsDataURL(file);
-    e.target.value = "";
   };
 
   const onCropComplete = async (croppedBlob: Blob) => {
@@ -225,10 +242,20 @@ export default function MeuPerfil() {
         const path = `${user.id}-${Date.now()}.${ext}`;
         await supabase.storage.from("jogadores").upload(path, croppedBlob, { contentType: "image/jpeg" });
         const { data: { publicUrl } } = supabase.storage.from("jogadores").getPublicUrl(path);
+        
         setFotoUrl(publicUrl);
+        
+        // Se o jogador já existe, salvar no banco imediatamente para atualização automática
+        if (jogador?.id) {
+          await supabase.from("jogadores").update({ foto_url: publicUrl }).eq("id", jogador.id);
+          await refreshProfile();
+          queryClient.invalidateQueries({ queryKey: ["jogador"] });
+        }
+
         toast({ title: "Foto enviada!" });
       } catch (err: any) {
-        toast({ title: "Erro no upload", description: err.message, variant: "destructive" });
+        const error = err as Error;
+        toast({ title: "Erro no upload", description: error.message, variant: "destructive" });
       } finally {
         setIsUploading(false);
       }
@@ -240,10 +267,20 @@ export default function MeuPerfil() {
         await supabase.storage.from("times").upload(path, croppedBlob, { contentType: "image/jpeg" });
         const { data: { publicUrl } } = supabase.storage.from("times").getPublicUrl(path);
         await supabase.from("teams").update({ escudo_url: publicUrl }).eq("id", profile.team_id);
-        queryClient.invalidateQueries({ queryKey: ["team-config"] });
+        
+        // Update query cache instantly
+        queryClient.setQueryData(["team-config", profile.team_id], (old: any) => ({ ...old, escudo_url: publicUrl }));
+        if (teamSlug?.slug) {
+          queryClient.invalidateQueries({ queryKey: ["team-by-slug", teamSlug.slug] });
+        }
+        
+        shouldResyncTeam.current = true;
+        await queryClient.invalidateQueries({ queryKey: ["team-config"] });
+        await refreshProfile();
         toast({ title: "Escudo atualizado!" });
       } catch (err: any) {
-        toast({ title: "Erro", description: err.message, variant: "destructive" });
+        const error = err as Error;
+        toast({ title: "Erro", description: error.message, variant: "destructive" });
       } finally {
         setUploadingEscudo(false);
       }
@@ -257,8 +294,18 @@ export default function MeuPerfil() {
     if (!user) return;
     setIsSaving(true);
     try {
+      // Always update profiles.nome
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ nome: data.nome })
+        .eq("id", user.id);
+      
+      if (profileError) {
+        console.error("Error updating profile nome:", profileError);
+      }
+
       if (jogador) {
-        await supabase.from("jogadores").update({
+        const updateData = {
           nome: data.nome,
           apelido: data.apelido || null,
           posicao: data.posicao,
@@ -270,7 +317,19 @@ export default function MeuPerfil() {
           altura_cm: data.altura_cm ? parseInt(data.altura_cm) : null,
           bio: data.bio || null,
           data_entrada: data.data_entrada || null,
-        }).eq("id", jogador.id);
+        };
+        const { error: jogadorError } = await supabase.from("jogadores")
+          .update(updateData)
+          .eq("id", jogador.id);
+        
+        if (jogadorError) throw jogadorError;
+        
+        // Update local state immediately so UI reflects changes
+        setJogador({ ...jogador, ...updateData } as unknown as Jogador);
+        
+        await refreshProfile();
+        queryClient.invalidateQueries({ queryKey: ["jogador"] });
+        
         toast({ title: "Perfil atualizado!" });
       } else {
         const { data: nj, error: ie } = await supabase.from("jogadores").insert({
@@ -283,13 +342,16 @@ export default function MeuPerfil() {
         }).select().single();
         if (ie) throw ie;
         await supabase.from("profiles").update({ jogador_id: nj.id }).eq("id", user.id);
-        setJogador(nj as any);
+        setJogador(nj as unknown as Jogador);
         await refreshProfile();
+        queryClient.invalidateQueries({ queryKey: ["jogador"] });
         toast({ title: "Perfil criado!" });
       }
       setIsEditDialogOpen(false);
     } catch (err: any) {
-      toast({ title: "Erro ao salvar", description: err.message, variant: "destructive" });
+      const error = err as Error;
+      console.error("Save error:", error);
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
@@ -321,7 +383,23 @@ export default function MeuPerfil() {
         estado: estado.trim(),
         redes_sociais: { instagram, youtube, facebook, whatsapp }
       }).eq("id", profile.team_id);
-      queryClient.invalidateQueries({ queryKey: ["team-config"] });
+
+      // Update query cache instantly
+      queryClient.setQueryData(["team-config", profile.team_id], (old: any) => ({
+        ...old,
+        nome: teamNome.trim(),
+        cidade: cidade.trim(),
+        estado: estado.trim(),
+        redes_sociais: { instagram, youtube, facebook, whatsapp }
+      }));
+
+      if (teamSlug?.slug) {
+        queryClient.invalidateQueries({ queryKey: ["team-by-slug", teamSlug.slug] });
+      }
+
+      shouldResyncTeam.current = true;
+      await queryClient.invalidateQueries({ queryKey: ["team-config"] });
+      await refreshProfile();
       toast({ title: "Clube atualizado!" });
     } catch (err: any) {
       toast({ title: "Erro", description: err.message, variant: "destructive" });
@@ -340,7 +418,10 @@ export default function MeuPerfil() {
     gols: performance.playerStats.reduce((acc, s) => acc + (s.gols || 0), 0),
     assistencias: performance.playerStats.reduce((acc, s) => acc + (s.assistencias || 0), 0),
     mvp: performance.playerStats.filter(s => s.resultado?.mvp_jogador_id === profile?.jogador_id).length,
-  } : { jogos: 0, gols: 0, assistencias: 0, mvp: 0 };
+    media: performance.playerStats.filter(s => s.participou).length > 0 
+      ? (performance.playerStats.reduce((acc, s) => acc + (s.gols || 0), 0) / performance.playerStats.filter(s => s.participou).length).toFixed(2)
+      : "0.00"
+  } : { jogos: 0, gols: 0, assistencias: 0, mvp: 0, media: "0.00" };
 
   const renderEditForm = () => (
     <DialogContent className="max-w-md bg-transparent border-border text-foreground backdrop-blur-xl">
@@ -380,19 +461,21 @@ export default function MeuPerfil() {
   return (
     <Layout>
       <div className="container py-8 px-4">
-        <div className="mb-6 flex flex-col items-center md:items-start">
-          <FutGestorLogo teamEscudo={team?.escudo_url} showText={true} size="md" />
+        <div className="mb-8 flex flex-col items-center md:items-start">
+          <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left-4 duration-700">
+            <TeamShield 
+              escudoUrl={team?.escudo_url} 
+              teamName={team?.nome || "Meu Clube"} 
+              size="lg" 
+              className="border-primary/20 shadow-primary/10"
+            />
+            <h1 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+              {team?.nome || "Meu Clube"}
+            </h1>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <ProfileSidebar 
-            profile={profile} user={user} fotoUrl={fotoUrl} isAdmin={isAdmin} 
-            statsSummary={statsSummary} signOut={signOut} navigate={navigate} basePath={basePath}
-            isEditDialogOpen={isEditDialogOpen} setIsEditDialogOpen={setIsEditDialogOpen} 
-            renderEditForm={renderEditForm}
-          />
-
-          <div className="lg:col-span-2">
+        <div className="max-w-6xl mx-auto space-y-8">
             <Tabs defaultValue="geral" className="w-full">
               <TabsList className="bg-muted/30 w-full justify-start p-1 rounded-xl mb-6 border border-white/5 backdrop-blur-md overflow-x-auto h-auto no-scrollbar">
                 <TabsTrigger value="geral" className="flex-1 gap-2">
@@ -420,220 +503,251 @@ export default function MeuPerfil() {
               </TabsList>
 
               <TabsContent value="geral" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {/* Hero Card Premium */}
-                <Card className="bg-black/60 backdrop-blur-3xl border-white/10 rounded-3xl overflow-hidden relative group transition-all hover:border-primary/30">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50" />
-                  <CardContent className="p-8 relative">
-                    <div className="flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-                        {/* Avatar e Badges */}
-                        <div className="relative">
-                          <Avatar className="h-32 w-32 border-4 border-primary/20 ring-4 ring-black/50">
-                            {fotoUrl ? (
-                              <AvatarImage src={fotoUrl} alt={profile?.nome} className="object-cover" />
-                            ) : (
-                              <AvatarFallback className="bg-muted text-muted-foreground">
-                                <User className="h-16 w-16" />
-                              </AvatarFallback>
-                            )}
-                          </Avatar>
-                          {(profile as any)?.tipo === "atleta" && (
-                            <div className="absolute -bottom-2 -right-2 bg-primary text-white text-[10px] font-black px-3 py-1 rounded-full border-2 border-black italic uppercase">
-                              Player
-                            </div>
+                {/* BLOCO 1 — Hero Card Premium */}
+                <Card className="bg-gradient-to-br from-black/80 via-black/60 to-primary/10 backdrop-blur-3xl border-white/10 rounded-2xl overflow-hidden relative group transition-all hover:border-primary/30 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent opacity-40" />
+                  <CardContent className="p-6 md:p-8 relative">
+                    <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+                      {/* Avatar Premium com Glow */}
+                      <div className="relative group/avatar">
+                        <Avatar className="h-40 w-40 border-4 border-primary/20 ring-4 ring-black/50 overflow-hidden shadow-[0_0_30px_rgba(5,96,179,0.3)]">
+                          {fotoUrl ? (
+                            <AvatarImage src={fotoUrl} alt={profile?.nome} className="object-cover" />
+                          ) : (
+                            <AvatarFallback className="bg-muted text-muted-foreground uppercase">
+                              {profile?.nome?.substring(0, 2) || <User className="h-20 w-20" />}
+                            </AvatarFallback>
                           )}
+                        </Avatar>
+                        
+                        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button size="icon" className="absolute top-0 right-0 h-8 w-8 rounded-full bg-primary/80 opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                              <Camera className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          {renderEditForm()}
+                        </Dialog>
+                        
+                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 whitespace-nowrap">
+                           <Target className="h-3 w-3 text-primary" />
+                           <span className="text-[9px] font-black uppercase tracking-widest text-primary">
+                             {jogador?.posicao ? positionLabels[jogador.posicao as keyof typeof positionLabels] : "Atleta"}
+                           </span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 space-y-6 w-full text-center md:text-left">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                          <div className="space-y-1">
+                            <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white leading-none drop-shadow-lg">
+                              {jogador?.apelido || profile?.nome}
+                            </h2>
+                            <div className="flex items-center justify-center md:justify-start gap-4">
+                              <span className="flex items-center gap-1.5 text-zinc-400 text-[10px] font-bold uppercase tracking-widest">
+                                <Calendar className="w-3 h-3 text-zinc-500" />
+                                {jogador?.data_entrada ? format(new Date(jogador.data_entrada), "MMM/yyyy", { locale: ptBR }).toUpperCase() : "MEMBRO"}
+                              </span>
+                              {jogador?.bio && (
+                                <span className="hidden md:inline-block text-zinc-500 italic text-sm">
+                                  "{jogador.bio}"
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center justify-center md:justify-end gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-8 px-3 text-[10px] font-black uppercase tracking-wider text-zinc-400 hover:text-white hover:bg-white/5"
+                              onClick={() => navigate(basePath || "/")}
+                            >
+                                <ChevronRight className="h-3 w-3 rotate-180 mr-1" />
+                                Início
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-8 px-3 text-[10px] font-black uppercase tracking-wider text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                              onClick={signOut}
+                            >
+                                Sair
+                            </Button>
+                          </div>
                         </div>
 
-                      <div className="flex-1 space-y-4">
-                        <div className="space-y-1">
-                          <h2 className="text-4xl font-black italic tracking-tighter text-white uppercase">
-                            {profile?.nome}
-                          </h2>
-                          <div className="flex items-center justify-center md:justify-start gap-4">
-                            <span className="text-xs font-black text-primary uppercase tracking-[0.2em] flex items-center gap-1.5">
-                              <Target className="h-3 w-3" />
-                              {jogador?.posicao ? positionLabels[jogador.posicao as keyof typeof positionLabels] : "Atleta"}
-                            </span>
-                            <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest bg-white/5 px-2 py-1 rounded">
-                              Membro desde {jogador?.data_entrada ? format(new Date(jogador.data_entrada), "MMM/yyyy", { locale: ptBR }) : (profile?.created_at ? format(new Date(profile.created_at), "MMM/yyyy", { locale: ptBR }) : "--")}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Bio do Atleta */}
-                        {jogador?.bio && (
-                          <div className="bg-white/5 border border-white/5 p-4 rounded-2xl md:max-w-md">
-                            <p className="text-zinc-400 text-sm italic leading-relaxed">
-                              "{jogador.bio}"
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Dados Físicos Premium */}
-                        {(jogador?.pe_preferido || jogador?.altura_cm || jogador?.peso_kg) && (
-                          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                            {jogador.pe_preferido && (
-                              <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
-                                <ShieldCheck className="h-3 w-3 text-primary/50" />
-                                <span className="text-[10px] font-black uppercase text-zinc-400">Pé: <span className="text-white">{jogador.pe_preferido}</span></span>
-                              </div>
-                            )}
-                            {jogador.altura_cm && (
-                              <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
-                                <ShieldCheck className="h-3 w-3 text-primary/50" />
-                                <span className="text-[10px] font-black uppercase text-zinc-400">Alt: <span className="text-white">{(jogador.altura_cm / 100).toFixed(2)} m</span></span>
-                              </div>
-                            )}
-                            {jogador.peso_kg && (
-                              <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5">
-                                <ShieldCheck className="h-3 w-3 text-primary/50" />
-                                <span className="text-[10px] font-black uppercase text-zinc-400">Peso: <span className="text-white">{jogador.peso_kg}kg</span></span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Stats Row */}
+                        {/* Grid de Stats Premium */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-y border-white/5">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-primary">
-                              <Zap className="h-4 w-4" />
-                              <span className="text-2xl font-black italic">{statsSummary.jogos}</span>
-                            </div>
-                            <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Jogos</p>
+                          <div className="flex flex-col items-center md:items-start">
+                            <span className="text-3xl md:text-4xl font-black italic text-white leading-none">{statsSummary.jogos}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mt-1">Jogos</span>
                           </div>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-white">
-                              <Star className="h-4 w-4 text-yellow-500" />
-                              <span className="text-2xl font-black italic">{statsSummary.gols}</span>
-                            </div>
-                            <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Gols</p>
+                          <div className="flex flex-col items-center md:items-start">
+                            <span className="text-3xl md:text-4xl font-black italic text-amber-400 leading-none">{statsSummary.gols}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mt-1">Gols</span>
                           </div>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-white">
-                              <span className="text-xs">🅰️</span>
-                              <span className="text-2xl font-black italic">{statsSummary.assistencias}</span>
-                            </div>
-                            <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Assists</p>
+                          <div className="flex flex-col items-center md:items-start">
+                            <span className="text-3xl md:text-4xl font-black italic text-cyan-400 leading-none">{statsSummary.assistencias}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mt-1">Assists</span>
                           </div>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-white">
-                              <Trophy className="h-4 w-4 text-primary" />
-                              <span className="text-2xl font-black italic">{statsSummary.mvp}</span>
-                            </div>
-                            <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">MVPs</p>
+                          <div className="flex flex-col items-center md:items-start">
+                            <span className="text-3xl md:text-4xl font-black italic text-purple-400 leading-none">{statsSummary.mvp}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mt-1">MVPs</span>
                           </div>
                         </div>
 
-                        {/* Achievement Progress Header */}
-                        <div className="pt-2">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-3">
-                              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400">Glória Geral</span>
-                              <div className="flex gap-1">
-                                {achievements?.filter(a => !!a.current_tier).slice(0, 4).map((a) => (
-                                  <AchievementBadge 
-                                    key={a.achievement_id} 
-                                    slug={a.achievement.slug}
-                                    tier={a.current_tier!}
-                                    size="xs"
-                                    showName={false}
-                                  />
-                                ))}
+                        {/* Média e Progresso */}
+                        <div className="flex flex-col sm:flex-row items-center gap-6">
+                           <div className="flex items-center gap-3">
+                              <BarChart3 className="h-5 w-5 text-primary" />
+                              <div className="flex flex-col">
+                                 <span className="text-xl font-black italic text-white leading-none">{statsSummary.media}</span>
+                                 <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500">Média de Gols</span>
                               </div>
-                            </div>
-                            <span className="text-xs font-black italic text-primary">
-                              {achievements?.filter(a => !!a.current_tier).length} / {achievements?.length} Concluidas
-                            </span>
-                          </div>
-                          <Progress 
-                            value={(achievements?.filter(a => !!a.current_tier).length || 0) / (achievements?.length || 1) * 100} 
-                            className="h-1.5 bg-white/5"
-                          />
+                           </div>
+                           
+                           <div className="flex-1 w-full space-y-2">
+                              <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
+                                 <span className="text-zinc-400">Progresso de Glória</span>
+                                 <span className="text-primary italic">{achievements?.filter(a => !!a.current_tier).length} / {achievements?.length} Concluídas</span>
+                              </div>
+                              <Progress 
+                                value={(achievements?.filter(a => !!a.current_tier).length || 0) / (achievements?.length || 1) * 100} 
+                                className="h-2 bg-white/5 overflow-hidden"
+                              />
+                           </div>
+
+                           <div className="flex flex-wrap items-center justify-center gap-3">
+                              {jogador?.pe_preferido && (
+                                <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded border border-white/5">
+                                  <span className="text-[9px] font-black uppercase text-zinc-500">Pé: <span className="text-white">{jogador.pe_preferido}</span></span>
+                                </div>
+                              )}
+                              {jogador?.altura_cm && (
+                                <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded border border-white/5">
+                                  <span className="text-[9px] font-black uppercase text-zinc-500">Alt: <span className="text-white">{(jogador.altura_cm / 100).toFixed(2)}m</span></span>
+                                </div>
+                              )}
+                              {jogador?.peso_kg && (
+                                <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded border border-white/5">
+                                  <span className="text-[9px] font-black uppercase text-zinc-500">Peso: <span className="text-white">{jogador.peso_kg}kg</span></span>
+                                </div>
+                              )}
+                           </div>
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Quick Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <Card className="bg-black/40 border-white/10 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Últimos 5 Jogos</p>
-                        <BarChart3 className="h-4 w-4 text-primary" />
-                      </div>
-                      <TeamFormStreak resultados={resultados || []} />
-                      <p className="mt-4 text-[11px] font-bold text-zinc-500 italic">Sequência de Forma do Time</p>
-                    </CardContent>
+                {/* BLOCO 2 — Grid de Métricas Premium */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Widget: Últimos 5 Jogos */}
+                  <Card className="bg-black/40 border-white/10 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-8">
+                       <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">Últimos 5 Jogos</p>
+                          <h3 className="text-xs font-bold text-zinc-400 italic">Sequência de Forma</h3>
+                       </div>
+                       <BarChart3 className="h-4 w-4 text-primary/50" />
+                    </div>
+                    <div className="flex justify-center">
+                       <TeamFormStreak resultados={resultados || []} />
+                    </div>
                   </Card>
 
-                  <Card className="bg-black/40 border-white/10 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all">
-                    <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                      <div className="w-full flex items-center justify-between mb-2">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Performance</p>
-                        <Zap className="h-4 w-4 text-blue-500" />
-                      </div>
-                      <TeamApprovalDonut 
-                        vitorias={performance?.playerStats?.filter(s => s.participou && (s.resultado?.gols_favor > s.resultado?.gols_contra)).length || 0}
-                        empates={performance?.playerStats?.filter(s => s.participou && (s.resultado?.gols_favor === s.resultado?.gols_contra)).length || 0}
-                        derrotas={performance?.playerStats?.filter(s => s.participou && (s.resultado?.gols_favor < s.resultado?.gols_contra)).length || 0}
-                      />
-                      <p className="mt-2 text-xs font-black text-white italic uppercase tracking-tighter">Aproveitamento Pessoal</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="bg-black/40 border-white/10 backdrop-blur-xl overflow-hidden md:col-span-2 lg:col-span-1 border-dashed border-white/5 opacity-50">
-                    <CardContent className="p-6 flex flex-col items-center justify-center h-full text-zinc-500">
-                      <ShieldCheck className="h-8 w-8 mb-2 opacity-20" />
-                      <p className="text-[10px] font-black uppercase tracking-widest">Radar de Habilidades</p>
-                      <p className="text-[9px] mt-1 italic">Em breve na Etapa 3</p>
-                    </CardContent>
+                  {/* Widget: Performance */}
+                  <Card className="bg-black/40 border-white/10 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                       <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">Performance</p>
+                          <h3 className="text-xs font-bold text-zinc-400 italic">Aproveitamento Pessoal</h3>
+                       </div>
+                       <Zap className="h-4 w-4 text-blue-500/50" />
+                    </div>
+                    <div className="flex justify-center items-center py-2">
+                       <TeamApprovalDonut 
+                         vitorias={performance?.playerStats?.filter(s => s.participou && (s.resultado?.gols_favor > s.resultado?.gols_contra)).length || 0}
+                         empates={performance?.playerStats?.filter(s => s.participou && (s.resultado?.gols_favor === s.resultado?.gols_contra)).length || 0}
+                         derrotas={performance?.playerStats?.filter(s => s.participou && (s.resultado?.gols_favor < s.resultado?.gols_contra)).length || 0}
+                         size={140}
+                       />
+                    </div>
                   </Card>
                 </div>
 
-                  <ActivityCalendar jogadorId={profile?.jogador_id || ""} teamId={profile?.team_id || ""} year={year} />
-
-                {/* Recent Achievements */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-500 flex items-center gap-2">
-                      <Trophy className="h-4 w-4 text-yellow-500" />
-                      ━━ Conquistas Recentes ━━
-                    </h3>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => navigate(`${basePath}/conquistas`)}
-                      className="text-[10px] font-black uppercase italic text-primary hover:bg-primary/5 gap-1"
-                    >
-                      Ver Arena Completa <ChevronRight className="h-3 w-3" />
-                    </Button>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                  {/* BLOCO 4 — Quadro de Atividade */}
+                  <div className="lg:col-span-2">
+                    <div className="bg-black/20 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">Quadro de Atividade</p>
+                          <h3 className="text-xs font-bold text-zinc-400 italic">Frequência em Campo</h3>
+                        </div>
+                        <Calendar className="h-4 w-4 text-zinc-600" />
+                      </div>
+                      <ActivityCalendar jogadorId={profile?.jogador_id || ""} teamId={profile?.team_id || ""} year={year} />
+                    </div>
                   </div>
-                  <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 snap-x">
-                    {achievements?.filter(a => !!a.current_tier).map((a) => (
-                      <Card 
-                        key={a.achievement_id} 
-                        className="bg-black/40 border-white/5 backdrop-blur-md hover:border-primary/20 transition-all cursor-pointer overflow-hidden group shrink-0 w-32 snap-start" 
+
+                  {/* BLOCO 5 — Conquistas Recentes */}
+                  <div className="space-y-6">
+                    <Card className="bg-black/40 border-white/10 backdrop-blur-xl rounded-2xl p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">Conquistas Recentes</p>
+                          <h3 className="text-xs font-bold text-zinc-400 italic">Últimos Troféus</h3>
+                        </div>
+                        <Trophy className="h-4 w-4 text-amber-500/50" />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        {achievements?.filter(a => !!a.current_tier).slice(0, 4).map((a) => (
+                          <div 
+                            key={a.achievement_id} 
+                            className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center text-center animate-in zoom-in-50 duration-500 cursor-pointer hover:bg-white/10 hover:border-primary/30 active:scale-95 transition-all"
+                            onClick={() => {
+                              setSelectedAchievement(a);
+                              setIsAchievementModalOpen(true);
+                            }}
+                          >
+                            <AchievementBadge 
+                              slug={a.achievement.slug}
+                              tier={a.current_tier!}
+                              size="sm"
+                            />
+                            <p className="mt-2 text-[9px] font-black text-white line-clamp-1 uppercase tracking-tighter">
+                              {a.achievement.name}
+                            </p>
+                          </div>
+                        ))}
+                        {(!achievements || achievements.filter(a => !!a.current_tier).length === 0) && (
+                           <div className="col-span-2 py-8 flex flex-col items-center justify-center opacity-30">
+                              <Trophy className="h-8 w-8 mb-2" />
+                              <p className="text-[10px] font-black uppercase tracking-widest">Jogue para liberar!</p>
+                           </div>
+                        )}
+                      </div>
+
+                      <Button 
+                        variant="link" 
+                        size="sm" 
                         onClick={() => navigate(`${basePath}/conquistas`)}
+                        className="w-full mt-6 text-[10px] font-black uppercase italic text-primary hover:no-underline hover:text-white transition-colors"
                       >
-                        <CardContent className="p-4 flex flex-col items-center text-center">
-                          <AchievementBadge 
-                            slug={a.achievement.slug}
-                            tier={a.current_tier!}
-                            size="sm"
-                          />
-                          <p className="mt-2 text-[10px] font-black text-white line-clamp-1 uppercase tracking-tighter">
-                            {a.achievement.name}
-                          </p>
-                          <p className="text-[8px] text-zinc-500 font-bold uppercase mt-1">
-                            {a.unlocked_at ? format(new Date(a.unlocked_at), "dd/MM/yy", { locale: ptBR }) : "--"}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
+                        Ver Arena Completa <ChevronRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </Card>
                   </div>
                 </div>
+
+                <AchievementDetailsModal 
+                  playerAchievement={selectedAchievement}
+                  isOpen={isAchievementModalOpen}
+                  onOpenChange={setIsAchievementModalOpen}
+                />
               </TabsContent>
 
               <TabsContent value="dados" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -659,23 +773,20 @@ export default function MeuPerfil() {
             </Tabs>
           </div>
         </div>
-      </div>
 
-      {tempImage && (
-        <ImageCropperModal
-          image={tempImage}
-          isOpen={isCropModalOpen}
-          onClose={() => {
-            setIsCropModalOpen(false);
-            setTempImage(null);
-          }}
-          onCropComplete={onCropComplete}
-          aspect={1}
-        />
-      )}
-    </Layout>
-  );
+        {tempImage && (
+          <ImageCropperModal
+            image={tempImage}
+            isOpen={isCropModalOpen}
+            onClose={() => {
+              setIsCropModalOpen(false);
+              setTempImage(null);
+            }}
+            onCropComplete={onCropComplete}
+            aspect={1}
+          />
+        )}
+      </Layout>
+    );
 }
-
-// Fim do arquivo
 

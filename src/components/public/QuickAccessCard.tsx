@@ -7,7 +7,7 @@ export function QuickAccessCard({ to, icon: Icon, label, className }: { to: stri
     <Link to={to} className="group">
       <div className={cn(
         "flex flex-col items-center justify-center gap-2 p-4 rounded-xl transition-all duration-300",
-        "bg-black/30 backdrop-blur-xl border border-white/10",
+        "bg-black/40 backdrop-blur-xl border border-white/10",
         "hover:bg-primary/20 hover:border-primary/30 hover:scale-[1.02] active:scale-[0.98]",
         "min-h-[100px] md:min-h-[120px]",
         className

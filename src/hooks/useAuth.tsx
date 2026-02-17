@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         
-        // Defer admin and profile check
+        // Defer admin and profile check to avoid Supabase deadlocks
         if (session?.user) {
           setTimeout(() => {
             checkAdminRole(session.user.id);
@@ -84,17 +84,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        checkAdminRole(session.user.id);
-        fetchProfile(session.user.id);
-      }
+    // Safety Timeout: Force loading to false after 2 seconds no matter what
+    const safetyTimeout = setTimeout(() => {
       setIsLoading(false);
-    });
+    }, 2000);
+
+    const initializeAuth = async () => {
+      // THEN check for existing session
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await Promise.all([
+            checkAdminRole(session.user.id),
+            fetchProfile(session.user.id)
+          ]);
+        }
+      } catch (err) {
+        console.error("Auth initialization error:", err);
+      } finally {
+        clearTimeout(safetyTimeout);
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);

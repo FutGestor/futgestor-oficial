@@ -3,7 +3,7 @@ import { useParams, Outlet } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import NotFound from "@/pages/NotFound";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { applyTeamTheme } from "@/lib/colors";
 import { ESCUDO_PADRAO } from "@/lib/constants";
 
@@ -66,11 +66,7 @@ export function TeamSlugLayout() {
 
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Skeleton className="h-32 w-32 rounded-full" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (isError) {

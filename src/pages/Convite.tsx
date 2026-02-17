@@ -15,32 +15,44 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { positionLabels, PlayerPosition } from "@/lib/types";
 import { ESCUDO_PADRAO } from "@/lib/constants";
 import { TeamShield } from "@/components/TeamShield";
+import { Layout } from "@/components/layout/Layout";
+import { useAuth } from "@/hooks/useAuth";
 
 const conviteSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres").optional().or(z.literal("")),
   posicao: z.string().min(1, "Selecione sua posição"),
 });
 
 type ConviteFormData = z.infer<typeof conviteSchema>;
 
-import { Layout } from "@/components/layout/Layout";
-
 export default function Convite() {
   const { code } = useParams<{ code: string }>();
   const [isLoadingCode, setIsLoadingCode] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [teamData, setTeamData] = useState<{ id: string; nome: string; escudo_url: string | null } | null>(null);
+  const [teamData, setTeamData] = useState<{ id: string; nome: string; slug: string; escudo_url: string | null } | null>(null);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, profile, refreshProfile } = useAuth();
 
   const form = useForm<ConviteFormData>({
     resolver: zodResolver(conviteSchema),
-    defaultValues: { nome: "", email: "", password: "", posicao: "atacante" },
+    defaultValues: { 
+      nome: profile?.nome || user?.user_metadata?.nome || "", 
+      email: user?.email || "", 
+      password: "", 
+      posicao: "atacante" 
+    },
   });
+
+  useEffect(() => {
+    if (profile?.nome) form.setValue("nome", profile.nome);
+    if (user?.email) form.setValue("email", user.email);
+  }, [profile, user, form]);
+
 
   useEffect(() => {
     async function fetchTeam() {
@@ -51,7 +63,7 @@ export default function Convite() {
       try {
         const { data, error } = await supabase
           .from("teams")
-          .select("id, nome, escudo_url")
+          .select("id, nome, slug, escudo_url")
           .eq("invite_code", code)
           .maybeSingle();
 
@@ -122,45 +134,53 @@ export default function Convite() {
     setIsSubmitting(true);
 
     try {
-      // 1. SignUp com metadados para o time
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            nome: data.nome,
-            team_id: teamData.id,
-            posicao: data.posicao,
-            form_type: 'invite_link'
-          },
-          emailRedirectTo: `${window.location.origin}/auth?confirmed=true`,
-        },
-      });
+      let userId = user?.id;
+      let isConfirmed = !!user;
 
-      if (authError) {
-        if (authError.message.includes("security purposes")) {
-          throw new Error("Muitas tentativas. Por favor, aguarde 60 segundos antes de tentar novamente.");
+      // 1. Se NÃO estiver logado, faz SignUp
+      if (!userId) {
+        if (!data.email || !data.password) {
+          throw new Error("E-mail e senha são obrigatórios para novos usuários.");
         }
-        throw authError;
+
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            data: {
+              nome: data.nome,
+              team_id: teamData.id,
+              posicao: data.posicao,
+              form_type: 'invite_link'
+            },
+            emailRedirectTo: `${window.location.origin}/auth?confirmed=true`,
+          },
+        });
+
+        if (authError) {
+          if (authError.message.includes("security purposes")) {
+            throw new Error("Muitas tentativas. Por favor, aguarde 60 segundos antes de tentar novamente.");
+          }
+          throw authError;
+        }
+        
+        if (!authData.user) throw new Error("Falha ao criar usuário");
+        userId = authData.user.id;
+        isConfirmed = !!authData.session;
       }
-      
-      if (!authData.user) throw new Error("Falha ao criar usuário");
 
-      const userId = authData.user.id;
-      const isConfirmed = !!authData.session;
-
-      if (isConfirmed) {
-        // 2. Se logado (autoconfirm), tenta buscar o jogador que o trigger criou
+      if (isConfirmed && userId) {
+        // 2. Se logado ou autoconfirmado, vincula o jogador
         let uploadedFotoUrl = null;
         if (fotoFile) {
           uploadedFotoUrl = await uploadFoto(userId);
         }
 
         try {
-          // Aguarda um pequeno instante para o trigger completar
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Aguarda um pequeno instante para o trigger completar (se foi signup novo)
+          if (!user) await new Promise(resolve => setTimeout(resolve, 500));
 
-          // Busca o perfil para pegar o jogador_id criado pelo trigger
+          // Busca o perfil
           const { data: profileData } = await supabase
             .from("profiles")
             .select("jogador_id")
@@ -168,21 +188,31 @@ export default function Convite() {
             .maybeSingle();
 
           if (profileData?.jogador_id) {
-            // Atualiza o jogador existente (criado pelo trigger) com a foto
+            // Atualiza o jogador existente
             await supabase
               .from("jogadores")
               .update({ 
                 foto_url: uploadedFotoUrl,
-                posicao: data.posicao as PlayerPosition // Garante a posição final
+                posicao: data.posicao as PlayerPosition,
+                team_id: teamData.id // Garante que vincula ao time do convite
               })
               .eq("id", profileData.jogador_id);
+
+            // Garante que o perfil está aprovado e vinculado ao time ao usar convite válido
+            await supabase
+              .from("profiles")
+              .update({ 
+                aprovado: true,
+                team_id: teamData.id 
+              })
+              .eq("id", userId);
           } else {
-            // Fallback apenas se o trigger não tiver criado (segurança extra)
+            // Cria novo jogador e vincula ao perfil
             const { data: newJogador } = await supabase
               .from("jogadores")
               .insert({
                 nome: data.nome,
-                email: data.email,
+                email: data.email || user?.email || "",
                 team_id: teamData.id,
                 user_id: userId,
                 posicao: data.posicao as PlayerPosition,
@@ -195,28 +225,35 @@ export default function Convite() {
             if (newJogador) {
               await supabase
                 .from("profiles")
-                .update({ jogador_id: newJogador.id })
+                .update({ 
+                  jogador_id: newJogador.id,
+                  nome: data.nome, // Atualiza o nome no perfil também
+                  aprovado: true, // Auto-aprovação ao usar convite válido
+                  team_id: teamData.id // Vincula o perfil ao time
+                })
                 .eq("id", userId);
             }
           }
         } catch (dbErr) {
-          console.warn("Erro ao vincular dados, mas o usuário foi criado:", dbErr);
+          console.warn("Erro ao vincular dados:", dbErr);
         }
+        
+        // Atualiza o estado global de autenticação/perfil para garantir que as rotas reconheçam o novo time
+        await refreshProfile();
         
         toast({
           title: "Bem-vindo!",
-          description: `Sua conta foi criada no ${teamData.nome}.`,
+          description: `Você entrou com sucesso no ${teamData.nome}.`,
         });
-        navigate("/");
+        
+        // Navega diretamente para o dashboard do time para evitar loops de redirecionamento no Auth.tsx
+        navigate(`/time/${teamData.slug}`);
       } else {
-        // Se precisar confirmar e-mail
-        // No caso do convite, o ideal é que ele já saia com o profile pré-criado via trigger
-        // O trigger handle_new_user (atualizado) fará esse papel se o usuário rodar o SQL.
         toast({
           title: "Quase lá!",
           description: "Enviamos um e-mail de confirmação. Verifique sua caixa de entrada para entrar no time.",
         });
-        form.reset();
+        if (!user) form.reset();
         setFotoFile(null);
         setFotoPreview(null);
       }
@@ -226,7 +263,7 @@ export default function Convite() {
       console.error("Erro no cadastro via convite:", error);
       toast({
         variant: "destructive",
-        title: "Erro ao cadastrar",
+        title: "Erro ao entrar no time",
         description: error.message || "Ocorreu um erro inesperado.",
       });
     } finally {
@@ -298,7 +335,12 @@ export default function Convite() {
                         <FormControl>
                           <div className="relative">
                             <User className="absolute left-3 top-3 h-4 w-4 text-primary" />
-                            <Input placeholder="Seu apelido" className="bg-black/40 border-white/10 text-white pl-10 focus:border-primary/50" {...field} />
+                            <Input 
+                              placeholder="Seu apelido" 
+                              title="Nome ou Apelido"
+                              className="bg-black/40 border-white/10 text-white pl-10 focus:border-primary/50" 
+                              {...field} 
+                            />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -332,39 +374,43 @@ export default function Convite() {
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-300 text-[10px] font-bold uppercase tracking-widest">E-mail</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-primary" />
-                          <Input type="email" placeholder="seu@email.com" className="bg-black/40 border-white/10 text-white pl-10 focus:border-primary/50" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!user && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-300 text-[10px] font-bold uppercase tracking-widest">E-mail</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Mail className="absolute left-3 top-3 h-4 w-4 text-primary" />
+                              <Input type="email" placeholder="seu@email.com" className="bg-black/40 border-white/10 text-white pl-10 focus:border-primary/50" {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-300 text-[10px] font-bold uppercase tracking-widest">Senha</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-3 h-4 w-4 text-primary" />
-                          <Input type="password" placeholder="••••••••" className="bg-black/40 border-white/10 text-white pl-10 focus:border-primary/50" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-300 text-[10px] font-bold uppercase tracking-widest">Senha</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Lock className="absolute left-3 top-3 h-4 w-4 text-primary" />
+                              <Input type="password" placeholder="••••••••" className="bg-black/40 border-white/10 text-white pl-10 focus:border-primary/50" {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
 
                 <Button type="submit" className="w-full h-14 text-lg font-black uppercase italic bg-primary hover:bg-primary/90 text-white transition-all shadow-[0_0_20px_rgba(5,96,179,0.35)]" disabled={isSubmitting}>
                   {isSubmitting ? (

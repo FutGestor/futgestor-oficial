@@ -21,7 +21,7 @@ export function UserNav() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/");
+    navigate("/auth");
   };
 
   const userInitials = user?.email
