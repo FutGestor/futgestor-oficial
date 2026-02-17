@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
+import { useAuth } from "@/hooks/useAuth";
 import { useProximoJogo, useUltimoResultado } from "@/hooks/useData";
 import { useRanking } from "@/hooks/useEstatisticas";
 import { Layout } from "@/components/layout/Layout";
@@ -20,6 +21,7 @@ export default function Banners() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { team, basePath } = useTeamSlug();
+  const { isSuperAdmin, isLoading: authLoading } = useAuth();
   const [format, setFormat] = useState<"story" | "feed">("feed");
   const [activeTab, setActiveTab] = useState("matchday");
   const bannerRef = useRef<HTMLDivElement>(null);
@@ -74,8 +76,13 @@ export default function Banners() {
     }
   };
 
-  if (loadingNext || loadingResult || loadingRanking) {
+  if (authLoading || loadingNext || loadingResult || loadingRanking) {
     return <LoadingScreen />;
+  }
+
+  // Segurança: Só o superadmin god acessa por enquanto
+  if (!isSuperAdmin) {
+    return <Navigate to={basePath} replace />;
   }
 
   const artilheiro = ranking?.artilheiros?.[0];

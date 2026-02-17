@@ -11,7 +11,7 @@ import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 
 export default function TeamPublicPage() {
   const { team, basePath } = useTeamSlug();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSuperAdmin } = useAuth();
   const { hasSolicitacoes, hasAvisos, hasCampeonatos } = usePlanAccess(team.id);
 
   return (
@@ -31,7 +31,7 @@ export default function TeamPublicPage() {
           <QuickAccessCard to={`${basePath}/escalacao`} icon={Shield} label="Escalação" />
           {hasCampeonatos && <QuickAccessCard to={`${basePath}/ligas`} icon={Award} label="Ligas" />}
           <QuickAccessCard to={`${basePath}/resultados`} icon={BarChart3} label="Resultados" />
-          <QuickAccessCard to={`${basePath}/banners`} icon={ImageIcon} label="Banners" />
+          {isSuperAdmin && <QuickAccessCard to={`${basePath}/banners`} icon={ImageIcon} label="Banners" />}
           {isAdmin && <QuickAccessCard to={`${basePath}/gestao`} icon={LayoutDashboard} label="Gestão" className="bg-primary/10 border-primary/20" />}
         </div>
       </section>
