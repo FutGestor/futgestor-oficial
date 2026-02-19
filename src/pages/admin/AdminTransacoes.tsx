@@ -114,6 +114,24 @@ export default function AdminTransacoes() {
         const { error } = await supabase.from("transacoes").insert(data);
         if (error) throw error;
         toast({ title: "Transação registrada com sucesso!" });
+
+        // Notificar time sobre nova transação
+        if (profile?.team_id) {
+          try {
+            const valorFormatado = parseFloat(formData.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+            const tipoLabel = formData.tipo === "entrada" ? "💰 Nova entrada" : "💸 Nova saída";
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (supabase as any).rpc('notify_team', {
+              p_team_id: profile.team_id,
+              p_tipo: 'financeiro',
+              p_titulo: `${tipoLabel} registrada!`,
+              p_mensagem: `${formData.descricao} — R$ ${valorFormatado}`,
+              p_link: `${basePath}/financeiro`
+            });
+          } catch (notifError) {
+            console.warn('Falha ao enviar notificação:', notifError);
+          }
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ["transacoes"] });

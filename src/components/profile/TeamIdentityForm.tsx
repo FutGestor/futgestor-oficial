@@ -16,6 +16,8 @@ interface TeamIdentityFormProps {
   setCidade: (val: string) => void;
   estado: string;
   setEstado: (val: string) => void;
+  bio: string;
+  setBio: (val: string) => void;
   instagram: string;
   setInstagram: (val: string) => void;
   youtube: string;
@@ -45,6 +47,8 @@ export const TeamIdentityForm: React.FC<TeamIdentityFormProps> = ({
   setCidade,
   estado,
   setEstado,
+  bio,
+  setBio,
   instagram,
   setInstagram,
   youtube,
@@ -177,6 +181,19 @@ export const TeamIdentityForm: React.FC<TeamIdentityFormProps> = ({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Bio / About */}
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold uppercase tracking-tighter text-primary">Bio / Sobre o Time</Label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            maxLength={500}
+            placeholder="Conte a história do seu time... Ex: Somos um time de amigos que joga toda quarta às 19h."
+            className="w-full bg-black/40 border border-white/10 text-white rounded-xl p-4 h-24 text-sm resize-none placeholder:text-muted-foreground/50 focus:border-primary/50 focus:outline-none"
+          />
+          <p className="text-[10px] text-muted-foreground text-right">{bio.length}/500</p>
         </div>
 
         <div className="space-y-4">

@@ -1,20 +1,31 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Bell, AlertTriangle, DollarSign, Trophy, Megaphone, CheckCheck, Eye, Settings2 } from "lucide-react";
+import { Bell, AlertTriangle, DollarSign, Trophy, Megaphone, CheckCheck, Eye, Settings2, Trash2 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAvisos } from "@/hooks/useData";
-import { useAvisoLeituras, useMarcarAvisoLido, useMarcarTodosLidos } from "@/hooks/useAvisoLeituras";
+import { useAvisoLeituras, useMarcarAvisoLido, useMarcarTodosLidos, useExcluirAviso } from "@/hooks/useAvisoLeituras";
 import { categoryLabels, type NoticeCategory } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { RequireTeam } from "@/components/RequireTeam";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type FilterType = "todos" | "nao_lidos" | "lidos";
 
@@ -44,8 +55,10 @@ function AvisosContent() {
   const { data: lidos } = useAvisoLeituras();
   const marcarLido = useMarcarAvisoLido();
   const marcarTodos = useMarcarTodosLidos();
+  const excluirAviso = useExcluirAviso();
   const [filtro, setFiltro] = useState<FilterType>("todos");
   const [expandido, setExpandido] = useState<string | null>(null);
+  const [avisoParaExcluir, setAvisoParaExcluir] = useState<string | null>(null);
 
   const isLido = (id: string) => lidos?.has(id) ?? false;
 
@@ -174,9 +187,25 @@ function AvisosContent() {
                       </h3>
 
                       {aberto && (
-                        <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
-                          {aviso.conteudo}
-                        </p>
+                        <>
+                          <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
+                            {aviso.conteudo}
+                          </p>
+                          {isAdmin && (
+                            <div className="mt-4 flex justify-end">
+                              <span
+                                className="inline-flex items-center gap-1 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setAvisoParaExcluir(aviso.id);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Excluir Aviso
+                              </span>
+                            </div>
+                          )}
+                        </>
                       )}
 
                       {!aberto && (
@@ -198,6 +227,38 @@ function AvisosContent() {
             )}
           </CardContent>
         </Card>
+
+        {/* Diálogo de confirmação para excluir aviso */}
+        <AlertDialog open={!!avisoParaExcluir} onOpenChange={() => setAvisoParaExcluir(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Aviso</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir este aviso? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setAvisoParaExcluir(null)}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={async () => {
+                  if (avisoParaExcluir) {
+                    try {
+                      await excluirAviso.mutateAsync(avisoParaExcluir);
+                      toast.success("Aviso excluído com sucesso!");
+                      setAvisoParaExcluir(null);
+                      setExpandido(null);
+                    } catch {
+                      toast.error("Erro ao excluir aviso");
+                    }
+                  }
+                }}
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   );

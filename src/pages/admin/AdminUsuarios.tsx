@@ -127,6 +127,20 @@ export default function AdminUsuarios() {
 
       queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
       toast({ title: "Usuário aprovado e vinculado ao time!" });
+
+      // Notificar o jogador aprovado
+      try {
+        await supabase.from('notificacoes' as any).insert({
+          user_id: profileId,
+          team_id: adminProfile.team_id,
+          tipo: 'jogador_aprovado',
+          titulo: '🎉 Você foi aprovado no time!',
+          mensagem: 'Seu acesso ao time foi aprovado. Bem-vindo!',
+          link: null
+        });
+      } catch (notifError) {
+        console.warn('Falha ao enviar notificação:', notifError);
+      }
     } catch (error) {
       toast({
         variant: "destructive",

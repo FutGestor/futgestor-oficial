@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Headphones, Plus, MessageSquare, ArrowLeft } from "lucide-react";
+import { Headphones, Plus, MessageSquare, ArrowLeft, Trash2 } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RequireTeam } from "@/components/RequireTeam";
-import { useMeusChamados, useCriarChamado, useChamadoMensagens, useChamadoAnexos, useEnviarMensagem } from "@/hooks/useChamados";
+import { useMeusChamados, useCriarChamado, useChamadoMensagens, useChamadoAnexos, useEnviarMensagem, useExcluirChamado } from "@/hooks/useChamados";
 import type { Chamado } from "@/hooks/useChamados";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const STATUS_COLORS: Record<string, string> = {
   aberto: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/30",
@@ -223,8 +233,10 @@ function NovoChamadoForm({ onSuccess }: { onSuccess: () => void }) {
 
 function SuporteContent() {
   const { data: chamados, isLoading } = useMeusChamados();
+  const excluirChamado = useExcluirChamado();
   const [view, setView] = useState<"lista" | "novo" | "detalhe">("lista");
   const [chamadoSelecionado, setChamadoSelecionado] = useState<Chamado | null>(null);
+  const [chamadoParaExcluir, setChamadoParaExcluir] = useState<string | null>(null);
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const chamadoIdParam = queryParams.get("chamado_id");
@@ -304,23 +316,46 @@ function SuporteContent() {
                 <p className="text-center text-gray-500 py-8">Carregando...</p>
               ) : chamados && chamados.length > 0 ? (
                 chamados.map((c) => (
-                  <button
+                  <div
                     key={c.id}
-                    onClick={() => handleSelecionarChamado(c)}
-                    className="w-full bg-transparent border border-border rounded-xl p-4 text-left hover:bg-muted transition-colors"
+                    className="w-full bg-transparent border border-border rounded-xl p-4 hover:bg-muted transition-colors group"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-semibold text-foreground">{c.assunto}</span>
-                      <Badge variant="outline" className={STATUS_COLORS[c.status]}>
-                        {STATUS_LABELS[c.status]}
-                      </Badge>
+                    <div className="flex items-start justify-between mb-1">
+                      <button
+                        onClick={() => handleSelecionarChamado(c)}
+                        className="flex-1 text-left"
+                      >
+                        <span className="text-sm font-semibold text-foreground">{c.assunto}</span>
+                      </button>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className={STATUS_COLORS[c.status]}>
+                          {STATUS_LABELS[c.status]}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setChamadoParaExcluir(c.id);
+                          }}
+                          title="Excluir chamado"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                      <span>{c.categoria}</span>
-                      <span>•</span>
-                      <span>{format(new Date(c.criado_em), "dd/MM/yyyy")}</span>
-                    </div>
-                  </button>
+                    <button
+                      onClick={() => handleSelecionarChamado(c)}
+                      className="w-full text-left"
+                    >
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        <span>{c.categoria}</span>
+                        <span>•</span>
+                        <span>{format(new Date(c.criado_em), "dd/MM/yyyy")}</span>
+                      </div>
+                    </button>
+                  </div>
                 ))
               ) : (
                 <div className="text-center py-16">
@@ -334,6 +369,37 @@ function SuporteContent() {
             </div>
           )}
         </div>
+
+        {/* Diálogo de confirmação para excluir chamado */}
+        <AlertDialog open={!!chamadoParaExcluir} onOpenChange={() => setChamadoParaExcluir(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Chamado</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir este chamado? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setChamadoParaExcluir(null)}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={async () => {
+                  if (chamadoParaExcluir) {
+                    try {
+                      await excluirChamado.mutateAsync(chamadoParaExcluir);
+                      toast.success("Chamado excluído com sucesso!");
+                      setChamadoParaExcluir(null);
+                    } catch (error: any) {
+                      toast.error(error.message || "Erro ao excluir chamado");
+                    }
+                  }
+                }}
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   );

@@ -16,6 +16,7 @@ interface DatePickerPopoverProps {
     date: Date | undefined;
     setDate: (date: Date | undefined) => void;
     placeholder?: string;
+    className?: string;
     modifiers?: Record<string, any>; // Usando any pois react-day-picker modifiers é complexo e dinâmico
     modifiersClassNames?: Record<string, string>;
 }

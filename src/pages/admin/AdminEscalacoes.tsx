@@ -306,6 +306,24 @@ export default function AdminEscalacoes() {
         }
 
         toast({ title: "Escalação atualizada com sucesso!" });
+
+        // Notificar time se escalação foi publicada
+        if (formData.publicada && profile?.team_id) {
+          try {
+            const jogoInfo = editingEscalacao.jogo;
+            const dataJogo = jogoInfo?.data_hora ? format(new Date(jogoInfo.data_hora), "dd/MM", { locale: ptBR }) : '';
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (supabase as any).rpc('notify_team', {
+              p_team_id: profile.team_id,
+              p_tipo: 'escalacao',
+              p_titulo: '📋 Escalação atualizada!',
+              p_mensagem: `Escalação vs ${jogoInfo?.adversario || 'Adversário'} (${dataJogo}) foi atualizada`,
+              p_link: `${basePath}/escalacao`
+            });
+          } catch (notifError) {
+            console.warn('Falha ao enviar notificação:', notifError);
+          }
+        }
       } else {
         // Create new escalacao
         const { data: newEscalacao, error } = await supabase
@@ -351,6 +369,24 @@ export default function AdminEscalacoes() {
         }
 
         toast({ title: "Escalação criada com sucesso!" });
+
+        // Notificar time se escalação foi publicada
+        if (formData.publicada && profile?.team_id) {
+          try {
+            const jogoSel = jogos?.find(j => j.id === formData.jogo_id);
+            const dataJogo = jogoSel?.data_hora ? format(new Date(jogoSel.data_hora), "dd/MM", { locale: ptBR }) : '';
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (supabase as any).rpc('notify_team', {
+              p_team_id: profile.team_id,
+              p_tipo: 'escalacao',
+              p_titulo: '📋 Escalação publicada!',
+              p_mensagem: `Escalação vs ${jogoSel?.adversario || 'Adversário'} (${dataJogo}) disponível`,
+              p_link: `${basePath}/escalacao`
+            });
+          } catch (notifError) {
+            console.warn('Falha ao enviar notificação:', notifError);
+          }
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ["escalacoes"] });
@@ -395,6 +431,25 @@ export default function AdminEscalacoes() {
 
       if (error) throw error;
       toast({ title: escalacao.publicada ? "Escalação ocultada!" : "Escalação publicada!" });
+
+      // Notificar time quando escalação é publicada (toggle para publicada)
+      if (!escalacao.publicada && profile?.team_id) {
+        try {
+          const jogoInfo = escalacao.jogo;
+          const dataJogo = jogoInfo?.data_hora ? format(new Date(jogoInfo.data_hora), "dd/MM", { locale: ptBR }) : '';
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabase as any).rpc('notify_team', {
+            p_team_id: profile.team_id,
+            p_tipo: 'escalacao',
+            p_titulo: '📋 Escalação publicada!',
+            p_mensagem: `Escalação vs ${jogoInfo?.adversario || 'Adversário'} (${dataJogo}) disponível`,
+            p_link: `${basePath}/escalacao`
+          });
+        } catch (notifError) {
+          console.warn('Falha ao enviar notificação:', notifError);
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ["escalacoes"] });
     } catch (error: unknown) {
       toast({

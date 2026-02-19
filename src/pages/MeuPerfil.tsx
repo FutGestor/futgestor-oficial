@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2, User, Camera } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -81,7 +81,10 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 export default function MeuPerfil() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const viewId = searchParams.get("view");
   const { user, profile, isAdmin, isApproved, isLoading: authLoading, refreshProfile, signOut } = useAuth();
+  const isExternalView = !!viewId && viewId !== profile?.jogador_id && viewId !== user?.id;
   const teamSlug = useOptionalTeamSlug();
   const basePath = teamSlug?.basePath || "";
   const year = new Date().getFullYear();
@@ -99,6 +102,7 @@ export default function MeuPerfil() {
   const [teamNome, setTeamNome] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
+  const [bio, setBio] = useState("");
   const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
   const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
   const [instagram, setInstagram] = useState("");
@@ -119,6 +123,7 @@ export default function MeuPerfil() {
       setTeamNome(team.nome || "");
       setCidade(team.cidade || "");
       setEstado(team.estado || "");
+      setBio((team as any).bio || "");
       setInstagram(team.redes_sociais?.instagram || "");
       setYoutube(team.redes_sociais?.youtube || "");
       setFacebook(team.redes_sociais?.facebook || "");
@@ -127,8 +132,8 @@ export default function MeuPerfil() {
     }
   }, [team]);
 
-  const { data: performance } = usePlayerPerformance(profile?.jogador_id || undefined, profile?.team_id || undefined);
-  const { data: achievements } = usePlayerAchievements(profile?.jogador_id || undefined);
+  const { data: performance } = usePlayerPerformance(jogador?.id || undefined, jogador?.team_id || profile?.team_id || undefined);
+  const { data: achievements } = usePlayerAchievements(jogador?.id || undefined);
   const { data: resultados } = useResultados(profile?.team_id || undefined);
 
   const form = useForm<FormData>({
@@ -167,14 +172,40 @@ export default function MeuPerfil() {
 
   useEffect(() => {
     async function loadJogador() {
-      if (!profile?.jogador_id) {
+      const targetId = viewId || profile?.jogador_id;
+      
+      if (!targetId) {
         if (profile?.nome) form.setValue("nome", profile.nome);
         setIsLoadingJogador(false);
         return;
       }
+
+      setIsLoadingJogador(true);
       try {
-        const { data, error } = await supabase.from("jogadores").select("*").eq("id", profile.jogador_id).single();
-        if (error) throw error;
+        const { data, error } = await supabase.from("jogadores").select("*").eq("id", targetId).single();
+        if (error) {
+          // Fallback if not found by ID, try by user_id
+          const { data: dataByUser, error: errorUser } = await supabase.from("jogadores").select("*").eq("user_id", targetId).maybeSingle();
+          if (errorUser || !dataByUser) throw error;
+          
+          setJogador(dataByUser as unknown as Jogador);
+          setFotoUrl(dataByUser.foto_url);
+          const d = dataByUser as any;
+          form.reset({
+            nome: dataByUser.nome,
+            apelido: dataByUser.apelido || "",
+            posicao: dataByUser.posicao as PlayerPosition,
+            telefone: dataByUser.telefone || "",
+            email: dataByUser.email || "",
+            pe_preferido: d.pe_preferido || null,
+            peso_kg: d.peso_kg ? String(d.peso_kg) : "",
+            altura_cm: d.altura_cm ? String(d.altura_cm) : "",
+            bio: d.bio || "",
+            data_entrada: d.data_entrada || "",
+          });
+          return;
+        }
+
         if (data) {
           setJogador(data as unknown as Jogador);
           setFotoUrl(data.foto_url);
@@ -198,8 +229,8 @@ export default function MeuPerfil() {
         setIsLoadingJogador(false);
       }
     }
-    if (profile) loadJogador();
-  }, [profile, form]);
+    if (profile || viewId) loadJogador();
+  }, [profile, viewId, form]);
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -267,6 +298,16 @@ export default function MeuPerfil() {
         await supabase.storage.from("times").upload(path, croppedBlob, { contentType: "image/jpeg" });
         const { data: { publicUrl } } = supabase.storage.from("times").getPublicUrl(path);
         await supabase.from("teams").update({ escudo_url: publicUrl }).eq("id", profile.team_id);
+        
+        // Sincronizar escudo no registro "time da casa" na tabela times
+        await supabase
+          .from("times")
+          .update({ escudo_url: publicUrl })
+          .eq("team_id", profile.team_id)
+          .eq("is_casa", true);
+        
+        // Invalidar cache de times após sync
+        queryClient.invalidateQueries({ queryKey: ["times"] });
         
         // Update query cache instantly
         queryClient.setQueryData(["team-config", profile.team_id], (old: any) => ({ ...old, escudo_url: publicUrl }));
@@ -381,8 +422,19 @@ export default function MeuPerfil() {
         nome: teamNome.trim(),
         cidade: cidade.trim(),
         estado: estado.trim(),
+        bio: bio.trim(),
         redes_sociais: { instagram, youtube, facebook, whatsapp }
-      }).eq("id", profile.team_id);
+      } as any).eq("id", profile.team_id);
+
+      // Sincronizar o registro "time da casa" na tabela times
+      await supabase
+        .from("times")
+        .update({ nome: teamNome.trim() })
+        .eq("team_id", profile.team_id)
+        .eq("is_casa", true);
+      
+      // Invalidar cache de times após sync
+      queryClient.invalidateQueries({ queryKey: ["times"] });
 
       // Update query cache instantly
       queryClient.setQueryData(["team-config", profile.team_id], (old: any) => ({
@@ -417,7 +469,7 @@ export default function MeuPerfil() {
     jogos: performance.playerStats.filter(s => s.participou).length,
     gols: performance.playerStats.reduce((acc, s) => acc + (s.gols || 0), 0),
     assistencias: performance.playerStats.reduce((acc, s) => acc + (s.assistencias || 0), 0),
-    mvp: performance.playerStats.filter(s => s.resultado?.mvp_jogador_id === profile?.jogador_id).length,
+    mvp: performance.playerStats.filter(s => s.resultado?.mvp_jogador_id === jogador?.id).length,
     media: performance.playerStats.filter(s => s.participou).length > 0 
       ? (performance.playerStats.reduce((acc, s) => acc + (s.gols || 0), 0) / performance.playerStats.filter(s => s.participou).length).toFixed(2)
       : "0.00"
@@ -483,23 +535,30 @@ export default function MeuPerfil() {
                   <span className="hidden sm:inline">Visão Geral</span>
                   <span className="sm:hidden">Geral</span>
                 </TabsTrigger>
-                <TabsTrigger value="dados" className="flex-1 gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">Editar Dados</span>
-                  <span className="sm:hidden">Dados</span>
-                </TabsTrigger>
-                {isAdmin && (
+                
+                {!isExternalView && (
+                  <TabsTrigger value="dados" className="flex-1 gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline">Editar Dados</span>
+                    <span className="sm:hidden">Dados</span>
+                  </TabsTrigger>
+                )}
+
+                {isAdmin && !isExternalView && (
                   <TabsTrigger value="clube" className="flex-1 gap-2">
                     <ShieldCheck className="h-4 w-4" />
                     <span className="hidden sm:inline">Clube</span>
                     <span className="sm:hidden">Clube</span>
                   </TabsTrigger>
                 )}
-                <TabsTrigger value="seguranca" className="flex-1 gap-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  <span className="hidden sm:inline">Segurança</span>
-                  <span className="sm:hidden">🔐</span>
-                </TabsTrigger>
+
+                {!isExternalView && (
+                  <TabsTrigger value="seguranca" className="flex-1 gap-2">
+                    <ShieldCheck className="h-4 w-4" />
+                    <span className="hidden sm:inline">Segurança</span>
+                    <span className="sm:hidden">🔐</span>
+                  </TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="geral" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -512,22 +571,24 @@ export default function MeuPerfil() {
                       <div className="relative group/avatar">
                         <Avatar className="h-40 w-40 border-4 border-primary/20 ring-4 ring-black/50 overflow-hidden shadow-[0_0_30px_rgba(5,96,179,0.3)]">
                           {fotoUrl ? (
-                            <AvatarImage src={fotoUrl} alt={profile?.nome} className="object-cover" />
+                            <AvatarImage src={fotoUrl} alt={jogador?.nome || profile?.nome} className="object-cover" />
                           ) : (
                             <AvatarFallback className="bg-muted text-muted-foreground uppercase">
-                              {profile?.nome?.substring(0, 2) || <User className="h-20 w-20" />}
+                              {(jogador?.nome || profile?.nome)?.substring(0, 2) || <User className="h-20 w-20" />}
                             </AvatarFallback>
                           )}
                         </Avatar>
                         
-                        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button size="icon" className="absolute top-0 right-0 h-8 w-8 rounded-full bg-primary/80 opacity-0 group-hover/avatar:opacity-100 transition-opacity">
-                              <Camera className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          {renderEditForm()}
-                        </Dialog>
+                        {!isExternalView && (
+                          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button size="icon" className="absolute top-0 right-0 h-8 w-8 rounded-full bg-primary/80 opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                                <Camera className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            {renderEditForm()}
+                          </Dialog>
+                        )}
                         
                         <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 whitespace-nowrap">
                            <Target className="h-3 w-3 text-primary" />
@@ -570,9 +631,9 @@ export default function MeuPerfil() {
                               variant="ghost" 
                               size="sm"
                               className="h-8 px-3 text-[10px] font-black uppercase tracking-wider text-red-500 hover:text-red-400 hover:bg-red-500/10"
-                              onClick={signOut}
+                              onClick={isExternalView ? () => navigate(-1) : signOut}
                             >
-                                Sair
+                                {isExternalView ? "Voltar" : "Sair"}
                             </Button>
                           </div>
                         </div>
@@ -688,7 +749,7 @@ export default function MeuPerfil() {
                         </div>
                         <Calendar className="h-4 w-4 text-zinc-600" />
                       </div>
-                      <ActivityCalendar jogadorId={profile?.jogador_id || ""} teamId={profile?.team_id || ""} year={year} />
+                        <ActivityCalendar jogadorId={jogador?.id || ""} teamId={jogador?.team_id || profile?.team_id || ""} year={year} />
                     </div>
                   </div>
 
@@ -759,6 +820,7 @@ export default function MeuPerfil() {
                   <TeamIdentityForm 
                     team={team} teamNome={teamNome} setTeamNome={setTeamNome}
                     cidade={cidade} setCidade={setCidade} estado={estado} setEstado={setEstado}
+                    bio={bio} setBio={setBio}
                     instagram={instagram} setInstagram={setInstagram} youtube={youtube} setYoutube={setYoutube}
                     facebook={facebook} setFacebook={setFacebook} whatsapp={whatsapp} setWhatsapp={setWhatsapp}
                     onSaveTeam={onSaveTeam} savingTeam={savingTeam} uploadingEscudo={uploadingEscudo}

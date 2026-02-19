@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { TeamSlugLayout } from "@/hooks/useTeamSlug";
 import Agenda from "./pages/Agenda";
+import Chat from "./pages/Chat";
 import Financeiro from "./pages/Financeiro";
 import Escalacao from "./pages/Escalacao";
 import Jogadores from "./pages/Jogadores";
@@ -36,10 +37,13 @@ import SuperAdminStatus from "./pages/SuperAdminStatus";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SuperAdminUsuarios from "./pages/SuperAdminUsuarios";
 import AdminGuia from "./pages/admin/AdminGuia";
-import AdminJogos from "./pages/admin/AdminJogos";
+
 import AdminJogadores from "./pages/admin/AdminJogadores";
 import AdminTimes from "./pages/admin/AdminTimes";
 import Discovery from "./pages/admin/Discovery";
+import PublicDiscovery from "./pages/Discovery";
+import TeamProfile from "./pages/TeamProfile";
+import PlayerProfile from "./pages/PlayerProfile";
 import AdminTransacoes from "./pages/admin/AdminTransacoes";
 import AdminAvisos from "./pages/admin/AdminAvisos";
 import AdminEscalacoes from "./pages/admin/AdminEscalacoes";
@@ -76,6 +80,9 @@ const App = () => (
             <Route path="/super-admin/health" element={<SuperAdminHealth />} />
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
             <Route path="/convite/:code" element={<Convite />} />
+            <Route path="/explorar" element={<PublicDiscovery />} />
+            <Route path="/explorar/time/:slug" element={<TeamProfile />} />
+            <Route path="/explorar/jogador/:id" element={<PlayerProfile />} />
             <Route path="/player/dashboard" element={<RequireApproval />}>
               <Route index element={<MeuPerfil />} />
             </Route>
@@ -86,10 +93,7 @@ const App = () => (
 
               <Route element={<RequireApproval />}>
                 <Route path="agenda" element={<Agenda />} />
-                <Route path="agenda/gerenciar" element={<RequireAdmin />}>
-                  <Route index element={<AdminJogos />} />
-                </Route>
-                
+                <Route path="chat" element={<Chat />} />                
                 <Route path="financeiro" element={<Financeiro />} />
                 <Route path="financeiro/gerenciar" element={<RequireAdmin />}>
                   <Route index element={<AdminTransacoes />} />
@@ -109,6 +113,10 @@ const App = () => (
                 <Route path="ranking" element={<Ranking />} />
                 <Route path="resultados" element={<Resultados />} />
                 <Route path="ligas" element={<Ligas />} />
+                <Route path="ligas/gerenciar" element={<RequireAdmin />}>
+                  <Route index element={<AdminCampeonatos />} />
+                  <Route path=":leagueId" element={<AdminCampeonatoDetalhe />} />
+                </Route>
                 <Route path="avisos" element={<Avisos />} />
                  <Route path="suporte" element={<Suporte />} />
                 <Route path="guia" element={<AdminGuia />} />

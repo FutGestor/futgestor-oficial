@@ -1,5 +1,6 @@
 import React from "react";
 import { User } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -172,6 +173,18 @@ export default function JogadoresPage() {
   const { data: jogadores, isLoading } = useJogadoresPublicos(team?.id);
   const { data: estatisticas } = useEstatisticasJogadores();
   const [selectedPlayer, setSelectedPlayer] = React.useState<{ id: string; nome: string } | null>(null);
+  const [searchParams] = useSearchParams();
+
+  // Auto-open based on URL search param
+  React.useEffect(() => {
+    const viewId = searchParams.get("view");
+    if (viewId && jogadores && jogadores.length > 0) {
+      const target = jogadores.find(j => j.id === viewId);
+      if (target) {
+        setSelectedPlayer({ id: target.id, nome: target.nome });
+      }
+    }
+  }, [searchParams, jogadores]);
 
   const jogadoresPorPosicao = jogadores?.reduce((acc, j) => {
     if (!acc[j.posicao]) acc[j.posicao] = [];

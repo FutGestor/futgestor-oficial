@@ -15,7 +15,7 @@ interface ResultBannerProps {
 export function ResultBanner({ team, resultado, format }: ResultBannerProps) {
   const isStory = format === 'story';
   
-  const gollsPro = resultado?.gols_pro ?? 0;
+  const golsFavor = resultado?.gols_favor ?? 0;
   const golsContra = resultado?.gols_contra ?? 0;
   
   let status = "EMPATE";
@@ -23,12 +23,12 @@ export function ResultBanner({ team, resultado, format }: ResultBannerProps) {
   let statusColor = "text-slate-400";
   let glowColor = "rgba(148, 163, 184, 0.3)";
   
-  if (gollsPro > golsContra) {
+  if (golsFavor > golsContra) {
     status = "VITÓRIA";
     bgColor = "radial-gradient(circle at center, #064e3b 0%, #022c22 100%)";
     statusColor = "text-emerald-400";
     glowColor = "rgba(52, 211, 153, 0.4)";
-  } else if (gollsPro < golsContra) {
+  } else if (golsFavor < golsContra) {
     status = "DERROTA";
     bgColor = "radial-gradient(circle at center, #450a0a 0%, #1a0505 100%)";
     statusColor = "text-red-400";
@@ -76,14 +76,14 @@ export function ResultBanner({ team, resultado, format }: ResultBannerProps) {
           </div>
 
           <div className="flex items-center gap-8 bg-black/40 backdrop-blur-xl px-12 py-8 rounded-[40px] border border-white/10 shadow-2xl skew-x-[-5deg]">
-            <span className="text-[180px] font-black leading-none drop-shadow-[0_0_40px_rgba(255,255,255,0.2)] skew-x-[5deg]">{gollsPro}</span>
+            <span className="text-[180px] font-black leading-none drop-shadow-[0_0_40px_rgba(255,255,255,0.2)] skew-x-[5deg]">{golsFavor}</span>
             <span className="text-6xl font-black italic opacity-30 tracking-tight skew-x-[5deg] mx-4">X</span>
             <span className="text-[180px] font-black leading-none drop-shadow-[0_0_40px_rgba(255,255,255,0.2)] skew-x-[5deg]">{golsContra}</span>
           </div>
 
           <div className="flex flex-col items-center gap-6 flex-1">
             <BannerShield 
-              escudoUrl={resultado?.jogo?.time_adversario?.escudo_url} 
+              escudoUrl={resultado?.jogo?.time_adversario?.escudo_url || (resultado?.jogo?.time_adversario as any)?.adversary_team?.escudo_url || null} 
               teamName={resultado?.jogo?.time_adversario?.nome || "Adversário"} 
               size="2xl" 
               className="scale-[2] mb-12"

@@ -255,15 +255,30 @@ export default function AdminJogos() {
 
         if (error) throw error;
         toast({ title: "Jogo criado com sucesso!" });
+
+        // Notificar jogadores do time sobre o novo jogo
+        try {
+          const dataFormatada = format(new Date(formData.data_hora), "dd/MM 'às' HH:mm", { locale: ptBR });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabase as any).rpc('notify_team', {
+            p_team_id: profile?.team_id,
+            p_tipo: 'jogo_agendado',
+            p_titulo: 'Novo jogo agendado!',
+            p_mensagem: `${team?.nome || 'Seu time'} vs ${formData.adversario} - ${dataFormatada}`,
+            p_link: `${basePath}/agenda`
+          });
+        } catch (notifError) {
+          console.warn('Falha ao enviar notificação:', notifError);
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ["jogos"] });
       setIsDialogOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: error.message || "Ocorreu um erro ao salvar o jogo",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao salvar o jogo",
       });
     } finally {
       setIsSubmitting(false);
@@ -301,6 +316,21 @@ export default function AdminJogos() {
           .from("jogos")
           .update({ status: "finalizado" })
           .eq("id", resultFormData.jogo_id);
+
+        // Notificar jogadores sobre o resultado
+        try {
+          const jogoDoResultado = jogos?.find(j => j.id === resultFormData.jogo_id);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabase as any).rpc('notify_team', {
+            p_team_id: profile?.team_id,
+            p_tipo: 'resultado',
+            p_titulo: 'Resultado registrado!',
+            p_mensagem: `${team?.nome || 'Seu time'} ${resultFormData.gols_favor} x ${resultFormData.gols_contra} ${jogoDoResultado?.adversario || 'Adversário'}`,
+            p_link: `${basePath}/resultados`
+          });
+        } catch (notifError) {
+          console.warn('Falha ao enviar notificação:', notifError);
+        }
       }
 
       await queryClient.invalidateQueries({ queryKey: ["resultados"] });
@@ -391,7 +421,7 @@ export default function AdminJogos() {
                 <span className="sm:hidden">ADICIONAR</span>
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {editingJogo ? "Editar Jogo" : "Novo Jogo"}

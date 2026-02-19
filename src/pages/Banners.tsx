@@ -21,7 +21,7 @@ export default function Banners() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { team, basePath } = useTeamSlug();
-  const { isSuperAdmin, isLoading: authLoading } = useAuth();
+  const { isGodAdmin, isLoading: authLoading } = useAuth();
   const [format, setFormat] = useState<"story" | "feed">("feed");
   const [activeTab, setActiveTab] = useState("matchday");
   const bannerRef = useRef<HTMLDivElement>(null);
@@ -80,8 +80,8 @@ export default function Banners() {
     return <LoadingScreen />;
   }
 
-  // Segurança: Só o superadmin god acessa por enquanto
-  if (!isSuperAdmin) {
+  // Segurança: Apenas God Admin (futgestor@gmail.com) pode acessar
+  if (!isGodAdmin) {
     return <Navigate to={basePath} replace />;
   }
 

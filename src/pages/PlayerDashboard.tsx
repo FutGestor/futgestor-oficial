@@ -90,7 +90,7 @@ function usePlayerData() {
       today.setHours(0, 0, 0, 0);
       const { data, error } = await supabase
         .from("jogos")
-        .select("*")
+        .select("*, time_adversario:times(*, adversary_team:teams(escudo_url, nome))")
         .eq("team_id", teamId!)
         .gte("data_hora", today.toISOString())
         .in("status", ["agendado", "confirmado"])
@@ -98,7 +98,7 @@ function usePlayerData() {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      return data as any;
     },
   });
 
@@ -109,7 +109,7 @@ function usePlayerData() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jogos")
-        .select("*, resultados(*)")
+        .select("*, resultados(*), time_adversario:times(*, adversary_team:teams(escudo_url, nome))")
         .eq("team_id", teamId!)
         .eq("status", "finalizado")
         .order("data_hora", { ascending: false })
@@ -263,7 +263,7 @@ export default function PlayerDashboard() {
             <CardContent>
               <div className="flex flex-col items-center justify-center space-y-4 py-2">
                 <div className="flex w-full items-center justify-between px-4">
-                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-col items-center gap-2">
                     <div className="h-14 w-14 rounded-full bg-white/10 p-2 flex items-center justify-center backdrop-blur-sm border border-white/5">
                        <TeamShield 
                          escudoUrl={teamData?.escudo_url || null} 
@@ -272,7 +272,7 @@ export default function PlayerDashboard() {
                          className="h-full w-full border-0 shadow-none bg-transparent"
                        />
                     </div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Seu Time</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300">{teamData?.nome || "Seu Time"}</span>
                   </div>
 
                   <div className="flex items-center gap-4">
@@ -282,13 +282,16 @@ export default function PlayerDashboard() {
                   </div>
 
                   <div className="flex flex-col items-center gap-2">
-                    <div className="h-14 w-14 rounded-full bg-white/10 p-2 flex items-center justify-center backdrop-blur-sm border border-white/5">
-                      <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white uppercase italic">
-                        {ultimoJogo.data.adversario.substring(0, 2)}
-                      </div>
+                    <div className="h-14 w-14 rounded-full bg-white/10 p-2 flex items-center justify-center backdrop-blur-sm border border-white/5 overflow-hidden">
+                       <TeamShield 
+                         escudoUrl={ultimoJogo.data.time_adversario?.escudo_url || null} 
+                         teamName={ultimoJogo.data.time_adversario?.nome || ultimoJogo.data.adversario} 
+                         size="lg"
+                         className="h-full w-full border-0 shadow-none bg-transparent"
+                       />
                     </div>
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-300 truncate max-w-[80px]">
-                      {ultimoJogo.data.adversario}
+                      {ultimoJogo.data.time_adversario?.nome || (ultimoJogo.data.time_adversario as any)?.adversary_team?.nome || ultimoJogo.data.adversario}
                     </span>
                   </div>
                 </div>
@@ -351,8 +354,19 @@ export default function PlayerDashboard() {
               <Skeleton className="h-20 w-full" />
             ) : jogo ? (
               <div className="space-y-3">
-                <div>
-                  <p className="text-lg font-bold">{jogo.adversario}</p>
+                <div className="flex items-center gap-4 mb-3">
+                  <TeamShield 
+                    escudoUrl={jogo.time_adversario?.escudo_url || null} 
+                    teamName={jogo.time_adversario?.nome || jogo.adversario} 
+                    size="lg" 
+                  />
+                  <div>
+                    <p className="text-lg font-bold">{jogo.time_adversario?.nome || (jogo.time_adversario as any)?.adversary_team?.nome || jogo.adversario}</p>
+                    <Badge variant="outline" className="text-[10px] uppercase font-bold text-muted-foreground mt-0.5 border-white/5">
+                      Próximo Adversário
+                    </Badge>
+                  </div>
+                </div>
                   <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4" />
                     {format(new Date(jogo.data_hora), "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
@@ -361,7 +375,6 @@ export default function PlayerDashboard() {
                     <MapPin className="h-4 w-4" />
                     {jogo.local}
                   </div>
-                </div>
 
                 {currentStatus && (
                   <Badge variant={currentStatus === "confirmado" ? "default" : "destructive"} className="text-sm">

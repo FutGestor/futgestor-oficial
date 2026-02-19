@@ -64,19 +64,44 @@ export default function Auth() {
 
   // Handle Google Login
   const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth`
-      }
-    });
-    
-    if (error) {
+    setIsLoading(true);
+    try {
+      // 1. Limpeza agressiva de qualquer resíduo de sessão no localStorage
+      // Procura por chaves que começam com 'sb-' (padrão do Supabase)
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
+
+      // 2. Logout formal no Supabase
+      await supabase.auth.signOut();
+
+      // 3. Pequeno delay para garantir que o estado interno do Supabase e o browser 
+      // processem a limpeza antes do redirecionamento
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+          queryParams: {
+            prompt: 'select_account',
+            access_type: 'offline',
+          }
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error("Erro Google Login:", error);
       toast({
         variant: "destructive",
         title: "Erro",
         description: "Não foi possível conectar com o Google.",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -98,7 +123,16 @@ export default function Auth() {
         .maybeSingle();
       
       if (teamData?.slug) {
-        return `/time/${teamData.slug}`;
+        const { data: userRoles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .eq("team_id", prof.team_id);
+          
+        const roles = userRoles?.map(r => r.role as string) || [];
+        const isAdmin = roles.includes("admin") || roles.includes("super_admin");
+        
+        return isAdmin ? `/time/${teamData.slug}` : `/time/${teamData.slug}`;
       }
     }
     
@@ -110,9 +144,9 @@ export default function Auth() {
         .eq("id", prof.jogador_id)
         .maybeSingle();
       
-      // @ts-ignore - Handle joined query types
+      // @ts-expect-error - Handle joined query types
       if (jogData?.teams?.slug) {
-        // @ts-ignore
+        // @ts-expect-error
         return `/time/${jogData.teams.slug}`;
       }
     }

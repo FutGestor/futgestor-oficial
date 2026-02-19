@@ -20,6 +20,25 @@ export function useTimes(teamId?: string | null) {
   });
 }
 
+// Busca APENAS adversários (is_casa = false) - para não confundir com o próprio time
+export function useTimesAdversarios(teamId?: string | null) {
+  return useQuery({
+    queryKey: ["times", "adversarios", teamId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("times")
+        .select("*")
+        .eq("team_id", teamId!)
+        .eq("is_casa", false)  // Só adversários, não o próprio time
+        .order("nome");
+
+      if (error) throw error;
+      return data as Time[];
+    },
+    enabled: !!teamId,
+  });
+}
+
 // Busca apenas times ativos (filtrado por team_id)
 export function useTimesAtivos(teamId?: string | null) {
   return useQuery({
@@ -27,13 +46,13 @@ export function useTimesAtivos(teamId?: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("times")
-        .select("*")
+        .select("*, adversary_team:teams(escudo_url)")
         .eq("team_id", teamId!)
         .eq("ativo", true)
         .order("nome");
 
       if (error) throw error;
-      return data as Time[];
+      return data as any[];
     },
     enabled: !!teamId,
   });
@@ -46,13 +65,13 @@ export function useTimeCasa(teamId?: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("times")
-        .select("*")
+        .select("*, adversary_team:teams(escudo_url)")
         .eq("team_id", teamId!)
         .eq("is_casa", true)
         .maybeSingle();
 
       if (error) throw error;
-      return data as Time | null;
+      return data as any | null;
     },
     enabled: !!teamId,
   });

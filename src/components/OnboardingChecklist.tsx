@@ -102,7 +102,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({ teamId
       description: "Agende sua primeira partida na agenda",
       isComplete: gameCount > 0,
       icon: CalendarPlus,
-      path: "/agenda/gerenciar",
+      path: "/agenda",
     },
     {
       id: "results",

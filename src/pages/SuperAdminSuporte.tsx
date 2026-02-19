@@ -152,7 +152,7 @@ function ChamadoAdminDetalhe({ chamado, onVoltar }: { chamado: Chamado; onVoltar
 }
 
 export default function SuperAdminSuporte() {
-  const { isSuperAdmin, isLoading: authLoading } = useAuth();
+  const { isGodAdmin, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { data: chamados, isLoading } = useTodosChamados();
   const [chamadoSelecionado, setChamadoSelecionado] = useState<Chamado | null>(null);
@@ -160,7 +160,8 @@ export default function SuperAdminSuporte() {
   const [busca, setBusca] = useState("");
 
   if (authLoading) return null;
-  if (!isSuperAdmin) return <Navigate to="/" replace />;
+  // Apenas God Admin (futgestor@gmail.com) pode acessar
+  if (!isGodAdmin) return <Navigate to="/" replace />;
 
   const abertos = chamados?.filter((c) => c.status === "aberto").length ?? 0;
   const emAndamento = chamados?.filter((c) => c.status === "em_andamento").length ?? 0;

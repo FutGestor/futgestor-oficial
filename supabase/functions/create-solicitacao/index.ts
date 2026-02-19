@@ -42,7 +42,19 @@ Deno.serve(async (req) => {
     }
 
     // Validate required fields
-    const { nome_time, email_contato, telefone_contato, data_preferida, horario_preferido, local_sugerido, observacoes, team_id } = body;
+    const { 
+      nome_time, 
+      email_contato, 
+      telefone_contato, 
+      data_preferida, 
+      horario_preferido, 
+      local_sugerido, 
+      observacoes, 
+      team_id,
+      time_solicitante_id,
+      user_solicitante_id
+    } = body;
+
     if (!nome_time || !telefone_contato || !data_preferida || !horario_preferido || !local_sugerido) {
       return new Response(
         JSON.stringify({ error: "Campos obrigatórios não preenchidos." }),
@@ -59,6 +71,8 @@ Deno.serve(async (req) => {
       local_sugerido: String(local_sugerido).slice(0, 200),
       observacoes: observacoes ? String(observacoes).slice(0, 500) : null,
       team_id: team_id || null,
+      time_solicitante_id: time_solicitante_id || null,
+      user_solicitante_id: user_solicitante_id || null,
       ip_address: ip,
     });
 
@@ -68,9 +82,10 @@ Deno.serve(async (req) => {
       JSON.stringify({ success: true }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const error = err as Error;
     return new Response(
-      JSON.stringify({ error: err.message || "Erro desconhecido" }),
+      JSON.stringify({ error: error.message || "Erro desconhecido" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

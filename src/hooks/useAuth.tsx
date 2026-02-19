@@ -11,12 +11,16 @@ interface Profile {
   created_at: string | null;
 }
 
+// Email da conta God - única com acesso total ao painel master
+const GOD_ADMIN_EMAIL = "futgestor@gmail.com";
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
   isAdmin: boolean;
   isSuperAdmin: boolean;
+  isGodAdmin: boolean; // Apenas futgestor@gmail.com
   isApproved: boolean;
   isLoading: boolean;
   passwordRecovery: boolean;
@@ -38,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isGodAdmin, setIsGodAdmin] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
@@ -72,12 +77,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Defer admin and profile check to avoid Supabase deadlocks
         if (session?.user) {
           setTimeout(() => {
-            checkAdminRole(session.user.id);
+            checkAdminRole(session.user.id, session.user.email);
             fetchProfile(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
           setIsSuperAdmin(false);
+          setIsGodAdmin(false);
           setIsApproved(false);
           setProfile(null);
         }
@@ -98,12 +104,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (session?.user) {
           await Promise.all([
-            checkAdminRole(session.user.id),
+            checkAdminRole(session.user.id, session.user.email),
             fetchProfile(session.user.id)
           ]);
         }
-      } catch (err) {
-        console.error("Auth initialization error:", err);
+      } catch {
+        // Silenciar erro de inicialização
       } finally {
         clearTimeout(safetyTimeout);
         setIsLoading(false);
@@ -124,7 +130,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (error) {
-        console.error("Error fetching profile:", error);
         setProfile(null);
         setIsApproved(false);
         return;
@@ -132,8 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setProfile(data);
       setIsApproved(data?.aprovado ?? false);
-    } catch (err) {
-      console.error("Error fetching profile:", err);
+    } catch {
       setProfile(null);
       setIsApproved(false);
     }
@@ -148,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const checkAdminRole = async (userId: string) => {
+  const checkAdminRole = async (userId: string, userEmail?: string) => {
     try {
       const { data, error } = await supabase
         .from("user_roles")
@@ -156,19 +160,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("user_id", userId);
 
       if (error) {
-        console.error("Error checking admin role:", error);
         setIsAdmin(false);
         setIsSuperAdmin(false);
+        setIsGodAdmin(false);
         return;
       }
 
       const roles = data?.map(r => r.role) || [];
-      setIsAdmin(roles.includes("admin") || roles.includes("super_admin"));
-      setIsSuperAdmin(roles.includes("super_admin"));
-    } catch (err) {
-      console.error("Error checking admin role:", err);
+      const email = (userEmail || user?.email)?.toLowerCase();
+      
+      // God Admin: apenas futgestor@gmail.com
+      const isGod = email === GOD_ADMIN_EMAIL;
+      
+      setIsGodAdmin(isGod);
+      
+      // SuperAdmin: apenas se for God Admin
+      setIsSuperAdmin(isGod);
+      
+      // Admin: God Admin OU quem tem role admin/super_admin no banco
+      setIsAdmin(isGod || roles.includes("admin") || roles.includes("super_admin"));
+    } catch {
       setIsAdmin(false);
       setIsSuperAdmin(false);
+      setIsGodAdmin(false);
     }
   };
 
@@ -195,8 +209,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    
+    // Limpeza extra de segurança no localStorage
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+
     setIsAdmin(false);
     setIsSuperAdmin(false);
+    setIsGodAdmin(false);
     setIsApproved(false);
     setProfile(null);
   };
@@ -208,6 +231,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         isAdmin,
         isSuperAdmin,
+        isGodAdmin,
         isApproved,
         isLoading,
         passwordRecovery,

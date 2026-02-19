@@ -263,14 +263,14 @@ function ResultadosContent() {
 
                           {/* Adversário */}
                           <div className="flex flex-col items-center gap-2 w-1/3">
-                            <TeamShield 
-                              escudoUrl={adversarioInfo?.escudo_url} 
-                              teamName={adversarioInfo?.nome || resultado.jogo?.adversario || "Adversário"} 
-                              size="lg" 
-                            />
-                            <span className="text-xs sm:text-sm font-bold text-center line-clamp-2 leading-tight text-muted-foreground">
-                              {adversarioInfo?.nome || resultado.jogo?.adversario || "Adversário"}
-                            </span>
+                             <TeamShield 
+                               escudoUrl={adversarioInfo?.escudo_url || null} 
+                               teamName={adversarioInfo?.nome || resultado.jogo?.adversario || "Adversário"} 
+                               size="lg" 
+                             />
+                             <span className="text-xs sm:text-sm font-bold text-center line-clamp-2 leading-tight text-muted-foreground">
+                               {adversarioInfo?.nome || resultado.jogo?.adversario || "Adversário"}
+                             </span>
                           </div>
                         </div>
 

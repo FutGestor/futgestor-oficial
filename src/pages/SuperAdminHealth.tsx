@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -46,12 +46,12 @@ interface TeamHealth {
 
 export default function SuperAdminHealth() {
     const navigate = useNavigate();
-    const { isSuperAdmin } = useAuth();
+    const { isGodAdmin } = useAuth();
     const [searchTerm, setSearchTerm] = useState("");
 
     const { data: metrics, isLoading } = useQuery({
         queryKey: ["super-admin-health-metrics"],
-        enabled: !!isSuperAdmin,
+        enabled: !!isGodAdmin,
         queryFn: async () => {
             const { data, error } = await supabase.rpc("get_teams_health_metrics" as any);
             if (error) throw error;
@@ -89,7 +89,8 @@ export default function SuperAdminHealth() {
         return "Crítico";
     };
 
-    if (!isSuperAdmin) return null;
+    // Apenas God Admin (futgestor@gmail.com) pode acessar
+    if (!isGodAdmin) return <Navigate to="/" replace />;
 
     return (
         <Layout>

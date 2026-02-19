@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export type RequestStatus = "pendente" | "aceita" | "recusada";
 
@@ -13,9 +14,17 @@ export interface SolicitacaoJogo {
   horario_preferido: string;
   local_sugerido: string;
   observacoes: string | null;
+  mensagem: string | null;
+  time_solicitante_id: string | null;
+  user_solicitante_id: string | null;
   status: RequestStatus;
   created_at: string;
   updated_at: string;
+  time_solicitante?: {
+    nome: string;
+    escudo_url: string | null;
+    slug: string;
+  };
 }
 
 export function useSolicitacoes(status?: RequestStatus, teamId?: string) {
@@ -25,7 +34,7 @@ export function useSolicitacoes(status?: RequestStatus, teamId?: string) {
     queryFn: async () => {
       let query = supabase
         .from("solicitacoes_jogo")
-        .select("*")
+        .select("*, time_solicitante:teams!time_solicitante_id(nome, escudo_url, slug)")
         .eq("team_id", teamId!)
         .order("created_at", { ascending: false });
 
@@ -36,7 +45,7 @@ export function useSolicitacoes(status?: RequestStatus, teamId?: string) {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as SolicitacaoJogo[];
+      return data as unknown as SolicitacaoJogo[];
     },
   });
 }
@@ -61,6 +70,7 @@ export function useSolicitacoesPendentesCount(teamId?: string) {
 export function useCreateSolicitacao() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
     mutationFn: async (data: {
@@ -76,7 +86,11 @@ export function useCreateSolicitacao() {
       captcha_expected: number;
     }) => {
       const response = await supabase.functions.invoke("create-solicitacao", {
-        body: data,
+        body: {
+          ...data,
+          time_solicitante_id: profile?.team_id || null,
+          user_solicitante_id: profile?.id || null,
+        },
       });
 
       if (response.error) {

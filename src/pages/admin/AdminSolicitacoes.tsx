@@ -76,7 +76,8 @@ import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { Layout } from "@/components/layout/Layout";
-
+import { TeamShield } from "@/components/TeamShield";
+import { MessageCircle } from "lucide-react";
 export default function AdminSolicitacoes() {
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -110,37 +111,29 @@ export default function AdminSolicitacoes() {
   };
 
   const handleConfirmAccept = async () => {
-    if (!selectedSolicitacao) return;
+    if (!selectedSolicitacao || !profile?.team_id) return;
 
     setCreatingGame(true);
     try {
-      // Create the game
-      const { error: gameError } = await supabase.from("jogos").insert({
-        adversario: selectedSolicitacao.nome_time,
-        data_hora: gameData.dataHora,
-        local: gameData.local,
-        status: "agendado",
-        observacoes: selectedSolicitacao.observacoes || null,
-        team_id: profile?.team_id,
+      const { error } = await supabase.rpc("accept_game_invite", {
+        p_solicitacao_id: selectedSolicitacao.id,
+        p_data_hora: gameData.dataHora,
+        p_local: gameData.local,
       });
 
-      if (gameError) throw gameError;
-
-      // Update request status
-      await updateStatus.mutateAsync({
-        id: selectedSolicitacao.id,
-        status: "aceita",
-      });
+      if (error) throw error;
 
       toast({
-        title: "Jogo criado!",
-        description: `Partida contra ${selectedSolicitacao.nome_time} foi adicionada à agenda.`,
+        title: "Jogo criado e sincronizado!",
+        description: `Partida confirmada. O calendário de ambos os times foi atualizado com dados oficiais.`,
       });
 
       queryClient.invalidateQueries({ queryKey: ["jogos"] });
+      queryClient.invalidateQueries({ queryKey: ["solicitacoes"] }); // Also invalidate solicitacoes list
       setAcceptDialogOpen(false);
     } catch (error: unknown) {
       const err = error as Error;
+      console.error("Erro ao aceitar convite:", err);
       toast({
         title: "Erro ao criar jogo",
         description: err.message,
@@ -259,7 +252,16 @@ export default function AdminSolicitacoes() {
             <Card key={sol.id} className="bg-black/40 backdrop-blur-xl border-white/10 overflow-hidden transition-all hover:bg-black/50">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
-                  <CardTitle className="text-base font-black uppercase italic tracking-tight text-white">{sol.nome_time}</CardTitle>
+                  <div className="flex items-center gap-3">
+                    <TeamShield 
+                      escudoUrl={sol.time_solicitante?.escudo_url || null} 
+                      teamName={sol.time_solicitante?.nome || sol.nome_time} 
+                      size="sm" 
+                    />
+                    <CardTitle className="text-base font-black uppercase italic tracking-tight text-white">
+                      {sol.time_solicitante?.nome || sol.nome_time}
+                    </CardTitle>
+                  </div>
                   <Badge className={cn("uppercase tracking-widest text-[10px] font-black italic border-none", statusColors[sol.status])}>
                     {statusLabels[sol.status]}
                   </Badge>
@@ -290,8 +292,15 @@ export default function AdminSolicitacoes() {
                   </div>
                   {sol.telefone_contato && (
                     <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{sol.telefone_contato}</span>
+                       <a 
+                        href={`https://wa.me/${sol.telefone_contato.replace(/\D/g, '')}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors bg-green-900/20 px-2 py-1 rounded-md"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        <span className="font-bold">WhatsApp</span>
+                      </a>
                     </div>
                   )}
                 </div>

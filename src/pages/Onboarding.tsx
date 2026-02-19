@@ -265,7 +265,7 @@ export default function Onboarding() {
 
       await refreshProfile();
       toast({ title: "Tudo pronto!", description: "Seu time foi criado com sucesso. Iniciando dashboard..." });
-      navigate(`/time/${data.slug}/gestao`);
+      navigate(`/time/${data.slug}`);
     } catch (err: any) {
       console.error("Onboarding error:", err);
       toast({ variant: "destructive", title: "Erro ao criar time", description: err.message });

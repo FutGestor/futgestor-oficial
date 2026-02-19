@@ -170,6 +170,8 @@ export default function Convite() {
       }
 
       if (isConfirmed && userId) {
+        let jogadorIdFinal = null;
+        const basePath = teamData ? `/time/${teamData.slug}` : "";
         // 2. Se logado ou autoconfirmado, vincula o jogador
         let uploadedFotoUrl = null;
         if (fotoFile) {
@@ -232,12 +234,27 @@ export default function Convite() {
                   team_id: teamData.id // Vincula o perfil ao time
                 })
                 .eq("id", userId);
+              jogadorIdFinal = newJogador.id;
             }
           }
         } catch (dbErr) {
           console.warn("Erro ao vincular dados:", dbErr);
         }
         
+        // Notificar administradores sobre o novo jogador
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabase as any).rpc('notify_team', {
+            p_team_id: teamData.id,
+            p_tipo: 'novo_jogador',
+            p_titulo: '👥 Novo jogador no time!',
+            p_mensagem: `${data.nome} entrou para o elenco via convite`,
+            p_link: `${basePath}/meu-perfil?view=${jogadorIdFinal || userId}`
+          });
+        } catch (notifError) {
+          console.warn('Falha ao enviar notificação de novo jogador:', notifError);
+        }
+
         // Atualiza o estado global de autenticação/perfil para garantir que as rotas reconheçam o novo time
         await refreshProfile();
         

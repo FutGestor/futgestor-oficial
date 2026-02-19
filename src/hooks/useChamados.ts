@@ -176,13 +176,13 @@ export function useEnviarMensagem() {
   });
 }
 
-// Hooks para super admin
+// Hooks para God Admin (futgestor@gmail.com) - acesso global a todos os chamados
 export function useTodosChamados() {
-  const { isSuperAdmin } = useAuth();
+  const { isGodAdmin } = useAuth();
 
   return useQuery({
     queryKey: ["todos-chamados"],
-    enabled: isSuperAdmin,
+    enabled: isGodAdmin,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("chamados")
@@ -267,6 +267,49 @@ export function useChamadosNaoLidos() {
         count: unreadCount, 
         lastTicketId: unreadCount === 1 ? lastUnreadTicketId : null 
       };
+    },
+  });
+}
+
+
+// Hook para excluir chamado (o próprio usuário ou God Admin podem excluir)
+export function useExcluirChamado() {
+  const { user, isGodAdmin } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (chamadoId: string) => {
+      // Se for God Admin, pode excluir qualquer chamado
+      if (isGodAdmin) {
+        const { error } = await supabase
+          .from("chamados")
+          .delete()
+          .eq("id", chamadoId);
+        if (error) throw error;
+        return;
+      }
+
+      // Verificar se o chamado pertence ao usuário
+      const { data: chamado, error: checkError } = await supabase
+        .from("chamados")
+        .select("user_id")
+        .eq("id", chamadoId)
+        .single();
+
+      if (checkError) throw checkError;
+      if (chamado.user_id !== user?.id) {
+        throw new Error("Você só pode excluir seus próprios chamados");
+      }
+
+      const { error } = await supabase
+        .from("chamados")
+        .delete()
+        .eq("id", chamadoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meus-chamados"] });
+      queryClient.invalidateQueries({ queryKey: ["todos-chamados"] });
     },
   });
 }

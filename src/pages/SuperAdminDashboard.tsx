@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTodosChamados } from "@/hooks/useChamados";
 
 export default function SuperAdminDashboard() {
-    const { isSuperAdmin, isLoading, profile } = useAuth();
+    const { isGodAdmin, isLoading, profile } = useAuth();
     const navigate = useNavigate();
     const { data: chamados } = useTodosChamados();
 
@@ -42,7 +42,8 @@ export default function SuperAdminDashboard() {
     });
 
     if (isLoading) return null;
-    if (!isSuperAdmin) return <Navigate to="/" replace />;
+    // Apenas God Admin (futgestor@gmail.com) pode acessar
+    if (!isGodAdmin) return <Navigate to="/" replace />;
     
     const chamadosAbertos = chamados?.filter(c => c.status === "aberto").length || 0;
 

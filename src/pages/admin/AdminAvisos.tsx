@@ -114,6 +114,22 @@ export default function AdminAvisos() {
         const { error } = await supabase.from("avisos").insert(data);
         if (error) throw error;
         toast({ title: "Aviso publicado com sucesso!" });
+
+        // Notificar membros do time sobre o novo aviso
+        if (formData.publicado && profile?.team_id) {
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (supabase as any).rpc('notify_team', {
+              p_team_id: profile.team_id,
+              p_tipo: 'aviso',
+              p_titulo: '📢 Novo aviso publicado!',
+              p_mensagem: formData.titulo,
+              p_link: `${basePath}/avisos`
+            });
+          } catch (notifError) {
+            console.warn('Falha ao enviar notificação:', notifError);
+          }
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ["avisos"] });

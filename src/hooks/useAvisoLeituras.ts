@@ -91,3 +91,23 @@ export function useMarcarTodosLidos() {
     },
   });
 }
+
+// Hook para excluir aviso (apenas admins)
+export function useExcluirAviso() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (avisoId: string) => {
+      const { error } = await supabase
+        .from("avisos")
+        .delete()
+        .eq("id", avisoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["avisos"] });
+      queryClient.invalidateQueries({ queryKey: ["aviso-leituras"] });
+      queryClient.invalidateQueries({ queryKey: ["avisos-nao-lidos"] });
+    },
+  });
+}

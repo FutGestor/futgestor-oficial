@@ -69,13 +69,14 @@ interface ProfileWithEmail {
     isAdmin?: boolean;
     isSuperAdmin?: boolean;
     teamName?: string;
+    teamSlug?: string;
 }
 
 export default function SuperAdminUsuarios() {
     const { toast } = useToast();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const { isSuperAdmin: authIsSuperAdmin, isLoading: authLoading, impersonate } = useAuth();
+    const { isGodAdmin, isLoading: authLoading, impersonate } = useAuth();
     const [isUpdating, setIsUpdating] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<ProfileWithEmail | null>(null);
@@ -101,7 +102,7 @@ export default function SuperAdminUsuarios() {
     // Buscar profiles com dados relacionados
     const { data: profiles, isLoading } = useQuery({
         queryKey: ["super-admin-profiles"],
-        enabled: authIsSuperAdmin,
+        enabled: isGodAdmin,
         queryFn: async () => {
             const { data: profilesData, error: profilesError } = await supabase
                 .rpc("get_admin_users_full" as any);
@@ -113,16 +114,20 @@ export default function SuperAdminUsuarios() {
                 .from("user_roles")
                 .select("user_id, role");
 
-            // Team Names
+            // Team Names e Slugs
             const teamIds = [...new Set((profilesData || []).map(p => p.team_id).filter(Boolean))] as string[];
             const teamNamesMap: Record<string, string> = {};
+            const teamSlugsMap: Record<string, string> = {};
             if (teamIds.length > 0) {
                 const { data: teamsData } = await supabase
                     .from("teams")
-                    .select("id, nome")
+                    .select("id, nome, slug")
                     .in("id", teamIds);
                 if (teamsData) {
-                    teamsData.forEach(t => { teamNamesMap[t.id] = t.nome; });
+                    teamsData.forEach(t => { 
+                        teamNamesMap[t.id] = t.nome; 
+                        teamSlugsMap[t.id] = t.slug;
+                    });
                 }
             }
 
@@ -134,7 +139,8 @@ export default function SuperAdminUsuarios() {
                     ...p,
                     isAdmin: adminIds.has(p.id),
                     isSuperAdmin: superAdminIds.has(p.id),
-                    teamName: p.team_id ? teamNamesMap[p.team_id] : undefined
+                    teamName: p.team_id ? teamNamesMap[p.team_id] : undefined,
+                    teamSlug: p.team_id ? teamSlugsMap[p.team_id] : undefined
                 })) as ProfileWithEmail[];
         },
     });
@@ -325,15 +331,19 @@ export default function SuperAdminUsuarios() {
             const { error } = await supabase.rpc("admin_delete_user" as any, {
                 _user_id: userToDelete.id
             });
-            if (error) throw error;
+            if (error) {
+                console.error("Erro ao excluir usuário:", error);
+                throw new Error(error.message || "Erro na função de exclusão");
+            }
             queryClient.invalidateQueries({ queryKey: ["super-admin-profiles"] });
             toast({ title: "Usuário excluído permanentemente!" });
             setDeleteDialogOpen(false);
-        } catch (error) {
+        } catch (error: any) {
+            console.error("Erro completo:", error);
             toast({
                 variant: "destructive",
                 title: "Erro ao excluir",
-                description: error instanceof Error ? error.message : "Ocorreu um erro",
+                description: error?.message || "Erro ao deletar usuário. Verifique o console para mais detalhes.",
             });
         } finally {
             setIsDeleting(false);
@@ -342,7 +352,8 @@ export default function SuperAdminUsuarios() {
     };
 
     if (authLoading) return null;
-    if (!authIsSuperAdmin) return <Navigate to="/" replace />;
+    // Apenas God Admin (futgestor@gmail.com) pode acessar
+    if (!isGodAdmin) return <Navigate to="/" replace />;
 
     return (
         <Layout>
@@ -517,7 +528,7 @@ export default function SuperAdminUsuarios() {
                                                                     <Check className="h-4 w-4" />
                                                                 </Button>
                                                             )}
-                                                            {profile.team_id && (
+                                                            {profile.team_id && profile.teamSlug && (
                                                                 <Button 
                                                                     size="icon" 
                                                                     variant="ghost" 
@@ -525,7 +536,7 @@ export default function SuperAdminUsuarios() {
                                                                     title="Acessar como este time (Impersonate)"
                                                                     onClick={() => {
                                                                         impersonate(profile.team_id!);
-                                                                        navigate("/");
+                                                                        navigate(`/time/${profile.teamSlug}`);
                                                                         toast({ title: "Modo Suporte Ativado", description: `Simulando acesso do time ${profile.teamName || ""}` });
                                                                     }}
                                                                 >

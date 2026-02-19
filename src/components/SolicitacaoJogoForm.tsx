@@ -32,6 +32,9 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useCreateSolicitacao } from "@/hooks/useSolicitacoes";
+import { useAuth } from "@/hooks/useAuth";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
+import { useEffect } from "react";
 
 function generateCaptcha() {
   const a = Math.floor(Math.random() * 10) + 1;
@@ -68,6 +71,7 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
   const [captcha, setCaptcha] = useState(() => generateCaptcha());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const createSolicitacao = useCreateSolicitacao();
+  const { team: myTeam } = useTeamConfig();
   const { data: jogosFuturos } = useJogosFuturos(teamId);
 
   const refreshCaptcha = useCallback(() => setCaptcha(generateCaptcha()), []);
@@ -91,6 +95,12 @@ export function SolicitacaoJogoForm({ teamId, onSuccess }: SolicitacaoJogoFormPr
       captcha: "",
     },
   });
+
+  useEffect(() => {
+    if (myTeam?.nome && myTeam.nome !== "FutGestor") {
+      form.setValue("nome_time", myTeam.nome);
+    }
+  }, [myTeam, form]);
 
   const onSubmit = async (data: SolicitacaoFormData) => {
     const userAnswer = parseInt(data.captcha, 10);

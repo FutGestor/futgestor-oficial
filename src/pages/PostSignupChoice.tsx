@@ -44,9 +44,23 @@ export default function PostSignupChoice() {
             .select("slug")
             .eq("id", directProfile.team_id)
             .maybeSingle();
-          
+
           if (teamData?.slug) {
-            navigate(`/time/${teamData.slug}`, { replace: true });
+            // Check if user is admin/owner
+            const { data: userRoles } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", user.id)
+              .eq("team_id", directProfile.team_id);
+              
+            const roles = userRoles?.map(r => r.role as string) || [];
+            const isAdmin = roles.includes("admin") || roles.includes("super_admin");
+
+            if (isAdmin) {
+              navigate(`/time/${teamData.slug}`, { replace: true });
+            } else {
+              navigate(`/time/${teamData.slug}`, { replace: true });
+            }
             return;
           }
         }
@@ -59,9 +73,9 @@ export default function PostSignupChoice() {
             .eq("id", directProfile.jogador_id)
             .maybeSingle();
             
-          // @ts-ignore
+          // @ts-expect-error - Joined query types not fully mapped
           if (playerTeam?.teams?.slug) {
-            // @ts-ignore
+            // @ts-expect-error - Joined query types not fully mapped
             navigate(`/time/${playerTeam.teams.slug}`, { replace: true });
             return;
           }
@@ -183,6 +197,7 @@ export default function PostSignupChoice() {
                     <button 
                       onClick={() => setView("choice")}
                       className="text-slate-400 hover:text-white transition-colors"
+                      title="Voltar para escolha"
                     >
                       <ChevronLeft className="h-5 w-5" />
                     </button>

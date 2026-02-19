@@ -117,7 +117,7 @@ export function FeaturedGameCard({ teamId }: { teamId: string }) {
 
               <div className="flex flex-col items-center gap-2">
                 <TeamShield 
-                  escudoUrl={proximoJogo.time_adversario?.escudo_url} 
+                  escudoUrl={proximoJogo.time_adversario?.escudo_url || null} 
                   teamName={proximoJogo.time_adversario?.nome || proximoJogo.adversario} 
                   size="lg" 
                 />
@@ -197,7 +197,7 @@ export function FeaturedGameCard({ teamId }: { teamId: string }) {
 
                 <div className="flex flex-col items-center gap-3">
                   <TeamShield 
-                    escudoUrl={ultimoResultado.jogo.time_adversario?.escudo_url} 
+                    escudoUrl={ultimoResultado.jogo.time_adversario?.escudo_url || null} 
                     teamName={ultimoResultado.jogo.adversario} 
                     size="lg" 
                   />

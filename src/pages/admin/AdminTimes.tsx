@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useTimes, useCreateTime, useUpdateTime, useDeleteTime } from "@/hooks/useTimes";
+import { useTimesAdversarios, useCreateTime, useUpdateTime, useDeleteTime } from "@/hooks/useTimes";
 import { useAuth } from "@/hooks/useAuth";
 import type { Time } from "@/lib/types";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
@@ -35,7 +35,7 @@ const initialFormData: TimeFormData = {
   apelido: "",
   cidade: "",
   cores_principais: "",
-  is_casa: false,
+  is_casa: false,  // Sempre false - adversários
   ativo: true,
 };
 
@@ -57,7 +57,7 @@ export default function AdminTimes() {
 
   const { profile } = useAuth();
   const { team, basePath } = useTeamSlug();
-  const { data: times, isLoading } = useTimes(profile?.team_id);
+  const { data: times, isLoading } = useTimesAdversarios(profile?.team_id);  // Só adversários, não o próprio time
   const createTime = useCreateTime();
   const updateTime = useUpdateTime();
   const deleteTime = useDeleteTime();
@@ -144,7 +144,7 @@ export default function AdminTimes() {
           apelido: formData.apelido || null,
           cidade: formData.cidade || null,
           cores_principais: formData.cores_principais || null,
-          is_casa: formData.is_casa,
+          is_casa: false,  // Sempre false - é um adversário, não o time da casa
           ativo: formData.ativo,
           escudo_url,
         });
@@ -215,8 +215,8 @@ export default function AdminTimes() {
     <Layout>
       <div className="space-y-6 container py-8 px-4 md:px-6">
       <ManagementHeader 
-        title="Gerenciar Times" 
-        subtitle="Cadastre seu próprio time e os adversários para histórico de jogos." 
+        title="Gerenciar Adversários" 
+        subtitle="Cadastre times adversários para usar em jogos e convites. Seu time é gerenciado no Meu Perfil." 
       />
 
       <div className="flex items-center justify-end">
@@ -306,19 +306,7 @@ export default function AdminTimes() {
                 />
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <Label htmlFor="is_casa" className="cursor-pointer">Time da Casa</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Marque se este é o seu time principal
-                  </p>
-                </div>
-                <Switch
-                  id="is_casa"
-                  checked={formData.is_casa}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_casa: checked })}
-                />
-              </div>
+              
 
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div>
@@ -407,7 +395,16 @@ export default function AdminTimes() {
                         .select("*", { count: "exact", head: true })
                         .eq("time_adversario_id", time.id);
                       
-                      setJogosVinculados(count || 0);
+                      if (count && count > 0) {
+                        toast({
+                          variant: "destructive",
+                          title: "Não é possível excluir",
+                          description: `Este adversário está vinculado a ${count} jogo(s). Edite os jogos primeiro para remover o vínculo.`,
+                        });
+                        return;
+                      }
+                      
+                      setJogosVinculados(0);
                       setTimeToDelete(time);
                       setDeleteDialogOpen(true);
                     }}
@@ -423,8 +420,8 @@ export default function AdminTimes() {
         <Card className="bg-black/40 backdrop-blur-xl border-white/10">
           <CardContent className="py-8 text-center text-muted-foreground">
             <Shield className="mx-auto mb-4 h-12 w-12 opacity-30" />
-            <p className="font-bold">Nenhum time cadastrado.</p>
-            <p className="text-sm">Comece adicionando o seu time e os adversários.</p>
+            <p className="font-bold">Nenhum adversário cadastrado.</p>
+            <p className="text-sm">Adicione times adversários para usar em jogos.</p>
           </CardContent>
         </Card>
       )}
@@ -436,13 +433,10 @@ export default function AdminTimes() {
             <AlertDialogTitle>Excluir Time</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div>
-                <p>Tem certeza que deseja excluir o time "{timeToDelete?.nome}"?</p>
-                {jogosVinculados > 0 && (
-                  <p className="mt-2 text-warning">
-                    ⚠️ Este time está vinculado a {jogosVinculados} jogo(s). 
-                    O vínculo será removido, mas o nome do adversário será mantido.
-                  </p>
-                )}
+                <p>Tem certeza que deseja excluir o adversário "{timeToDelete?.nome}"?</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Apenas adversários sem jogos vinculados podem ser excluídos.
+                </p>
                 <p className="mt-2">Esta ação não pode ser desfeita.</p>
               </div>
             </AlertDialogDescription>

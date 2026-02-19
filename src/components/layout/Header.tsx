@@ -3,8 +3,9 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   Menu, X, Instagram, MessageCircle, User, LogOut, Sun, Moon, Headphones, 
   BarChart3, ShieldAlert, ChevronDown, LayoutDashboard, CalendarPlus, 
-  Search, ShieldCheck, Settings, Bell
+  Search, ShieldCheck, Settings
 } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,20 +20,23 @@ import { TeamShield } from "@/components/TeamShield";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { usePlanAccess } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { useTodosChamados, useChamadosNaoLidos } from "@/hooks/useChamados";
 import { useAvisosNaoLidos } from "@/hooks/useAvisoLeituras";
+import { MobileMenuSheet } from "./MobileMenuSheet";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
   const location = useLocation();
-  const { user, profile, isAdmin, isSuperAdmin, isApproved, signOut } = useAuth();
+  const { user, profile, isAdmin, isSuperAdmin, isGodAdmin, isApproved, signOut } = useAuth();
   const navigate = useNavigate();
   const { data: chamados } = useTodosChamados();
   const isPlayer = !!profile?.jogador_id && !isAdmin;
-  const teamSlug = useOptionalTeamSlug();
+  const { team, isLoading: teamLoading } = useTeamConfig();
+  const teamSlugValue = team?.slug;
 
   useEffect(() => {
     // Forçar modo escuro globalmente
@@ -40,18 +44,18 @@ export function Header() {
     localStorage.setItem("theme", "dark");
   }, []);
 
-  const basePath = teamSlug?.basePath || "";
-  const teamName = teamSlug?.team.nome || "FutGestor";
-  const teamEscudo = teamSlug?.team.escudo_url || null;
-  const redesSociais = teamSlug?.team.redes_sociais || {};
-  const teamId = teamSlug?.team.id || null;
+  const basePath = teamSlugValue ? `/time/${teamSlugValue}` : "";
+  const teamName = team?.nome || "FutGestor";
+  const teamEscudo = team?.escudo_url || null;
+  const redesSociais = team?.redes_sociais || {};
+  const teamId = team?.id || null;
   const { hasRanking, hasResultados, hasCampeonatos, hasFinanceiro, hasAvisos } = usePlanAccess(teamId);
   
   const { data: avisosNaoLidos } = useAvisosNaoLidos(teamId || undefined);
   const { data: suporteNotificacoes } = useChamadosNaoLidos();
 
   // Nav items visíveis para todos (incluindo visitantes) - condicionados ao plano
-  const visitorNavItems = teamSlug
+  const visitorNavItems = teamSlugValue
     ? [
       { href: basePath, label: "Início" },
       { href: `${basePath}/agenda`, label: "Agenda" },
@@ -62,15 +66,16 @@ export function Header() {
     : [{ href: "/", label: "Início" }];
 
   // Nav items apenas para membros logados
-  const memberNavItems = teamSlug
+  const memberNavItems = teamSlugValue
     ? [
+      { href: `${basePath}/chat`, label: "Chat" },
       { href: `${basePath}/escalacao`, label: "Escalação" },
       { href: `${basePath}/jogadores`, label: "Jogadores" },
       { href: `${basePath}/conquistas`, label: "Conquistas" },
     ]
     : [];
 
-  const privateNavItems = teamSlug
+  const privateNavItems = teamSlugValue
     ? [
       ...(hasFinanceiro ? [{ href: `${basePath}/financeiro`, label: "Financeiro" }] : []),
       ...(hasAvisos ? [{ 
@@ -89,7 +94,7 @@ export function Header() {
     ]
     : [];
 
-  const adminNavItems = isAdmin && teamSlug
+  const adminNavItems = isAdmin && teamSlugValue
     ? [
       { href: `${basePath}/gestao`, label: "Gestão" },
     ]
@@ -112,7 +117,7 @@ export function Header() {
     return location.pathname.startsWith(href);
   };
 
-  const teamPrimaryColor = teamSlug?.team.cores?.primary || "#0F2440";
+  const teamPrimaryColor = team?.cores?.primary || "#0F2440";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl shadow-lg shadow-black/50">
@@ -215,44 +220,54 @@ export function Header() {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          {hasAvisos && (
-            <Link to={`${basePath}/avisos`} className="md:hidden transition-all duration-300 hover:scale-105 active:scale-95">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/10 relative h-9 w-9 rounded-full bg-white/5 border border-white/10 transition-colors"
-              >
-                <Bell className="h-5 w-5" />
-                {avisosNaoLidos && avisosNaoLidos > 0 ? (
-                  <span className="absolute -top-1 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-black text-white shadow-lg ring-1 ring-white/20 animate-in zoom-in">
-                    {avisosNaoLidos}
-                  </span>
-                ) : null}
-              </Button>
-            </Link>
-          )}
+          {/* NotificationBell — notificações automáticas */}
+          <Link to="/explorar">
+            <Button variant="ghost" size="icon" className="text-white/80 hover:bg-white/10 hover:text-white">
+              <Search className="h-5 w-5" />
+            </Button>
+          </Link>
+          {user && <NotificationBell />}
 
-          {isSuperAdmin && (
-            <Link to="/super-admin">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hidden text-[#D4A84B] hover:bg-[#D4A84B]/10 md:inline-flex lg:inline-flex relative border border-[#D4A84B]/20"
-              >
-                <ShieldAlert className="h-4 w-4 lg:mr-1" />
-                <span className="hidden lg:inline">Painel Master</span>
-                {chamados?.filter(c => c.status === "aberto").length ? (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
-                    {chamados.filter(c => c.status === "aberto").length}
-                  </span>
-                ) : null}
-              </Button>
-            </Link>
+          {/* Painel Master - visível apenas para God Admin (futgestor@gmail.com) */}
+          {isGodAdmin && (
+            <>
+              {/* Versão Desktop */}
+              <Link to="/super-admin" className="hidden md:block">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-[#D4A84B] hover:bg-[#D4A84B]/10 relative border border-[#D4A84B]/20"
+                >
+                  <ShieldAlert className="h-4 w-4 lg:mr-1" />
+                  <span className="hidden lg:inline">Painel Master</span>
+                  {chamados?.filter(c => c.status === "aberto").length ? (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
+                      {chamados.filter(c => c.status === "aberto").length}
+                    </span>
+                  ) : null}
+                </Button>
+              </Link>
+              {/* Versão Mobile - ícone compacto */}
+              <Link to="/super-admin" className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 text-[#D4A84B] hover:bg-[#D4A84B]/10 relative border border-[#D4A84B]/20"
+                >
+                  <ShieldAlert className="h-5 w-5" />
+                  {chamados?.filter(c => c.status === "aberto").length ? (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/20 animate-in zoom-in duration-300">
+                      {chamados.filter(c => c.status === "aberto").length}
+                    </span>
+                  ) : null}
+                </Button>
+              </Link>
+            </>
           )}
 
           {user ? (
             <>
-              {isApproved && teamSlug && !isPlayer && (
+              {isApproved && teamSlugValue && !isPlayer && (
                 <Link to={`${basePath}/meu-perfil`}>
                   <Button
                     variant="ghost"
@@ -265,7 +280,7 @@ export function Header() {
                   </Button>
                 </Link>
               )}
-              {isPlayer && (
+              {isPlayer && teamSlugValue && (
                 <Link to={`${basePath}/meu-perfil`}>
                   <Button variant="secondary" size="sm" className="hidden md:inline-flex">
                     <User className="h-4 w-4 lg:mr-1" />
@@ -293,19 +308,13 @@ export function Header() {
             </Link>
           )}
 
-          {/* Mobile Menu Button - Hidden as we now use Bottom Nav */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden" // Changed from md:hidden to hidden
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
+
+          {/* Mobile Menu Button - Replaced by MobileMenuSheet */}
+          {user && <MobileMenuSheet />}
         </div>
       </div>
 
-      {/* Mobile Navigation - Hidden as we now use Bottom Nav */}
+      {/* Mobile Navigation - Hidden as we now use Bottom Nav and Sheet */}
       {false && mobileMenuOpen && (
         <div className="border-t border-border/40 bg-primary md:hidden">
           <nav className="container flex flex-col gap-1 px-4 py-4">
@@ -362,7 +371,7 @@ export function Header() {
                       </Button>
                     </Link>
                   )}
-                  {isApproved && teamSlug && !isPlayer && (
+                  {isApproved && teamSlugValue && !isPlayer && (
                     <Link to={`${basePath}/meu-perfil`} onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="secondary" size="sm">
                         <User className="mr-1 h-4 w-4" />
@@ -370,12 +379,12 @@ export function Header() {
                       </Button>
                     </Link>
                   )}
-                  {isAdmin && teamSlug && (
+                  {isAdmin && teamSlugValue && (
                     <Link to={`${basePath}/gestao`} onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="secondary" size="sm">Gestão</Button>
                     </Link>
                   )}
-                  {isSuperAdmin && (
+                  {isGodAdmin && (
                     <Link to="/super-admin" onClick={() => setMobileMenuOpen(false)} className="w-full">
                       <Button variant="secondary" size="sm" className="w-full justify-start relative bg-[#D4A84B]/10 text-[#D4A84B] border-[#D4A84B]/20">
                         <ShieldAlert className="mr-2 h-4 w-4" />

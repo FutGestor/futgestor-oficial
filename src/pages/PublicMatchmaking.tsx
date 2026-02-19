@@ -20,7 +20,9 @@ import { TeamShield } from "@/components/TeamShield";
 import { useCreateSolicitacao } from "@/hooks/useSolicitacoes";
 import { useToast } from "@/hooks/use-toast";
 import { useJogosFuturos } from "@/hooks/useData";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useTeamConfig } from "@/hooks/useTeamConfig";
 
 export default function PublicMatchmaking() {
   const { team, slug } = useTeamSlug();
@@ -29,6 +31,7 @@ export default function PublicMatchmaking() {
   const createSolicitacao = useCreateSolicitacao();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { team: myTeam } = useTeamConfig();
 
   const [formData, setFormData] = useState({
     nome_time: "",
@@ -52,6 +55,12 @@ export default function PublicMatchmaking() {
     });
     setFormData(p => ({ ...p, captcha_answer: "" }));
   };
+
+  useEffect(() => {
+    if (myTeam?.nome && myTeam.nome !== "FutGestor") {
+      setFormData(prev => ({ ...prev, nome_time: myTeam.nome }));
+    }
+  }, [myTeam?.nome]);
 
   const { data: jogosFuturos } = useJogosFuturos(team.id);
 
@@ -90,6 +99,8 @@ export default function PublicMatchmaking() {
     }
 
     try {
+      if (!team?.id) throw new Error("Time não encontrado");
+      
       await createSolicitacao.mutateAsync({
         ...formData,
         data_preferida: format(date, "yyyy-MM-dd"),
@@ -128,7 +139,7 @@ export default function PublicMatchmaking() {
               DESAFIO ENVIADO!
             </CardTitle>
             <CardDescription className="text-slate-300 mt-2 px-4">
-              Sua convocação chegou ao time do **{team.nome}**. Prepare as chuteiras, entramos em contato em breve!
+              Sua convocação chegou ao time do **{team?.nome || "Time"}**. Prepare as chuteiras, entramos em contato em breve!
             </CardDescription>
           </CardHeader>
 

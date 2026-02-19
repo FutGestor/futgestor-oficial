@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Edit, Trash2, User, Upload, X, KeyRound, Loader2, QrCode, Copy, Share2, ExternalLink } from "lucide-react";
@@ -75,6 +76,19 @@ export default function AdminJogadores() {
   const { hasLoginJogadores } = usePlanAccess();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+
+  // Auto-open based on URL search param
+  useEffect(() => {
+    const editId = searchParams.get("edit");
+    if (editId && jogadores && jogadores.length > 0) {
+      const target = jogadores.find(j => j.id === editId || j.user_id === editId);
+      if (target) {
+        // Pequeno delay para garantir que o componente terminou de renderizar a lista
+        setTimeout(() => openEditDialog(target), 0);
+      }
+    }
+  }, [searchParams, jogadores]);
 
   const openCreateDialog = () => {
     setEditingJogador(null);
@@ -292,6 +306,15 @@ export default function AdminJogadores() {
     });
   };
 
+  const copyTeamCode = () => {
+    if (!team?.invite_code || team.invite_code === "undefined") return;
+    navigator.clipboard.writeText(team.invite_code);
+    toast({
+      title: "Código copiado!",
+      description: "O código do time foi copiado para sua área de transferência.",
+    });
+  };
+
   const shareOnWhatsApp = () => {
     if (!team?.invite_code || team.invite_code === "undefined") {
       toast({
@@ -327,9 +350,16 @@ export default function AdminJogadores() {
               <DialogTitle>Convidar Atletas</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col items-center gap-6 py-4">
-              <div className="flex flex-col items-center gap-2">
+              <div 
+                className="flex flex-col items-center gap-2 cursor-pointer group hover:opacity-80 transition-opacity" 
+                onClick={copyTeamCode}
+                title="Clique para copiar o código"
+              >
                 <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Código do Time</span>
-                <span className="text-4xl font-bold tracking-widest text-primary">{team?.invite_code || "------"}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-4xl font-bold tracking-widest text-primary">{team?.invite_code || "------"}</span>
+                  <Copy className="h-5 w-5 text-primary/40 group-hover:text-primary transition-colors" />
+                </div>
               </div>
               
               <div className="w-full space-y-4">
@@ -367,7 +397,7 @@ export default function AdminJogadores() {
               Novo Jogador
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingJogador ? "Editar Jogador" : "Novo Jogador"}

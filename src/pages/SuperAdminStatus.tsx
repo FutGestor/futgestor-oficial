@@ -57,7 +57,7 @@ const INSTRUCTIONS = `
 `;
 
 export default function SuperAdminStatus() {
-    const { isSuperAdmin, isLoading: authLoading } = useAuth();
+    const { isGodAdmin, isLoading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [hasConfig, setHasConfig] = useState(false);
@@ -71,10 +71,10 @@ export default function SuperAdminStatus() {
     const [topPages, setTopPages] = useState<any[]>([]);
 
     useEffect(() => {
-        if (!authLoading && isSuperAdmin) {
+        if (!authLoading && isGodAdmin) {
             checkConfig();
         }
-    }, [authLoading, isSuperAdmin]);
+    }, [authLoading, isGodAdmin]);
 
     const checkConfig = async () => {
         try {
@@ -129,7 +129,8 @@ export default function SuperAdminStatus() {
     };
 
     if (authLoading) return null;
-    if (!isSuperAdmin) return <Navigate to="/" replace />;
+    // Apenas God Admin (futgestor@gmail.com) pode acessar
+    if (!isGodAdmin) return <Navigate to="/" replace />;
 
     return (
         <Layout>

@@ -55,7 +55,7 @@ export default function SuperAdminAvisos() {
     const { toast } = useToast();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const { isSuperAdmin, isLoading: authLoading } = useAuth();
+    const { isGodAdmin, isLoading: authLoading } = useAuth();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingAviso, setEditingAviso] = useState<Aviso | null>(null);
@@ -68,7 +68,7 @@ export default function SuperAdminAvisos() {
 
     const { data: avisos, isLoading } = useQuery({
         queryKey: ["super-admin-avisos"],
-        enabled: isSuperAdmin,
+        enabled: isGodAdmin,
         queryFn: async () => {
             const { data, error } = await supabase
                 .from("avisos")
@@ -156,7 +156,8 @@ export default function SuperAdminAvisos() {
     };
 
     if (authLoading) return null;
-    if (!isSuperAdmin) return <Navigate to="/" replace />;
+    // Apenas God Admin (futgestor@gmail.com) pode acessar
+    if (!isGodAdmin) return <Navigate to="/" replace />;
 
     const getCategoryIcon = (cat: string) => {
         switch (cat) {
