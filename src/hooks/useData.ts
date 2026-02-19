@@ -53,10 +53,48 @@ export function useJogos(teamId?: string) {
     queryKey: ["jogos", effectiveTeamId],
     enabled: !!effectiveTeamId,
     queryFn: async () => {
-      const query = supabase.from("jogos").select(`*, time_adversario:times(*)`).eq("team_id", effectiveTeamId!);
-      const { data, error } = await query.order("data_hora", { ascending: false });
-      if (error) throw error;
-      return data as Jogo[];
+      // Buscar jogos do time
+      const { data: jogos, error } = await supabase
+        .from("jogos")
+        .select("*")
+        .eq("team_id", effectiveTeamId!)
+        .order("data_hora", { ascending: false });
+      
+      if (error) {
+        console.error("Erro useJogos:", error);
+        throw error;
+      }
+
+      // Se não houver jogos, retornar array vazio
+      if (!jogos || jogos.length === 0) {
+        return [] as Jogo[];
+      }
+
+      // Buscar times adversários para enriquecer os dados
+      const timeAdversarioIds = jogos
+        .map(j => j.time_adversario_id)
+        .filter((id): id is string => !!id);
+
+      if (timeAdversarioIds.length > 0) {
+        const { data: timesAdversarios } = await supabase
+          .from("times")
+          .select("id, nome, apelido, escudo_url, cidade, uf")
+          .in("id", timeAdversarioIds);
+
+        // Mapear times adversários nos jogos
+        if (timesAdversarios) {
+          const timesMap = new Map(timesAdversarios.map(t => [t.id, t]));
+          
+          return jogos.map(jogo => ({
+            ...jogo,
+            time_adversario: jogo.time_adversario_id 
+              ? timesMap.get(jogo.time_adversario_id) || null
+              : null
+          })) as Jogo[];
+        }
+      }
+
+      return jogos as Jogo[];
     },
   });
 }
@@ -66,26 +104,36 @@ export function useJogo(jogoId?: string) {
     queryKey: ["jogo", jogoId],
     enabled: !!jogoId,
     queryFn: async () => {
-      // Fetch game and result in parallel
-      const [jogoResponse, resultadoResponse] = await Promise.all([
-        supabase
-          .from("jogos")
-          .select("*, time_adversario:times(*)")
-          .eq("id", jogoId!)
-          .single(),
-        supabase
-          .from("resultados")
-          .select("*, estatisticas_partida(*, jogador:jogadores(nome, apelido))")
-          .eq("jogo_id", jogoId!)
-          .maybeSingle()
-      ]);
+      // Fetch game
+      const { data: jogo, error: jogoError } = await supabase
+        .from("jogos")
+        .select("*")
+        .eq("id", jogoId!)
+        .single();
 
-      if (jogoResponse.error) throw jogoResponse.error;
-      // Result error is ignored if just "not found" (maybeSingle handles 0 rows, but we check specific error)
+      if (jogoError) throw jogoError;
 
+      // Fetch time adversário if exists
+      let timeAdversario = null;
+      if (jogo.time_adversario_id) {
+        const { data: time } = await supabase
+          .from("times")
+          .select("id, nome, apelido, escudo_url, cidade, uf")
+          .eq("id", jogo.time_adversario_id)
+          .single();
+        timeAdversario = time;
+      }
+
+      // Fetch resultado
+      const { data: resultado } = await supabase
+        .from("resultados")
+        .select("*, estatisticas_partida(*, jogador:jogadores(nome, apelido))")
+        .eq("jogo_id", jogoId!)
+        .maybeSingle();
       return {
-        ...jogoResponse.data,
-        resultado: resultadoResponse.data
+        ...jogo,
+        time_adversario: timeAdversario,
+        resultado: resultado
       } as unknown as Jogo & { 
         time_adversario?: Time | null; 
         resultado?: (Resultado & { 
@@ -108,17 +156,31 @@ export function useProximoJogo(teamId?: string) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const { data, error } = await supabase
+      const { data: jogo, error } = await supabase
         .from("jogos")
-        .select("*, time_adversario:times(*)")
+        .select("*")
         .eq("team_id", effectiveTeamId!)
         .gte("data_hora", today.toISOString())
         .in("status", ["agendado", "confirmado"])
         .order("data_hora", { ascending: true })
         .limit(1)
         .maybeSingle();
+      
       if (error) throw error;
-      return data as Jogo | null;
+      if (!jogo) return null;
+
+      // Buscar time adversário
+      if (jogo.time_adversario_id) {
+        const { data: time } = await supabase
+          .from("times")
+          .select("id, nome, apelido, escudo_url, cidade, uf")
+          .eq("id", jogo.time_adversario_id)
+          .single();
+        
+        return { ...jogo, time_adversario: time } as Jogo;
+      }
+
+      return jogo as Jogo;
     },
   });
 }
@@ -132,18 +194,18 @@ export function useResultados(teamId?: string) {
     queryKey: ["resultados", effectiveTeamId],
     enabled: !!effectiveTeamId,
     queryFn: async () => {
-      const query = supabase.from("resultados")
+      const { data, error } = await supabase
+        .from("resultados")
         .select(`
           *, 
           jogo:jogos(*, time_adversario:times(*)), 
           estatisticas_partida(*, jogador:jogadores(nome, apelido))
         `)
-        .eq("team_id", effectiveTeamId!);
-      const { data, error } = await query.order("created_at", { ascending: false });
-      if (error) throw error;
+        .eq("team_id", effectiveTeamId!)
+        .order("created_at", { ascending: false });
       
-      // Use unknown cast to avoid complex type mismatch errors with deep nesting
-      return (data as unknown) as (Resultado & { 
+      if (error) throw error;
+      return data as (Resultado & { 
         jogo: Jogo & { time_adversario?: Time | null }, 
         estatisticas_partida: (EstatisticaPartida & { jogador?: { nome: string; apelido: string | null } })[] 
       })[];
@@ -239,16 +301,37 @@ export function useEscalacaoJogadores(escalacaoId: string | undefined) {
     queryKey: ["escalacao-jogadores", escalacaoId],
     enabled: !!escalacaoId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Buscar escalacao_jogadores sem embed para evitar ambiguidade
+      const { data: ejData, error: ejError } = await supabase
         .from("escalacao_jogadores")
-        .select(`
-          *,
-          jogador:jogadores(*)
-        `)
+        .select("*")
         .eq("escalacao_id", escalacaoId)
         .order("ordem");
-      if (error) throw error;
-      return data as (EscalacaoJogador & { jogador: Jogador })[];
+      
+      if (ejError) throw ejError;
+      if (!ejData || ejData.length === 0) return [];
+
+      // Buscar os jogadores separadamente
+      const jogadorIds = ejData.map(ej => ej.jogador_id).filter(Boolean);
+      
+      if (jogadorIds.length === 0) {
+        return ejData.map(ej => ({ ...ej, jogador: null })) as (EscalacaoJogador & { jogador: Jogador | null })[];
+      }
+
+      const { data: jogadoresData, error: jogadoresError } = await supabase
+        .from("jogadores")
+        .select("*")
+        .in("id", jogadorIds);
+
+      if (jogadoresError) throw jogadoresError;
+
+      // Juntar os dados
+      const jogadoresMap = new Map(jogadoresData?.map(j => [j.id, j]) || []);
+      
+      return ejData.map(ej => ({
+        ...ej,
+        jogador: jogadoresMap.get(ej.jogador_id) || null,
+      })) as (EscalacaoJogador & { jogador: Jogador | null })[];
     },
   });
 }
@@ -294,6 +377,7 @@ export function useUltimoResultado(teamId?: string) {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+      
       if (error) throw error;
       return data as (Resultado & { jogo: Jogo & { time_adversario?: Time | null } }) | null;
     },

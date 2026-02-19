@@ -6,7 +6,7 @@ import { Plus, Edit, Trash2, User, Upload, X, KeyRound, Loader2, QrCode, Copy, S
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -345,9 +345,12 @@ export default function AdminJogadores() {
               Convidar Atletas
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md" onCloseAutoFocus={(e) => e.preventDefault()}>
             <DialogHeader>
               <DialogTitle>Convidar Atletas</DialogTitle>
+              <DialogDescription>
+                Compartilhe o código ou link de convite para novos jogadores.
+              </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col items-center gap-6 py-4">
               <div 
@@ -397,11 +400,14 @@ export default function AdminJogadores() {
               Novo Jogador
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-h-[90vh] overflow-y-auto" onCloseAutoFocus={(e) => e.preventDefault()}>
             <DialogHeader>
               <DialogTitle>
                 {editingJogador ? "Editar Jogador" : "Novo Jogador"}
               </DialogTitle>
+              <DialogDescription>
+                Cadastre ou edite as informações do jogador.
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Foto Upload */}

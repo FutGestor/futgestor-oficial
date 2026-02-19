@@ -41,7 +41,7 @@ export function UserManagementDialogs({
   return (
     <>
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão Permanente</AlertDialogTitle>
             <AlertDialogDescription>
@@ -66,7 +66,7 @@ export function UserManagementDialogs({
       </AlertDialog>
 
       <Dialog open={editNameDialogOpen} onOpenChange={setEditNameDialogOpen}>
-        <DialogContent>
+        <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Definir Nome do Usuário</DialogTitle>
             <DialogDescription>
@@ -99,7 +99,7 @@ export function UserManagementDialogs({
       </Dialog>
 
       <Dialog open={planDialogOpen} onOpenChange={setPlanDialogOpen}>
-        <DialogContent>
+        <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Mudar Plano do Time</DialogTitle>
             <DialogDescription>

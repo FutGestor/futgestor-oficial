@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, Star, Shield, Trophy, CheckCircle2, ArrowRight, MessageSquare, Clock, MapPin, Zap, Sword } from "lucide-react";
+import { Calendar as CalendarIcon, Star, Shield, Trophy, CheckCircle2, ArrowRight, MessageSquare, Clock, MapPin, Zap, Sword, Check } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -39,21 +40,61 @@ export default function PublicMatchmaking() {
     horario_preferido: "20:00",
     local_sugerido: "",
     observacoes: "",
-    captcha_answer: "",
+    cep: "",
   });
   
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [captcha, setCaptcha] = useState(() => ({
-    num1: Math.floor(Math.random() * 9) + 1,
-    num2: Math.floor(Math.random() * 9) + 1
-  }));
+  const [cepValido, setCepValido] = useState(false);
+  const [cepBuscando, setCepBuscando] = useState(false);
 
-  const refreshCaptcha = () => {
-    setCaptcha({
-      num1: Math.floor(Math.random() * 9) + 1,
-      num2: Math.floor(Math.random() * 9) + 1
-    });
-    setFormData(p => ({ ...p, captcha_answer: "" }));
+  // Horários disponíveis (de 30 em 30 minutos)
+  const horariosDisponiveis = useMemo(() => {
+    const horarios = [];
+    for (let h = 6; h <= 23; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        const hora = h.toString().padStart(2, '0');
+        const minuto = m.toString().padStart(2, '0');
+        horarios.push(`${hora}:${minuto}`);
+      }
+    }
+    return horarios;
+  }, []);
+
+  // Validar CEP
+  const validarCEP = async (cep: string) => {
+    const cepLimpo = cep.replace(/\D/g, '');
+    if (cepLimpo.length !== 8) {
+      setCepValido(false);
+      return;
+    }
+    
+    setCepBuscando(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const data = await response.json();
+      
+      if (data.erro) {
+        setCepValido(false);
+        toast({
+          title: "CEP inválido",
+          description: "O CEP informado não foi encontrado.",
+          variant: "destructive",
+        });
+      } else {
+        setCepValido(true);
+        // Preenche o local sugerido com a cidade/UF do CEP se estiver vazio
+        if (!formData.local_sugerido) {
+          setFormData(p => ({ 
+            ...p, 
+            local_sugerido: `${data.localidade} - ${data.uf}`
+          }));
+        }
+      }
+    } catch {
+      setCepValido(false);
+    } finally {
+      setCepBuscando(false);
+    }
   };
 
   useEffect(() => {
@@ -87,14 +128,14 @@ export default function PublicMatchmaking() {
       return;
     }
 
-    const expected = captcha.num1 + captcha.num2;
-    if (parseInt(formData.captcha_answer) !== expected) {
+    // Validar CEP
+    const cepLimpo = formData.cep.replace(/\D/g, '');
+    if (cepLimpo.length !== 8 || !cepValido) {
       toast({
-        title: "Captcha incorreto",
-        description: `Quanto é ${captcha.num1} + ${captcha.num2}? Tente novamente.`,
+        title: "CEP inválido",
+        description: "Por favor, informe um CEP válido para continuar.",
         variant: "destructive",
       });
-      refreshCaptcha();
       return;
     }
 
@@ -102,81 +143,129 @@ export default function PublicMatchmaking() {
       if (!team?.id) throw new Error("Time não encontrado");
       
       await createSolicitacao.mutateAsync({
-        ...formData,
+        nome_time: formData.nome_time,
+        telefone_contato: formData.telefone_contato,
+        horario_preferido: formData.horario_preferido,
+        local_sugerido: formData.local_sugerido,
+        observacoes: formData.observacoes,
         data_preferida: format(date, "yyyy-MM-dd"),
         team_id: team.id,
-        captcha_answer: expected,
-        captcha_expected: expected,
       });
       setSuccess(true);
     } catch (error) {
-      refreshCaptcha();
+      // Erro já tratado pelo hook
     }
   };
 
   if (success) {
     return (
-      <Layout>
-        <div className="flex min-h-[80vh] items-center justify-center p-4">
-          <Card className="max-w-md w-full border border-white/10 bg-black/40 backdrop-blur-3xl shadow-2xl relative z-10 overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#1B3A5C] to-transparent animate-pulse" />
+      <div 
+        className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+        style={{
+          backgroundImage: 'url("https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=1920&q=80")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+          {/* Dark overlay for stadium */}
+          <div className="absolute inset-0 bg-black/60" />
           
-          <CardHeader className="text-center pt-10 pb-4">
-            <div className="flex justify-center mb-6">
-              <div className="relative">
-                <div className="absolute inset-0 bg-[#1B3A5C] blur-2xl opacity-20 animate-pulse" />
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#1B3A5C] to-[#D4A220] flex items-center justify-center relative z-10 shadow-[0_0_30px_rgba(27,58,92,0.4)]">
-                  <Zap className="w-12 h-12 text-white fill-current animate-bounce" />
+          {/* Stadium lights effect */}
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-[150px]" />
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-white/10 rounded-full blur-[150px]" />
+          
+          <Card className="max-w-md w-full border border-white/20 bg-white/10 backdrop-blur-xl shadow-[0_0_60px_rgba(0,0,0,0.5)] relative z-10 overflow-hidden rounded-3xl">
+            {/* Glow border effect */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-white/20 to-transparent opacity-50" />
+            
+            <CardHeader className="text-center pt-12 pb-6 relative">
+              {/* Lightning bolt with pulse animation */}
+              <div className="flex justify-center mb-6">
+                <div className="relative">
+                  {/* Glow behind lightning */}
+                  <div className="absolute inset-0 bg-yellow-400 blur-[40px] opacity-60 animate-pulse" />
+                  <Zap className="w-24 h-24 text-yellow-400 fill-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)] relative z-10 animate-pulse" strokeWidth={1.5} />
                 </div>
               </div>
-            </div>
-            
-            <Badge className="mx-auto mb-4 bg-[#1B3A5C]/20 text-[#1B3A5C] border-[#1B3A5C]/30 animate-in fade-in zoom-in duration-500">
-              CONQUISTA DESBLOQUEADA
-            </Badge>
-            
-            <CardTitle className="text-3xl font-black text-white uppercase italic tracking-tighter drop-shadow-lg">
-              DESAFIO ENVIADO!
-            </CardTitle>
-            <CardDescription className="text-slate-300 mt-2 px-4">
-              Sua convocação chegou ao time do **{team?.nome || "Time"}**. Prepare as chuteiras, entramos em contato em breve!
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-6 pb-10">
-            <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 mt-2 shadow-inner">
-              <h4 className="font-black text-[#1B3A5C] uppercase italic text-sm mb-2 flex items-center gap-2">
-                <Trophy className="w-4 h-4" />
-                QUER UM SITE ASSIM PARA O SEU TIME?
-              </h4>
-              <p className="text-xs text-slate-300 mb-6 leading-relaxed">
-                No FutGestor você cria sua página profissional, gerencia elenco, agenda e muito mais. É a elite da gestão esportiva.
+              
+              {/* Badge */}
+              <div className="flex justify-center mb-4">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-yellow-600/80 to-yellow-500/80 border border-yellow-400/50">
+                  <span className="text-yellow-100 text-xs font-black uppercase tracking-wider">Conquista Desbloqueada</span>
+                </div>
+              </div>
+              
+              <CardTitle className="text-4xl font-black text-white uppercase italic tracking-tight mb-3 drop-shadow-lg text-center">
+                DESAFIO ENVIADO!
+              </CardTitle>
+              
+              <p className="text-white/80 text-sm font-medium text-center leading-relaxed">
+                Sua convocação chegou ao time do <strong className="text-white">{team?.nome || "Time"}</strong>.<br />
+                Prepare as chuteiras, entramos em contato em breve!
               </p>
-              <Button 
-                onClick={() => window.location.href = '/auth'}
-                className="w-full bg-[#1B3A5C] hover:bg-[#D4A220] text-white font-black uppercase italic rounded-xl h-14 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(230,179,37,0.3)] transition-all hover:scale-[1.03] active:scale-[0.97]"
-              >
-                CRIAR MEU TIME AGORA <CheckCircle2 className="w-5 h-5" />
-              </Button>
-            </div>
-            
-            <Button 
-              variant="link" 
-              onClick={() => setSuccess(false)}
-              className="w-full text-slate-500 hover:text-slate-300 text-xs font-bold uppercase tracking-widest"
-             >
-              Voltar para o Matchmaking
-            </Button>
-          </CardContent>
+            </CardHeader>
+
+            <CardContent className="pb-10 px-6">
+              {/* CTA Card - Golden style */}
+              <div className="relative group">
+                {/* Golden glow border */}
+                <div className="absolute -inset-[1px] bg-gradient-to-b from-yellow-400/60 via-yellow-600/40 to-yellow-400/60 rounded-2xl blur-sm" />
+                
+                <div className="relative bg-gradient-to-b from-slate-800/90 to-slate-900/90 p-6 rounded-2xl border border-yellow-400/30">
+                  {/* Trophy icon and title */}
+                  <div className="flex flex-col items-center text-center mb-4">
+                    <span className="text-2xl">🏆</span>
+                    <h4 className="font-black text-yellow-400 uppercase italic text-base tracking-wide mt-2 text-center">
+                      QUER UM SITE ASSIM PARA O SEU TIME?
+                    </h4>
+                  </div>
+                  
+                  <p className="text-sm text-white/70 mb-6 leading-relaxed text-center">
+                    No FutGestor você cria sua página profissional, gerencia elenco, agenda e muito mais. É a elite da gestão esportiva.
+                  </p>
+                  
+                  {/* Blue CTA Button */}
+                  <Button 
+                    onClick={() => window.location.href = '/auth'}
+                    className="w-full bg-gradient-to-b from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white font-black uppercase text-lg rounded-xl h-14 shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(59,130,246,0.7)] border border-blue-400/50"
+                  >
+                    CRIAR MEU TIME AGORA
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Secondary action */}
+              <div className="mt-8 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSuccess(false);
+                    setDate(undefined);
+                    setFormData({
+                      nome_time: myTeam?.nome || "",
+                      telefone_contato: "",
+                      horario_preferido: "20:00",
+                      local_sugerido: "",
+                      observacoes: "",
+                      cep: "",
+                    });
+                    setCepValido(false);
+                    setTimeout(() => window.scrollTo(0, 0), 50);
+                  }}
+                  className="text-white/50 hover:text-white/80 text-sm font-bold uppercase tracking-widest transition-colors bg-transparent border-0 cursor-pointer"
+                >
+                  ← VOLTAR PARA O MATCHMAKING
+                </button>
+              </div>
+            </CardContent>
         </Card>
       </div>
-    </Layout>
     );
   }
 
   return (
-    <Layout>
-      <div className="min-h-screen font-sans relative">
+    <div className="min-h-screen font-sans relative bg-[#0a0f1a]">
 
       {/* Hero / Banner Area */}
       <div className="relative h-64 md:h-80 overflow-hidden bg-black/40 backdrop-blur-xl border-b border-white/10 shadow-2xl">
@@ -212,16 +301,16 @@ export default function PublicMatchmaking() {
               {team.nome}
             </h1>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-               <div className="flex gap-0.5 text-[#1B3A5C]">
+               <div className="flex gap-0.5 text-yellow-500">
                  <Star className="w-4 h-4 fill-current" />
                  <Star className="w-4 h-4 fill-current" />
                  <Star className="w-4 h-4 fill-current" />
                  <Star className="w-4 h-4 fill-current" />
                  <Star className="w-4 h-4 fill-current" />
                </div>
-               <Badge className="bg-[#1B3A5C]/20 text-[#1B3A5C] border-[#1B3A5C]/30 text-[10px] font-black italic">TIMELINE VERIFICADA</Badge>
-               <span className="text-xs font-bold text-slate-400 uppercase italic flex items-center gap-1.5">
-                <MapPin className="w-3 h-3 text-[#1B3A5C]" />
+               <Badge className="bg-white/10 text-white border-white/20 text-[10px] font-black italic">TIMELINE VERIFICADA</Badge>
+               <span className="text-xs font-bold text-white uppercase italic flex items-center gap-1.5">
+                <MapPin className="w-3 h-3 text-white" />
                 {team.cidade}, {team.estado}
                </span>
             </div>
@@ -242,7 +331,7 @@ export default function PublicMatchmaking() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="bg-white/5 backdrop-blur-md rounded-3xl p-6 md:p-10 border border-white/10 shadow-2xl relative overflow-hidden group">
+            <form onSubmit={handleSubmit} className="bg-black/70 backdrop-blur-md rounded-3xl p-6 md:p-10 border border-white/10 shadow-2xl relative overflow-hidden group">
                <div className="absolute top-0 right-0 p-8 opacity-5 -mr-8 -mt-8">
                 <Trophy className="w-64 h-64 text-white" />
                </div>
@@ -250,7 +339,7 @@ export default function PublicMatchmaking() {
                <div className="relative z-10 space-y-8">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                    <div className="space-y-3">
-                     <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">NOME DO TIME VISITANTE</Label>
+                     <Label className="text-[10px] font-black uppercase text-white italic tracking-[0.2em]">NOME DO TIME VISITANTE</Label>
                      <Input 
                       required
                       placeholder="Ex: Real Madrid FC"
@@ -260,7 +349,7 @@ export default function PublicMatchmaking() {
                      />
                    </div>
                    <div className="space-y-3">
-                     <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">WHATSAPP DO RESPONSÁVEL</Label>
+                     <Label className="text-[10px] font-black uppercase text-white italic tracking-[0.2em]">WHATSAPP DO RESPONSÁVEL</Label>
                      <Input 
                       required
                       type="tel"
@@ -274,7 +363,7 @@ export default function PublicMatchmaking() {
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                    <div className="space-y-3">
-                     <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">SUGESTÃO DE DATA</Label>
+                     <Label className="text-[10px] font-black uppercase text-white italic tracking-[0.2em]">SUGESTÃO DE DATA</Label>
                      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                       <PopoverTrigger asChild>
                         <Button
@@ -285,7 +374,7 @@ export default function PublicMatchmaking() {
                           )}
                         >
                           <CalendarIcon className="mr-3 h-4 w-4 text-[#1B3A5C]" />
-                          {date ? format(date, "dd 'de' MMMM", { locale: ptBR }) : <span>Selecione no calendário</span>}
+                          {date ? format(date, "dd 'de' MMMM", { locale: ptBR }) : <span className="text-slate-400">Selecione no calendário</span>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 rounded-2xl border-white/10 shadow-2xl" align="start">
@@ -313,22 +402,34 @@ export default function PublicMatchmaking() {
                     </Popover>
                    </div>
                    <div className="space-y-3">
-                     <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">HORÁRIO DA PARTIDA</Label>
-                     <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1B3A5C]" />
-                        <Input 
-                          required
-                          type="time"
-                          value={formData.horario_preferido}
-                          onChange={e => setFormData(p => ({...p, horario_preferido: e.target.value}))}
-                          className="h-12 pl-10 rounded-xl border-white/10 bg-black/40 text-white focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 font-bold"
-                        />
-                     </div>
+                     <Label className="text-[10px] font-black uppercase text-white italic tracking-[0.2em]">HORÁRIO DA PARTIDA</Label>
+                     <Select 
+                       value={formData.horario_preferido}
+                       onValueChange={(value) => setFormData(p => ({...p, horario_preferido: value}))}
+                     >
+                       <SelectTrigger className="h-12 rounded-xl border-white/10 bg-black/40 text-white focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 font-bold">
+                         <div className="flex items-center gap-2">
+                           <Clock className="h-4 w-4 text-white" />
+                           <SelectValue placeholder="Selecione o horário" />
+                         </div>
+                       </SelectTrigger>
+                       <SelectContent className="bg-black border-white/10 max-h-[200px]">
+                         {horariosDisponiveis.map((horario) => (
+                           <SelectItem 
+                             key={horario} 
+                             value={horario}
+                             className="text-white hover:bg-white/10 focus:bg-white/10"
+                           >
+                             {horario}
+                           </SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
                    </div>
                  </div>
 
                  <div className="space-y-3">
-                   <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">LOCAL SUGERIDO</Label>
+                   <Label className="text-[10px] font-black uppercase text-white italic tracking-[0.2em]">LOCAL SUGERIDO</Label>
                    <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1B3A5C]" />
                       <Input 
@@ -342,7 +443,7 @@ export default function PublicMatchmaking() {
                  </div>
 
                  <div className="space-y-3">
-                   <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">OBSERVAÇÕES ADICIONAIS</Label>
+                   <Label className="text-[10px] font-black uppercase text-white italic tracking-[0.2em]">OBSERVAÇÕES ADICIONAIS</Label>
                    <Textarea 
                     placeholder="Conte um pouco sobre o nível do seu time..."
                     value={formData.observacoes}
@@ -353,15 +454,39 @@ export default function PublicMatchmaking() {
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
                     <div className="space-y-4">
-                      <Label className="text-[10px] font-black uppercase text-[#1B3A5C] italic tracking-[0.2em]">DESAFIO HUMANO: QUANTO É {captcha.num1} + {captcha.num2}?</Label>
-                      <Input 
-                        required
-                        type="number"
-                        placeholder="Sua resposta"
-                        value={formData.captcha_answer}
-                        onChange={e => setFormData(p => ({...p, captcha_answer: e.target.value}))}
-                        className="h-12 rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 font-bold"
-                      />
+                      <Label className="text-[10px] font-black uppercase text-white italic tracking-[0.2em]">
+                        CEP DO LOCAL {cepValido && <Check className="w-4 h-4 text-green-500 inline ml-1" />}
+                      </Label>
+                      <div className="relative">
+                        <Input 
+                          required
+                          placeholder="00000-000"
+                          value={formData.cep}
+                          onChange={e => {
+                            const valor = e.target.value.replace(/\D/g, '').slice(0, 8);
+                            const formatado = valor.length > 5 ? `${valor.slice(0, 5)}-${valor.slice(5)}` : valor;
+                            setFormData(p => ({...p, cep: formatado}));
+                            if (valor.length === 8) {
+                              validarCEP(formatado);
+                            } else {
+                              setCepValido(false);
+                            }
+                          }}
+                          className={cn(
+                            "h-12 rounded-xl border-white/10 bg-black/40 text-white placeholder:text-slate-600 focus:border-[#1B3A5C] focus:ring-[#1B3A5C]/20 font-bold pr-10",
+                            cepValido && "border-green-500/50 focus:border-green-500",
+                            !cepValido && formData.cep.length === 9 && "border-red-500/50 focus:border-red-500"
+                          )}
+                        />
+                        {cepBuscando && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-white/50">
+                        Informe o CEP do local onde será realizado o jogo
+                      </p>
                     </div>
 
                     <Button 
@@ -379,7 +504,7 @@ export default function PublicMatchmaking() {
                     </Button>
                   </div>
 
-                 <p className="text-[9px] text-center text-slate-500 uppercase font-bold tracking-[0.3em] mt-6">
+                 <p className="text-[9px] text-center text-white/60 uppercase font-bold tracking-[0.3em] mt-6">
                     A mais completa gestão esportiva
                  </p>
                </div>
@@ -388,22 +513,22 @@ export default function PublicMatchmaking() {
 
           <div className="lg:col-span-4 space-y-8">
              {/* Widget: Agenda Real */}
-             <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
+             <div className="bg-black/70 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
                 <div className="flex items-center justify-between mb-8">
-                  <h4 className="font-black text-white uppercase italic text-sm border-l-4 border-[#1B3A5C] pl-3">Agenda do Mês</h4>
-                  <CalendarIcon className="w-4 h-4 text-[#1B3A5C]" />
+                  <h4 className="font-black text-white uppercase italic text-sm border-l-4 border-white pl-3">Agenda do Mês</h4>
+                  <CalendarIcon className="w-4 h-4 text-white" />
                 </div>
                 
                 <div className="space-y-6">
                    {proximosTresJogos.length > 0 ? proximosTresJogos.map((jogo, i) => (
                       <div key={jogo.id} className="flex items-center gap-4 group cursor-help anim-in-up" style={{ animationDelay: `${i * 100}ms` }}>
-                        <div className="w-12 h-12 rounded-2xl bg-black/60 flex flex-col items-center justify-center font-black text-[#1B3A5C] border border-white/10 shadow-inner group-hover:border-[#1B3A5C]/40 transition-colors">
+                        <div className="w-12 h-12 rounded-2xl bg-black/80 flex flex-col items-center justify-center font-black text-white border border-white/20 shadow-inner group-hover:border-white/40 transition-colors">
                           <span className="text-xs leading-none">{format(new Date(jogo.data_hora), "dd")}</span>
                           <span className="text-[8px] uppercase tracking-tighter opacity-60 font-bold">{format(new Date(jogo.data_hora), "MMM", { locale: ptBR })}</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                           <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">{format(new Date(jogo.data_hora), "EEEE", { locale: ptBR })}</span>
-                           <span className="text-xs font-black text-slate-100 uppercase italic truncate block">
+                           <span className="block text-[10px] font-bold text-white/70 uppercase tracking-widest">{format(new Date(jogo.data_hora), "EEEE", { locale: ptBR })}</span>
+                           <span className="text-xs font-black text-white uppercase italic truncate block">
                              VS {jogo.time_adversario?.nome || "ADVERSÁRIO"}
                            </span>
                         </div>
@@ -414,7 +539,7 @@ export default function PublicMatchmaking() {
                           <CheckCircle2 className="w-8 h-8 text-green-500 opacity-40" />
                         </div>
                         <p className="text-xs font-black text-green-500 uppercase italic tracking-widest">AGENDA LIVRE</p>
-                        <p className="text-[10px] text-slate-500 font-medium">Nenhum jogo confirmado nos próximos dias.</p>
+                        <p className="text-[10px] text-white/70 font-medium">Nenhum jogo confirmado nos próximos dias.</p>
                      </div>
                    )}
                 </div>
@@ -441,7 +566,7 @@ export default function PublicMatchmaking() {
                    <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-6">
                       Dúvidas sobre o local, nível do jogo ou coordenação? Resolva agora pelo WhatsApp.
                    </p>
-                   <div className="flex items-center gap-2 text-[10px] font-black uppercase text-[#1B3A5C]">
+                   <div className="flex items-center gap-2 text-[10px] font-black uppercase text-white">
                       Abrir Conversa <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                    </div>
                 </div>
@@ -452,7 +577,6 @@ export default function PublicMatchmaking() {
         </div>
       </div>
     </div>
-  </div>
-</Layout>
+    </div>
   );
 }

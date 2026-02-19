@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -121,9 +122,12 @@ export function ConfirmacaoPresenca({ jogoId, compact = false }: ConfirmacaoPres
             <span className="text-red-600">{contagem?.indisponiveis || 0}</span>
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" onCloseAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Confirmar Presença</DialogTitle>
+            <DialogDescription>
+              Confirme sua presença no jogo ou gerencie confirmações de jogadores.
+            </DialogDescription>
           </DialogHeader>
           <ConfirmacaoContent
             jogadores={jogadores}
@@ -152,9 +156,12 @@ export function ConfirmacaoPresenca({ jogoId, compact = false }: ConfirmacaoPres
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Confirmar Presença</DialogTitle>
+          <DialogDescription>
+            Confirme sua presença no jogo ou gerencie confirmações de jogadores.
+          </DialogDescription>
         </DialogHeader>
         <ConfirmacaoContent
           jogadores={jogadores}

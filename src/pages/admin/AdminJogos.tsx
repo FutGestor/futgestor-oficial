@@ -1,3 +1,16 @@
+/**
+ * ⚠️ DEPRECATED - PÁGINA DE BACKUP
+ * 
+ * Esta página foi substituída pela Agenda (src/pages/Agenda.tsx).
+ * Mantida apenas como backup/reference. NÃO MODIFICAR.
+ * 
+ * A criação de jogos agora acontece em:
+ * - /agenda - Interface principal (recomendada)
+ * - /admin/solicitacoes - Para desafios de outros times
+ * 
+ * Última modificação: 2026-02-19
+ */
+
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
@@ -8,7 +21,7 @@ import PresencaLinkDialog from "@/components/PresencaLinkDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,7 +30,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useJogos, useResultados } from "@/hooks/useData";
+import { JogoFormComEscalacao } from "@/components/JogoFormComEscalacao";
+import { AlertaJogoHoje } from "@/components/AlertaJogoHoje";
+import { useRegistrarPadraoEscalacao } from "@/hooks/useMLEscalacao";
+import { useJogos, useResultados, useEscalacaoByJogoId } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { useTimesAtivos } from "@/hooks/useTimes";
 import { useConfirmacoesContagem } from "@/hooks/useConfirmacoes";
@@ -86,6 +102,10 @@ export default function AdminJogos() {
   const [selectedResultadoId, setSelectedResultadoId] = useState<string | null>(null);
   const [editingResult, setEditingResult] = useState<Resultado | null>(null);
   const [resultFormData, setResultFormData] = useState<ResultadoFormData>(initialResultFormData);
+
+  // Estados para criação unificada de jogo + escalação
+  const [criarEscalacaoJunto, setCriarEscalacaoJunto] = useState(true);
+  const registrarPadraoML = useRegistrarPadraoEscalacao();
 
   // Estados para visualização de calendário
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
@@ -241,20 +261,43 @@ export default function AdminJogos() {
         if (error) throw error;
         toast({ title: "Jogo atualizado com sucesso!" });
       } else {
-        const { error } = await supabase.from("jogos").insert({
-          data_hora: dataHoraISO,
-          local: formData.local,
-          adversario: formData.adversario,
-          time_adversario_id: formData.time_adversario_id,
-          status: formData.status,
-          tipo_jogo: formData.tipo_jogo,
-          mando: formData.mando,
-          observacoes: formData.observacoes || null,
-          team_id: profile?.team_id,
-        });
+        const { data: newJogo, error } = await supabase
+          .from("jogos")
+          .insert({
+            data_hora: dataHoraISO,
+            local: formData.local,
+            adversario: formData.adversario,
+            time_adversario_id: formData.time_adversario_id,
+            status: formData.status,
+            tipo_jogo: formData.tipo_jogo,
+            mando: formData.mando,
+            observacoes: formData.observacoes || null,
+            team_id: profile?.team_id,
+          })
+          .select()
+          .single();
 
         if (error) throw error;
-        toast({ title: "Jogo criado com sucesso!" });
+        
+        // Criar escalação junto se a opção estiver habilitada
+        if (criarEscalacaoJunto && newJogo) {
+          try {
+            await supabase.from("escalacoes").insert({
+              jogo_id: newJogo.id,
+              team_id: profile?.team_id,
+              formacao: "2-2-2",
+              modalidade: "society-6",
+              publicada: false,
+            });
+            
+            toast({ title: "Jogo e escalação criados com sucesso!" });
+          } catch (escalacaoError) {
+            console.warn('Falha ao criar escalação:', escalacaoError);
+            toast({ title: "Jogo criado, mas houve erro ao criar escalação." });
+          }
+        } else {
+          toast({ title: "Jogo criado com sucesso!" });
+        }
 
         // Notificar jogadores do time sobre o novo jogo
         try {
@@ -273,6 +316,157 @@ export default function AdminJogos() {
       }
 
       queryClient.invalidateQueries({ queryKey: ["jogos"] });
+      setIsDialogOpen(false);
+    } catch (error: unknown) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao salvar o jogo",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handler para o formulário unificado de jogo + escalação
+  const handleUnifiedSubmit = async (data: { 
+    jogo: { 
+      data_hora: string; 
+      local: string; 
+      adversario: string; 
+      tipo_jogo: string; 
+      mando: string; 
+      observacoes: string; 
+    }; 
+    escalacao?: { 
+      criarEscalacao: boolean;
+      formacao: string;
+      modalidade: string;
+      publicada: boolean;
+      jogadores_por_posicao: Record<string, string>;
+      posicoes_customizadas: Record<string, string>;
+      banco: string[];
+    } 
+  }) => {
+    setIsSubmitting(true);
+
+    try {
+      const dataHoraISO = new Date(data.jogo.data_hora).toISOString();
+
+      if (editingJogo) {
+        // Modo edição: apenas atualiza o jogo
+        const { error } = await supabase
+          .from("jogos")
+          .update({
+            data_hora: dataHoraISO,
+            local: data.jogo.local,
+            adversario: data.jogo.adversario,
+            tipo_jogo: data.jogo.tipo_jogo,
+            mando: data.jogo.mando,
+            observacoes: data.jogo.observacoes || null,
+          })
+          .eq("id", editingJogo.id);
+
+        if (error) throw error;
+        toast({ title: "Jogo atualizado com sucesso!" });
+      } else {
+        // Modo criação: cria jogo e escalação
+        const { data: newJogo, error } = await supabase
+          .from("jogos")
+          .insert({
+            data_hora: dataHoraISO,
+            local: data.jogo.local,
+            adversario: data.jogo.adversario,
+            time_adversario_id: null,
+            status: "agendado",
+            tipo_jogo: data.jogo.tipo_jogo,
+            mando: data.jogo.mando,
+            observacoes: data.jogo.observacoes || null,
+            team_id: profile?.team_id,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Criar escalação se houver dados
+        if (newJogo && data.escalacao?.criarEscalacao) {
+          try {
+            const { data: newEscalacao, error: escalacaoError } = await supabase
+              .from("escalacoes")
+              .insert({
+                jogo_id: newJogo.id,
+                team_id: profile?.team_id,
+                formacao: data.escalacao.formacao,
+                modalidade: data.escalacao.modalidade,
+                publicada: data.escalacao.publicada,
+              })
+              .select()
+              .single();
+
+            if (escalacaoError) throw escalacaoError;
+
+            // Adicionar jogadores à escalação
+            const jogadoresPorPosicao = data.escalacao.jogadores_por_posicao;
+            const jogadoresParaInserir = Object.entries(jogadoresPorPosicao)
+              .filter(([, jogadorId]) => jogadorId)
+              .map(([posicao_campo, jogador_id], index) => ({
+                escalacao_id: newEscalacao.id,
+                jogador_id,
+                posicao_campo,
+                ordem: index + 1,
+              }));
+
+            // Adicionar jogadores do banco
+            const bancoParaInserir = data.escalacao.banco.map((jogador_id, index) => ({
+              escalacao_id: newEscalacao.id,
+              jogador_id,
+              posicao_campo: "BANCO",
+              ordem: jogadoresParaInserir.length + index + 1,
+            }));
+
+            const todosJogadores = [...jogadoresParaInserir, ...bancoParaInserir];
+
+            if (todosJogadores.length > 0) {
+              await supabase.from("escalacao_jogadores").insert(todosJogadores);
+            }
+
+            // Registrar padrão ML
+            if (profile?.team_id) {
+              await registrarPadraoML.mutateAsync({
+                teamId: profile.team_id,
+                formacao: data.escalacao.formacao,
+                jogadoresPorPosicao: data.escalacao.jogadores_por_posicao,
+              });
+            }
+            
+            toast({ title: "Jogo e escalação criados com sucesso!" });
+          } catch (escalacaoError) {
+            console.warn('Falha ao criar escalação:', escalacaoError);
+            toast({ title: "Jogo criado, mas houve erro ao criar escalação." });
+          }
+        } else {
+          toast({ title: "Jogo criado com sucesso!" });
+        }
+
+        // Notificar jogadores
+        try {
+          const dataFormatada = format(new Date(data.jogo.data_hora), "dd/MM 'às' HH:mm", { locale: ptBR });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabase as any).rpc('notify_team', {
+            p_team_id: profile?.team_id,
+            p_tipo: 'jogo_agendado',
+            p_titulo: 'Novo jogo agendado!',
+            p_mensagem: `${team?.nome || 'Seu time'} vs ${data.jogo.adversario} - ${dataFormatada}`,
+            p_link: `${basePath}/agenda`
+          });
+        } catch (notifError) {
+          console.warn('Falha ao enviar notificação:', notifError);
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["jogos"] });
+      queryClient.invalidateQueries({ queryKey: ["escalacoes"] });
       setIsDialogOpen(false);
     } catch (error: unknown) {
       toast({
@@ -410,6 +604,8 @@ export default function AdminJogos() {
         subtitle="Agende partidas, registre resultados e controle presenças." 
       />
 
+      <AlertaJogoHoje />
+
       <div className="space-y-4">
         {/* Linha 1: Título + Botão Novo Jogo */}
         <div className="flex items-start justify-end gap-4">
@@ -421,173 +617,35 @@ export default function AdminJogos() {
                 <span className="sm:hidden">ADICIONAR</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-h-[90vh] overflow-y-auto max-w-4xl" onCloseAutoFocus={(e) => e.preventDefault()}>
               <DialogHeader>
                 <DialogTitle>
-                  {editingJogo ? "Editar Jogo" : "Novo Jogo"}
+                  {editingJogo ? "Editar Jogo" : "Novo Jogo com Escalação"}
                 </DialogTitle>
+                <DialogDescription>
+                  {editingJogo 
+                    ? "Edite os dados do jogo."
+                    : "Crie o jogo e já prepare a escalação. Você poderá finalizar depois."}
+                </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Adversário</Label>
-                  <Select
-                    value={formData.time_adversario_id || "manual"}
-                    onValueChange={handleTimeChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um time ou digite manualmente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="manual">Digitar manualmente</SelectItem>
-                      {times?.filter(t => !t.is_casa).map((time) => (
-                        <SelectItem key={time.id} value={time.id}>
-                          <div className="flex items-center gap-2">
-                             <TeamShield 
-                               escudoUrl={time.escudo_url} 
-                               teamName={time.nome} 
-                               size="xs" 
-                             />
-                            {time.nome}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {!formData.time_adversario_id && (
-                  <div className="space-y-2">
-                    <Label htmlFor="adversario">Nome do Adversário</Label>
-                    <Input
-                      id="adversario"
-                      value={formData.adversario}
-                      onChange={(e) => setFormData({ ...formData, adversario: e.target.value })}
-                      placeholder="Digite o nome do time adversário"
-                      required
-                    />
-                  </div>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Data</Label>
-                    <DatePickerPopover
-                      date={formData.data_hora ? new Date(formData.data_hora) : undefined}
-                      modifiers={{
-                        booked: (jogos || [])
-                          .filter(j => !editingJogo || j.id !== editingJogo.id)
-                          .map(j => new Date(j.data_hora))
-                      }}
-                      modifiersClassNames={{
-                        booked: "relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-primary"
-                      }}
-                      setDate={(date) => {
-                        if (date) {
-                          const currentTime = formData.data_hora ? formData.data_hora.split('T')[1] : "19:00";
-                          setFormData({
-                            ...formData,
-                            data_hora: `${format(date, "yyyy-MM-dd")}T${currentTime}`,
-                          });
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Horário</Label>
-                    <TimePickerSelect
-                      value={formData.data_hora ? formData.data_hora.split('T')[1] : undefined}
-                      onChange={(time) => {
-                        const currentDate = formData.data_hora ? formData.data_hora.split('T')[0] : format(new Date(), "yyyy-MM-dd");
-                        setFormData({
-                          ...formData,
-                          data_hora: `${currentDate}T${time}`,
-                        });
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="local">Local</Label>
-                  <Input
-                    id="local"
-                    value={formData.local}
-                    onChange={(e) => setFormData({ ...formData, local: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="tipo_jogo">Tipo de Jogo</Label>
-                    <Select
-                      value={formData.tipo_jogo}
-                      onValueChange={(value: TipoJogo) => setFormData({ ...formData, tipo_jogo: value })}
-                    >
-                      <SelectTrigger id="tipo_jogo">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(tipoJogoLabels).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="mando">Mando de Campo</Label>
-                    <Select
-                      value={formData.mando}
-                      onValueChange={(value: MandoJogo) => setFormData({ ...formData, mando: value })}
-                    >
-                      <SelectTrigger id="mando">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(mandoLabels).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value: GameStatus) => setFormData({ ...formData, status: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(statusLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="observacoes">Observações</Label>
-                  <Textarea
-                    id="observacoes"
-                    value={formData.observacoes}
-                    onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
-                  />
-                </div>
-                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="h-11 sm:h-10">
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting} className="h-11 sm:h-10">
-                    {isSubmitting ? "Salvando..." : "Salvar"}
-                  </Button>
-                </div>
-              </form>
+              
+              <JogoFormComEscalacao
+                initialJogoData={editingJogo ? {
+                  data_hora: editingJogo.data_hora,
+                  local: editingJogo.local,
+                  adversario: editingJogo.adversario,
+                  tipo_jogo: editingJogo.tipo_jogo,
+                  mando: editingJogo.mando,
+                  observacoes: editingJogo.observacoes || "",
+                } : undefined}
+                jogoId={editingJogo?.id}
+                onSubmit={async (data) => {
+                  // Handle submission
+                  await handleUnifiedSubmit(data);
+                }}
+                onCancel={() => setIsDialogOpen(false)}
+                isSubmitting={isSubmitting}
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -816,9 +874,12 @@ export default function AdminJogos() {
 
       {/* Dialog para gerenciar Presenças */}
       <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" onCloseAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Gerenciar Presenças</DialogTitle>
+            <DialogDescription>
+              Confirme a presença dos jogadores para este jogo.
+            </DialogDescription>
           </DialogHeader>
           {selectedJogoId && <AdminPresencaManager jogoId={selectedJogoId} />}
         </DialogContent>
@@ -826,11 +887,14 @@ export default function AdminJogos() {
 
       {/* Dialog para Registro/Edição de Resultados */}
       <Dialog open={isResultDialogOpen} onOpenChange={setIsResultDialogOpen}>
-        <DialogContent>
+        <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>
               {editingResult ? "Editar Resultado" : "Registrar Resultado"}
             </DialogTitle>
+            <DialogDescription>
+              Registre o placar final da partida.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleResultSubmit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -880,9 +944,12 @@ export default function AdminJogos() {
 
       {/* Dialog para Estatísticas */}
       <Dialog open={statsDialogOpen} onOpenChange={setStatsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" onCloseAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Estatísticas da Partida</DialogTitle>
+            <DialogDescription>
+              Registre as estatísticas individuais dos jogadores.
+            </DialogDescription>
           </DialogHeader>
           {selectedResultadoId && (
             <EstatisticasPartidaForm
@@ -925,6 +992,7 @@ function JogoCard({
   className?: string;
 }) {
   const { data: contagem } = useConfirmacoesContagem(jogo.id);
+  const { data: escalacao } = useEscalacaoByJogoId(jogo.id);
   const { hasPresenca } = usePlanAccess();
 
   const getResultColor = (golsFavor: number, golsContra: number) => {
@@ -978,6 +1046,23 @@ function JogoCard({
                 {contagem.confirmados}
                 <X className="ml-1 h-3 w-3 text-destructive" />
                 {contagem.indisponiveis}
+              </Badge>
+            )}
+            
+            {/* Badge de Escalação */}
+            {escalacao && (
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "gap-1 text-xs",
+                  escalacao.publicada 
+                    ? "bg-green-500/10 text-green-400 border-green-500/30" 
+                    : "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                )}
+                title={escalacao.publicada ? "Escalação publicada" : "Escalação em rascunho"}
+              >
+                <Shield className="h-3 w-3" />
+                {escalacao.publicada ? "Publicada" : "Rascunho"}
               </Badge>
             )}
           </div>

@@ -33,14 +33,6 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
 
-    // Validate captcha
-    if (body.captcha_answer === undefined || body.captcha_answer !== body.captcha_expected) {
-      return new Response(
-        JSON.stringify({ error: "Resposta do captcha incorreta." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     // Validate required fields
     const { 
       nome_time, 
@@ -52,7 +44,8 @@ Deno.serve(async (req) => {
       observacoes, 
       team_id,
       time_solicitante_id,
-      user_solicitante_id
+      user_solicitante_id,
+      cep
     } = body;
 
     if (!nome_time || !telefone_contato || !data_preferida || !horario_preferido || !local_sugerido) {
@@ -62,7 +55,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { error } = await supabase.from("solicitacoes_jogo").insert({
+    // Process CEP
+    const cepLimpo = cep ? cep.replace(/\D/g, '') : '';
+
+    // Build insert data
+    const insertData: Record<string, unknown> = {
       nome_time: String(nome_time).slice(0, 100),
       email_contato: email_contato ? String(email_contato).slice(0, 255) : null,
       telefone_contato: String(telefone_contato).slice(0, 20),
@@ -74,9 +71,24 @@ Deno.serve(async (req) => {
       time_solicitante_id: time_solicitante_id || null,
       user_solicitante_id: user_solicitante_id || null,
       ip_address: ip,
-    });
+    };
+    
+    // Add CEP if valid (8 digits)
+    if (cepLimpo && cepLimpo.length === 8) {
+      insertData.cep = cepLimpo;
+    }
 
-    if (error) throw error;
+    console.log("Inserting data:", insertData);
+
+    const { error } = await supabase.from("solicitacoes_jogo").insert(insertData);
+
+    if (error) {
+      console.error("Insert error:", error);
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ success: true }),
@@ -84,6 +96,7 @@ Deno.serve(async (req) => {
     );
   } catch (err: unknown) {
     const error = err as Error;
+    console.error("Function error:", error);
     return new Response(
       JSON.stringify({ error: error.message || "Erro desconhecido" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

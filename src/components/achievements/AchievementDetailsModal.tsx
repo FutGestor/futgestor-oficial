@@ -64,7 +64,7 @@ export const AchievementDetailsModal: React.FC<AchievementDetailsModalProps> = (
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-md overflow-hidden">
+      <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-md overflow-hidden" onCloseAutoFocus={(e) => e.preventDefault()}>
         {/* Background Glow based on current tier */}
         <div className={cn(
           "absolute -top-24 -left-24 w-64 h-64 rounded-full blur-[100px] opacity-20 pointer-events-none",

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import Cropper from "react-easy-crop";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Loader2 } from "lucide-react";
@@ -90,9 +90,12 @@ export function ImageCropperModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] bg-zinc-950 border-white/10 text-white p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[500px] bg-zinc-950 border-white/10 text-white p-0 overflow-hidden" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-xl font-black uppercase italic tracking-tighter">Editar Foto</DialogTitle>
+          <DialogDescription className="text-zinc-400">
+            Ajuste o zoom e posicione a foto para recortar.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="relative w-full h-[400px] mt-4 bg-black">

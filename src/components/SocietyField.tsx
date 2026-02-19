@@ -8,6 +8,9 @@ interface SocietyFieldProps {
   jogadores: Array<{ jogador: Jogador; posicao_campo: string }>;
   className?: string;
   onPlayerMove?: (jogadorId: string, newPosicao: string) => void;
+  onPlayerClick?: (jogador: Jogador) => void;
+  onPositionClick?: (posicao: string) => void;
+  onPlayerRemove?: (jogadorId: string) => void;
   isEditable?: boolean;
 }
 
@@ -17,6 +20,9 @@ export function SocietyField({
   jogadores,
   className,
   onPlayerMove,
+  onPlayerClick,
+  onPositionClick,
+  onPlayerRemove,
   isEditable = false
 }: SocietyFieldProps) {
   const fieldRef = useRef<HTMLDivElement>(null);
@@ -126,19 +132,15 @@ export function SocietyField({
   const isSociety = modalidade !== 'campo-11';
 
   return (
-    <div className={cn("relative w-full max-w-lg mx-auto py-12 px-4", className)} style={{ perspective: '2000px' }}>
+    <div className={cn("relative w-full mx-auto py-2 sm:py-4 md:py-6 px-2 sm:px-4", className)}>
       <div
         ref={fieldRef}
         className={cn(
-          "relative mx-auto w-full rounded-2xl p-4 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)] select-none transition-all duration-700 ease-out",
+          "relative mx-auto w-full max-w-[320px] sm:max-w-[400px] md:max-w-[480px] lg:max-w-[520px] rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)] select-none transition-all duration-700 ease-out",
           "bg-black/20 backdrop-blur-md", // Fundo transparente com blur sutil
           "border border-white/10",
           isSociety ? "aspect-[3/4]" : "aspect-[2/3]"
         )}
-        style={{ 
-          transform: `rotateX(25deg)`, // Aumentando a inclinação
-          transformStyle: 'preserve-3d'
-        }}
       >
         {/* Gramado com padrão de listras (Mowing Patterns) */}
         <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -173,18 +175,44 @@ export function SocietyField({
           <div className="absolute bottom-0 left-1/3 right-1/3 h-8 border border-b-0 border-white/10" />
         </div>
 
-        {/* Radar Tático / Targets para posições vazias */}
-        {!draggingPlayer && jogadores.length === 0 && Object.entries(basePositions).map(([posicao, coords]) => {
+        {/* Posições vazias clicáveis (modo editável) ou targets (modo visualização) */}
+        {!draggingPlayer && Object.entries(basePositions).map(([posicao, coords]) => {
           const label = positionSlotLabels[posicao] || posicao.toUpperCase();
+          const isOccupied = jogadores.some(j => j.posicao_campo === posicao);
+          
+          // Se estiver ocupada e não for modo de arrastar, não mostra o target
+          if (isOccupied && !isEditable) return null;
+          
+          // Se estiver ocupada em modo editável, ainda mostra um indicador sutil por baixo
+          if (isOccupied) {
+            return (
+              <div
+                key={`target-${posicao}`}
+                className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/5 bg-white/[0.02] w-[clamp(36px,12vw,56px)] h-[clamp(36px,12vw,56px)] transition-all pointer-events-none opacity-30"
+                style={{ top: coords.top, left: coords.left }}
+              >
+                <span className="text-[8px] font-black text-white/30 tracking-tighter">{label}</span>
+              </div>
+            );
+          }
+          
+          // Posição vazia - clicável em modo editável
           return (
-            <div
+            <button
               key={posicao}
-              className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/5 bg-white/[0.02] h-14 w-14 transition-all pointer-events-none"
+              type="button"
+              onClick={() => onPositionClick?.(posicao)}
+              className={cn(
+                "absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-dashed border-white/30 bg-white/[0.05] w-[clamp(36px,12vw,56px)] h-[clamp(36px,12vw,56px)] transition-all",
+                isEditable 
+                  ? "cursor-pointer hover:bg-white/10 hover:border-white/50 hover:scale-110 active:scale-95" 
+                  : "pointer-events-none opacity-50"
+              )}
               style={{ top: coords.top, left: coords.left }}
+              disabled={!isEditable}
             >
-               <div className="absolute inset-0 rounded-full border border-dashed border-white/10 scale-90" />
-               <span className="text-[10px] font-black text-white/20 tracking-tighter">{label}</span>
-            </div>
+              <span className="text-[clamp(8px,2.5vw,12px)] font-black text-white/40 tracking-tighter">{label}</span>
+            </button>
           );
         })}
 
@@ -209,22 +237,22 @@ export function SocietyField({
               key={jogador.id}
               onMouseDown={(e) => handleMouseDown(e, jogador.id)}
               onTouchStart={(e) => handleMouseDown(e, jogador.id)}
+              onClick={() => onPlayerClick?.(jogador)}
               className={cn(
-                "absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center cursor-grab active:cursor-grabbing transition-all duration-300 touch-none",
-                isDragging && "z-50",
-                !isDragging && "z-10"
+                "absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center cursor-pointer transition-all duration-300 touch-none",
+                isDragging && "z-50 scale-110",
+                !isDragging && "z-10",
+                onPlayerClick && "hover:scale-110"
               )}
               style={{ 
                 top, 
-                left,
-                transform: `translate(-50%, -50%) rotateX(-25deg) ${isDragging ? 'translateZ(100px) scale(1.2)' : 'translateZ(30px)'}`,
-                transformStyle: 'preserve-3d'
+                left
               }}
             >
-              {/* Tactical Circle Avatar */}
+              {/* Tactical Circle Avatar - Tamanho proporcional ao campo */}
               <div className="relative group">
                 <div className={cn(
-                  "relative h-14 w-14 rounded-full p-0.5 bg-gradient-to-tr shadow-2xl transition-all border border-white/20",
+                  "relative w-[clamp(36px,12vw,56px)] h-[clamp(36px,12vw,56px)] rounded-full p-0.5 bg-gradient-to-tr shadow-2xl transition-all border border-white/20",
                   posTheme.split(' ').slice(0, 2).join(' ')
                 )}>
                   {jogador.foto_url ? (
@@ -234,24 +262,24 @@ export function SocietyField({
                       className="h-full w-full rounded-full object-cover pointer-events-none brightness-110 contrast-110"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-900 text-sm font-black text-white pointer-events-none">
+                    <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-900 text-[clamp(10px,3vw,14px)] font-black text-white pointer-events-none">
                       {jogador.numero || "?"}
                     </div>
                   )}
                   
-                  {/* Rating Badge */}
-                  <div className="absolute -top-1 -left-1 h-6 w-6 rounded-full bg-slate-950 border border-white/30 flex items-center justify-center shadow-lg">
-                    <span className="text-[10px] font-black text-white italic">
+                  {/* Rating Badge - Proporcional */}
+                  <div className="absolute -top-0.5 -left-0.5 w-[clamp(16px,5vw,26px)] h-[clamp(16px,5vw,26px)] rounded-full bg-slate-950 border border-white/30 flex items-center justify-center shadow-lg">
+                    <span className="text-[clamp(8px,2.5vw,12px)] font-black text-white italic">
                       {jogador.numero || '99'}
                     </span>
                   </div>
 
-                  {/* SETOR Badge */}
+                  {/* SETOR Badge - Proporcional */}
                   <div className={cn(
-                    "absolute -bottom-1 -right-1 px-1 rounded-sm bg-slate-950 border border-white/20 flex items-center justify-center shadow-md min-w-[20px]",
+                    "absolute -bottom-0.5 -right-0.5 px-[clamp(2px,1vw,6px)] rounded-sm bg-slate-950 border border-white/20 flex items-center justify-center shadow-md min-w-[clamp(16px,4vw,24px)]",
                     posTheme.split(' ').slice(2).join(' ')
                   )}>
-                    <span className="text-[8px] font-black uppercase italic tracking-tighter">
+                    <span className="text-[clamp(6px,2vw,10px)] font-black uppercase italic tracking-tighter">
                       {label}
                     </span>
                   </div>
@@ -263,17 +291,40 @@ export function SocietyField({
                 )}
               </div>
 
-              {/* Nome */}
-              <div className="mt-3 relative">
+              {/* Nome - Desktop: sempre visível, Mobile: apenas no hover */}
+              <div className="mt-1 sm:mt-2 relative hidden sm:block">
                 {!isDragging && (
                   <div className="absolute inset-0 translate-y-1 blur-sm bg-black/40 rounded-full" />
                 )}
-                <div className="relative rounded-full bg-gradient-to-b from-slate-900 to-black/90 backdrop-blur-md border border-white/15 px-3 py-0.5 shadow-2xl">
-                  <span className="text-[10px] font-black text-white uppercase tracking-wider whitespace-nowrap">
+                <div className="relative rounded-full bg-gradient-to-b from-slate-900 to-black/90 backdrop-blur-md border border-white/15 px-1 sm:px-2 py-0.5 shadow-2xl max-w-[clamp(60px,15vw,100px)]">
+                  <span className="text-[clamp(7px,2vw,10px)] font-bold text-white uppercase tracking-tight truncate block text-center">
                     {jogador.apelido || jogador.nome.split(" ")[0]}
                   </span>
                 </div>
               </div>
+              
+              {/* Tooltip/Nome no hover para mobile */}
+              <div className="mt-1 sm:mt-2 relative sm:hidden opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="relative rounded-full bg-gradient-to-b from-slate-900 to-black/90 backdrop-blur-md border border-white/15 px-1 sm:px-2 py-0.5 shadow-2xl">
+                  <span className="text-[clamp(7px,2vw,10px)] font-bold text-white uppercase tracking-tight whitespace-nowrap">
+                    {jogador.apelido || jogador.nome.split(" ")[0]}
+                  </span>
+                </div>
+              </div>
+
+              {/* Botão X para remover jogador (apenas em modo editável) */}
+              {isEditable && onPlayerRemove && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPlayerRemove(jogador.id);
+                  }}
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 text-white text-xs font-bold flex items-center justify-center shadow-lg border border-white/20 z-50 transition-colors"
+                  title="Remover jogador"
+                >
+                  ×
+                </button>
+              )}
             </div>
           );
         })}

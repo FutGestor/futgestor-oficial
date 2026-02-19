@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import { TeamShield } from "@/components/TeamShield";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 
 // Subcomponents
 import { BasicInfoForm } from "@/components/profile/BasicInfoForm";
@@ -476,8 +476,13 @@ export default function MeuPerfil() {
   } : { jogos: 0, gols: 0, assistencias: 0, mvp: 0, media: "0.00" };
 
   const renderEditForm = () => (
-    <DialogContent className="max-w-md bg-transparent border-border text-foreground backdrop-blur-xl">
-      <DialogHeader><DialogTitle>Editar Informações do Atleta</DialogTitle></DialogHeader>
+    <DialogContent className="max-w-md bg-transparent border-border text-foreground backdrop-blur-xl" onCloseAutoFocus={(e) => e.preventDefault()}>
+      <DialogHeader>
+        <DialogTitle>Editar Informações do Atleta</DialogTitle>
+        <DialogDescription>
+          Atualize seus dados pessoais e foto de perfil.
+        </DialogDescription>
+      </DialogHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="flex flex-col items-center gap-2 mb-4">

@@ -90,15 +90,16 @@ function usePlayerData() {
       today.setHours(0, 0, 0, 0);
       const { data, error } = await supabase
         .from("jogos")
-        .select("*, time_adversario:times(*, adversary_team:teams(escudo_url, nome))")
+        .select("*, time_adversario:times(*)")
         .eq("team_id", teamId!)
         .gte("data_hora", today.toISOString())
         .in("status", ["agendado", "confirmado"])
         .order("data_hora", { ascending: true })
         .limit(1)
         .maybeSingle();
+      
       if (error) throw error;
-      return data as any;
+      return data;
     },
   });
 
@@ -109,14 +110,15 @@ function usePlayerData() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jogos")
-        .select("*, resultados(*), time_adversario:times(*, adversary_team:teams(escudo_url, nome))")
+        .select("*, resultados(*), time_adversario:times(*)")
         .eq("team_id", teamId!)
         .eq("status", "finalizado")
         .order("data_hora", { ascending: false })
         .limit(1)
         .maybeSingle();
+      
       if (error) throw error;
-      return data as any;
+      return data;
     },
   });
 

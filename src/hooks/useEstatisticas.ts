@@ -57,6 +57,42 @@ export function useEstatisticasJogadores() {
   });
 }
 
+// Estatísticas de um jogador específico
+export function useEstatisticasJogador(jogadorId: string | undefined) {
+  return useQuery({
+    queryKey: ["estatisticas-jogador", jogadorId],
+    enabled: !!jogadorId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("estatisticas_partida")
+        .select("*")
+        .eq("jogador_id", jogadorId!);
+      
+      if (error) throw error;
+
+      // Agregar estatísticas
+      const stats: EstatisticasJogador = {
+        jogador_id: jogadorId!,
+        jogos: 0,
+        gols: 0,
+        assistencias: 0,
+        cartoes_amarelos: 0,
+        cartoes_vermelhos: 0,
+      };
+
+      for (const stat of data) {
+        if (stat.participou) stats.jogos++;
+        stats.gols += stat.gols;
+        stats.assistencias += stat.assistencias;
+        if (stat.cartao_amarelo) stats.cartoes_amarelos++;
+        if (stat.cartao_vermelho) stats.cartoes_vermelhos++;
+      }
+
+      return stats;
+    },
+  });
+}
+
 // Ranking de artilheiros e assistências
 export function useRanking(teamId?: string | null) {
   return useQuery({
@@ -144,22 +180,43 @@ export function useRankingDestaques(teamId?: string | null) {
   return useQuery({
     queryKey: ["ranking-destaques", teamId],
     queryFn: async () => {
+      // Buscar resultados com MVP
       let query = supabase
         .from("resultados")
-        .select(`
-          mvp_jogador_id,
-          jogador:jogadores!resultados_mvp_jogador_id_fkey(id, nome, apelido, foto_url),
-          jogo:jogos!inner(team_id)
-        `)
+        .select("mvp_jogador_id, jogo_id")
         .not("mvp_jogador_id", "is", null);
 
-      if (teamId) {
-        query = query.eq("jogo.team_id", teamId);
-      }
-
-      const { data, error } = await query;
+      const { data: resultados, error } = await query;
 
       if (error) throw error;
+      if (!resultados?.length) return [];
+
+      // Se tem teamId, filtrar jogos do time
+      let jogoIds = resultados.map(r => r.jogo_id);
+      if (teamId) {
+        const { data: jogos } = await supabase
+          .from("jogos")
+          .select("id")
+          .eq("team_id", teamId)
+          .in("id", jogoIds);
+        
+        const jogosDoTime = new Set(jogos?.map(j => j.id) || []);
+        jogoIds = jogoIds.filter(id => jogosDoTime.has(id));
+      }
+
+      // Filtrar resultados dos jogos do time
+      const resultadosFiltrados = resultados.filter(r => jogoIds.includes(r.jogo_id));
+
+      // Buscar dados dos jogadores
+      const jogadorIds = [...new Set(resultadosFiltrados.map(r => r.mvp_jogador_id).filter(Boolean))];
+      if (jogadorIds.length === 0) return [];
+
+      const { data: jogadores } = await supabase
+        .from("jogadores")
+        .select("id, nome, apelido, foto_url")
+        .in("id", jogadorIds);
+
+      const jogadoresMap = new Map(jogadores?.map(j => [j.id, j]) || []);
 
       // Agregar MVPs por jogador
       const mvpMap: Record<string, {
@@ -172,15 +229,11 @@ export function useRankingDestaques(teamId?: string | null) {
         votos: number;
       }> = {};
 
-      for (const row of data) {
-        if (!row.jogador || !row.mvp_jogador_id) continue;
+      for (const row of resultadosFiltrados) {
+        if (!row.mvp_jogador_id) continue;
         
-        const jogador = row.jogador as unknown as {
-          id: string;
-          nome: string;
-          apelido: string | null;
-          foto_url: string | null;
-        };
+        const jogador = jogadoresMap.get(row.mvp_jogador_id);
+        if (!jogador) continue;
         
         if (!mvpMap[row.mvp_jogador_id]) {
           mvpMap[row.mvp_jogador_id] = {

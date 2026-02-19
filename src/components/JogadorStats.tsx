@@ -14,8 +14,10 @@ export function JogadorStats({ stats }: JogadorStatsProps) {
     );
   }
 
+  const mediaGols = stats.jogos > 0 ? (stats.gols / stats.jogos).toFixed(2) : "0.00";
+
   return (
-    <div className="mt-3 grid grid-cols-4 gap-2 border-t pt-3 text-center text-xs border-border/50">
+    <div className="mt-3 grid grid-cols-5 gap-2 border-t pt-3 text-center text-xs border-border/50">
       <div>
         <div className="flex items-center justify-center gap-1 font-semibold text-orange-500 dark:text-orange-400">
           <Users className="h-3 w-3" />
@@ -45,6 +47,13 @@ export function JogadorStats({ stats }: JogadorStatsProps) {
           {stats.cartoes_vermelhos}
         </div>
         <div className="text-muted-foreground dark:text-gray-400">Cartões</div>
+      </div>
+      <div>
+        <div className="flex items-center justify-center gap-1 font-semibold text-purple-600 dark:text-purple-400">
+          <span className="text-[10px]">⚔️</span>
+          {mediaGols}
+        </div>
+        <div className="text-muted-foreground dark:text-gray-400">Média</div>
       </div>
     </div>
   );

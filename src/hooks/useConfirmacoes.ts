@@ -24,12 +24,47 @@ export function useConfirmacoesFuturas() {
   return useQuery({
     queryKey: ["confirmacoes-futuras"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Buscar jogos futuros primeiro
+      const { data: jogosFuturos } = await supabase
+        .from("jogos")
+        .select("id")
+        .gte("data_hora", new Date().toISOString());
+      
+      if (!jogosFuturos?.length) return [];
+
+      const jogoIds = jogosFuturos.map(j => j.id);
+
+      // Buscar confirmações desses jogos
+      const { data: confirmacoes, error } = await supabase
         .from("confirmacoes_presenca")
-        .select(`*, jogador:jogadores(*), jogo:jogos!inner(*)`)
-        .gte("jogo.data_hora", new Date().toISOString());
+        .select("*")
+        .in("jogo_id", jogoIds);
+
       if (error) throw error;
-      return data;
+      if (!confirmacoes?.length) return [];
+
+      // Buscar dados dos jogadores
+      const jogadorIds = [...new Set(confirmacoes.map(c => c.jogador_id).filter(Boolean))];
+      const { data: jogadores } = await supabase
+        .from("jogadores")
+        .select("*")
+        .in("id", jogadorIds);
+
+      // Buscar dados dos jogos
+      const { data: jogos } = await supabase
+        .from("jogos")
+        .select("*")
+        .in("id", jogoIds);
+
+      const jogadoresMap = new Map(jogadores?.map(j => [j.id, j]) || []);
+      const jogosMap = new Map(jogos?.map(j => [j.id, j]) || []);
+
+      // Juntar dados
+      return confirmacoes.map(c => ({
+        ...c,
+        jogador: jogadoresMap.get(c.jogador_id) || null,
+        jogo: jogosMap.get(c.jogo_id) || null,
+      }));
     },
   });
 }

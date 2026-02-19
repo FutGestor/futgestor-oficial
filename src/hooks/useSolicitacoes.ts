@@ -82,8 +82,6 @@ export function useCreateSolicitacao() {
       local_sugerido: string;
       observacoes?: string;
       team_id?: string;
-      captcha_answer: number;
-      captcha_expected: number;
     }) => {
       const response = await supabase.functions.invoke("create-solicitacao", {
         body: {

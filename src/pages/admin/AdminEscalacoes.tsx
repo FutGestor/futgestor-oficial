@@ -6,7 +6,7 @@ import { Plus, Edit, Trash2, Users, Eye, EyeOff, X, Sparkles, Info } from "lucid
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -32,6 +32,41 @@ import { useTacticalAssistant } from "@/hooks/useTacticalAssistant";
 import { ManagementHeader } from "@/components/layout/ManagementHeader";
 import { useTeamSlug } from "@/hooks/useTeamSlug";
 import { Layout } from "@/components/layout/Layout";
+import type { Jogador } from "@/lib/types";
+
+// Componente auxiliar para botão de seleção de jogador
+function JogadorSelecaoButton({ 
+  jogador, 
+  isSelected, 
+  onClick 
+}: { 
+  jogador: Jogador; 
+  isSelected: boolean; 
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      variant={isSelected ? "default" : "ghost"}
+      className="w-full justify-start gap-3 h-auto py-2"
+      onClick={onClick}
+    >
+      {jogador.foto_url ? (
+        <img src={jogador.foto_url} alt="" className="w-10 h-10 rounded-full object-cover" />
+      ) : (
+        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-sm font-bold">
+          {jogador.numero || "?"}
+        </div>
+      )}
+      <div className="flex flex-col items-start flex-1 min-w-0">
+        <span className="font-medium truncate">{jogador.apelido || jogador.nome}</span>
+        <span className="text-xs text-muted-foreground">{positionLabels[jogador.posicao]}</span>
+      </div>
+      {jogador.numero && (
+        <Badge variant="outline" className="ml-auto shrink-0">#{jogador.numero}</Badge>
+      )}
+    </Button>
+  );
+}
 
 type EscalacaoFormData = {
   jogo_id: string;
@@ -60,6 +95,9 @@ export default function AdminEscalacoes() {
   const [editingEscalacao, setEditingEscalacao] = useState<(Escalacao & { jogo: Jogo }) | null>(null);
   const [formData, setFormData] = useState<EscalacaoFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Estado para seleção rápida no campo
+  const [quickSelectPosicao, setQuickSelectPosicao] = useState<string | null>(null);
 
   const { team } = useTeamConfig();
   const { basePath } = useTeamSlug();
@@ -495,11 +533,16 @@ export default function AdminEscalacoes() {
                 Nova Escalação
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+            <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto" aria-describedby="escalacao-dialog-desc" onCloseAutoFocus={(e) => e.preventDefault()}>
                 <DialogHeader>
                 <DialogTitle>
                     {editingEscalacao ? "Editar Escalação" : "Nova Escalação"}
                 </DialogTitle>
+                <DialogDescription id="escalacao-dialog-desc">
+                    {editingEscalacao 
+                        ? "Edite a escalação do jogo, ajuste os titulares, banco de reservas e táticas."
+                        : "Crie uma nova escalação selecionando o jogo, os titulares, banco de reservas e definindo as táticas."}
+                </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -623,11 +666,14 @@ export default function AdminEscalacoes() {
                     <Label htmlFor="publicada">Publicar escalação</Label>
                 </div>
 
-                {/* Campo visual + seleção de jogadores lado a lado */}
-                <div className="grid gap-6 lg:grid-cols-2">
-                    {/* Preview do campo */}
-                    <div>
-                    <Label className="mb-2 block">Visualização do Campo (Arraste os jogadores)</Label>
+                {/* Campo visual - Clique nas posições para selecionar jogadores */}
+                <div className="flex flex-col items-center">
+                    <Label className="mb-2 block text-center">
+                      Clique nas posições no campo para selecionar jogadores
+                      <span className="block text-xs text-muted-foreground mt-1">
+                        ({titularesEscalados.length}/{positionSlots.length} posições preenchidas)
+                      </span>
+                    </Label>
                     <SocietyField
                         modalidade={formData.modalidade}
                         formacao={formData.formacao}
@@ -643,57 +689,23 @@ export default function AdminEscalacoes() {
                             }
                         }));
                         }}
+                        onPositionClick={(posicao) => setQuickSelectPosicao(posicao)}
+                        onPlayerRemove={(jogadorId) => {
+                          const posicaoDoJogador = Object.entries(formData.jogadores_por_posicao).find(
+                            ([, id]) => id === jogadorId
+                          )?.[0];
+                          
+                          if (posicaoDoJogador) {
+                            setFormData(prev => ({
+                              ...prev,
+                              jogadores_por_posicao: {
+                                ...prev.jogadores_por_posicao,
+                                [posicaoDoJogador]: ""
+                              }
+                            }));
+                          }
+                        }}
                     />
-                    </div>
-
-                    {/* Seleção de jogadores por posição */}
-                    <div className="space-y-3">
-                    <Label>Selecionar Jogadores por Posição ({titularesEscalados.length}/{positionSlots.length})</Label>
-                    <div className="max-h-80 space-y-2 overflow-y-auto pr-2">
-                        {positionSlots.map((posicao) => (
-                        <div key={posicao} className="flex items-center gap-2 rounded-lg border p-2">
-                            <span className="w-20 text-sm font-medium text-muted-foreground text-center">
-                            {positionSlotLabels[posicao]}
-                            </span>
-                            <Select
-                            value={formData.jogadores_por_posicao[posicao] || "__none__"}
-                            onValueChange={(value) => setFormData({
-                                ...formData,
-                                jogadores_por_posicao: {
-                                ...formData.jogadores_por_posicao,
-                                [posicao]: value === "__none__" ? "" : value,
-                                },
-                            })}
-                            >
-                            <SelectTrigger className="flex-1">
-                                <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="__none__">Nenhum</SelectItem>
-                                {jogadores?.filter(j =>
-                                !todosJogadoresAlocados.includes(j.id) ||
-                                formData.jogadores_por_posicao[posicao] === j.id
-                                ).map((jogador) => (
-                                <SelectItem key={jogador.id} value={jogador.id}>
-                                    <div className="flex items-center gap-2">
-                                    {jogador.numero !== null && (
-                                        <Badge variant="outline" className="h-5 px-1 font-mono text-xs">
-                                        #{jogador.numero}
-                                        </Badge>
-                                    )}
-                                    <span className="font-medium">{jogador.apelido || jogador.nome}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                        {positionLabels[jogador.posicao]}
-                                    </span>
-                                    </div>
-                                </SelectItem>
-                                ))}
-                            </SelectContent>
-                            </Select>
-                        </div>
-                        ))}
-                    </div>
-                    </div>
                 </div>
 
                 {/* Seção Banco de Reservas */}
@@ -779,6 +791,153 @@ export default function AdminEscalacoes() {
                     <p className="text-sm text-muted-foreground">Nenhum jogador no banco. Adicione jogadores usando o seletor acima.</p>
                     )}
                 </div>
+
+                {/* Dialog de Seleção Rápida - aparece ao clicar no campo */}
+                <Dialog open={!!quickSelectPosicao} onOpenChange={() => setQuickSelectPosicao(null)}>
+                  <DialogContent className="sm:max-w-sm" aria-describedby="quick-select-desc" onCloseAutoFocus={(e) => e.preventDefault()}>
+                    <DialogHeader>
+                      <DialogTitle>
+                        Selecionar {quickSelectPosicao && positionSlotLabels[quickSelectPosicao]}
+                      </DialogTitle>
+                      <DialogDescription id="quick-select-desc">
+                        Escolha um jogador para esta posção ou remova o jogador atual.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 max-h-[60vh] overflow-y-auto py-4">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-muted-foreground"
+                        onClick={() => {
+                          if (quickSelectPosicao) {
+                            setFormData(prev => ({
+                              ...prev,
+                              jogadores_por_posicao: {
+                                ...prev.jogadores_por_posicao,
+                                [quickSelectPosicao]: ""
+                              }
+                            }));
+                          }
+                          setQuickSelectPosicao(null);
+                        }}
+                      >
+                        <span className="text-muted-foreground">— Nenhum jogador</span>
+                      </Button>
+                      
+                      {(() => {
+                        const posicaoClicada = quickSelectPosicao?.toLowerCase() || "";
+                        
+                        // Mapeamento de posições exatas
+                        const posicaoExata: Record<string, string> = {
+                          'goleiro': 'goleiro',
+                          'zagueiro': 'zagueiro',
+                          'lateral': 'lateral',
+                          'volante': 'volante',
+                          'meia': 'meia',
+                          'atacante': 'atacante',
+                        };
+                        
+                        // Mapeamento de sugestões (posições compatíveis)
+                        const sugestoes: Record<string, string[]> = {
+                          'goleiro': [],
+                          'zagueiro': ['lateral'],
+                          'lateral': ['zagueiro'],
+                          'volante': ['meia'],
+                          'meia': ['volante', 'atacante'],
+                          'atacante': ['meia'],
+                        };
+                        
+                        const posicaoPrincipal = Object.entries(posicaoExata).find(([key]) => 
+                          posicaoClicada.includes(key)
+                        )?.[1] || posicaoClicada;
+                        
+                        const posicoesSugestao = Object.entries(sugestoes).find(([key]) => 
+                          posicaoClicada.includes(key)
+                        )?.[1] || [];
+                        
+                        // Filtrar jogadores disponíveis (não alocados em outras posições)
+                        const jogadoresDisponiveis = jogadores?.filter(j => {
+                          const alocadoEmOutraPosicao = Object.entries(formData.jogadores_por_posicao).some(
+                            ([pos, id]) => id === j.id && pos !== quickSelectPosicao
+                          );
+                          return !alocadoEmOutraPosicao || formData.jogadores_por_posicao[quickSelectPosicao || ""] === j.id;
+                        }) || [];
+                        
+                        // Separar em duas listas
+                        const jogadoresPosicaoExata = jogadoresDisponiveis
+                          .filter(j => j.posicao.toLowerCase() === posicaoPrincipal)
+                          .sort((a, b) => (a.numero || 99) - (b.numero || 99));
+                        
+                        const jogadoresSugestao = jogadoresDisponiveis
+                          .filter(j => posicoesSugestao.includes(j.posicao.toLowerCase()))
+                          .sort((a, b) => (a.numero || 99) - (b.numero || 99));
+                        
+                        return (
+                          <>
+                            {/* Jogadores da posição exata */}
+                            {jogadoresPosicaoExata.length > 0 && (
+                              <>
+                                <div className="pt-2 pb-1">
+                                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+                                    {positionLabels[posicaoPrincipal as keyof typeof positionLabels] || posicaoPrincipal}
+                                  </span>
+                                </div>
+                                {jogadoresPosicaoExata.map(jogador => (
+                                  <JogadorSelecaoButton
+                                    key={jogador.id}
+                                    jogador={jogador}
+                                    isSelected={formData.jogadores_por_posicao[quickSelectPosicao || ""] === jogador.id}
+                                    onClick={() => {
+                                      if (quickSelectPosicao) {
+                                        setFormData(prev => ({
+                                          ...prev,
+                                          jogadores_por_posicao: {
+                                            ...prev.jogadores_por_posicao,
+                                            [quickSelectPosicao]: jogador.id
+                                          }
+                                        }));
+                                      }
+                                      setQuickSelectPosicao(null);
+                                    }}
+                                  />
+                                ))}
+                              </>
+                            )}
+                            
+                            {/* Sugestões de outras posições */}
+                            {jogadoresSugestao.length > 0 && (
+                              <>
+                                <div className="pt-4 pb-1 border-t border-white/10">
+                                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                    Outras opções
+                                  </span>
+                                </div>
+                                {jogadoresSugestao.map(jogador => (
+                                  <JogadorSelecaoButton
+                                    key={jogador.id}
+                                    jogador={jogador}
+                                    isSelected={formData.jogadores_por_posicao[quickSelectPosicao || ""] === jogador.id}
+                                    onClick={() => {
+                                      if (quickSelectPosicao) {
+                                        setFormData(prev => ({
+                                          ...prev,
+                                          jogadores_por_posicao: {
+                                            ...prev.jogadores_por_posicao,
+                                            [quickSelectPosicao]: jogador.id
+                                          }
+                                        }));
+                                      }
+                                      setQuickSelectPosicao(null);
+                                    }}
+                                  />
+                                ))}
+                              </>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </DialogContent>
+                </Dialog>
 
                 <div className="flex justify-end gap-2">
                     <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
