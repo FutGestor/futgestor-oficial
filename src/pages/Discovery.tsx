@@ -100,7 +100,7 @@ export default function Discovery() {
     staleTime: 1000 * 60 * 60,
   });
 
-  // Query de Times com priorização por cidade do usuário (apenas ativos)
+  // Query de Times com priorização por cidade do usuário
   const { data: teams, isLoading: loadingTeams } = useQuery({
     queryKey: ["discovery-teams", debouncedSearch, filterCity, filterModalidade, filterFaixaEtaria, userCity],
     queryFn: async () => {
@@ -110,8 +110,7 @@ export default function Discovery() {
           id, nome, slug, escudo_url, modalidade, faixa_etaria, cidade, uf,
           times(cidade),
           jogadores(id).eq(ativo, true)
-        `)
-        .eq("ativo", true);  // Só mostrar times ativos
+        `);
 
       if (debouncedSearch) {
         query = query.ilike("nome", `%${debouncedSearch}%`);
