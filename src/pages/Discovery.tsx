@@ -100,9 +100,9 @@ export default function Discovery() {
     staleTime: 1000 * 60 * 60,
   });
 
-  // Query de Times
+  // Query de Times com priorização por cidade do usuário
   const { data: teams, isLoading: loadingTeams } = useQuery({
-    queryKey: ["discovery-teams", debouncedSearch, filterCity, filterModalidade, filterFaixaEtaria],
+    queryKey: ["discovery-teams", debouncedSearch, filterCity, filterModalidade, filterFaixaEtaria, userCity],
     queryFn: async () => {
       let query = supabase
         .from("teams")
@@ -116,19 +116,18 @@ export default function Discovery() {
         query = query.ilike("nome", `%${debouncedSearch}%`);
       }
 
-      const { data, error } = await query.order("nome").limit(50);
+      const { data, error } = await query.order("nome").limit(100);
       
       if (error) {
         console.error("Error fetching teams:", error);
         return [];
       }
 
-      const formattedData = (data as unknown as Team[]);
+      let formattedData = (data as unknown as Team[]);
 
-      // Client-side Filter by City
-      let filtered = formattedData;
+      // Client-side Filter by City (quando um filtro específico é selecionado)
       if (filterCity !== "all") {
-        filtered = filtered.filter(team => {
+        formattedData = formattedData.filter(team => {
             const teamCity = team.cidade || team.times?.[0]?.cidade;
             return teamCity === filterCity;
         });
@@ -136,26 +135,33 @@ export default function Discovery() {
 
       // Client-side Filter by Modalidade
       if (filterModalidade !== "all") {
-        filtered = filtered.filter(team => team.modalidade === filterModalidade);
+        formattedData = formattedData.filter(team => team.modalidade === filterModalidade);
       }
 
       // Client-side Filter by Faixa Etária
       if (filterFaixaEtaria !== "all") {
-        filtered = filtered.filter(team => team.faixa_etaria === filterFaixaEtaria);
+        formattedData = formattedData.filter(team => team.faixa_etaria === filterFaixaEtaria);
       }
 
-      // Sort by Priority (User's City First)
-      if (userCity) {
-        filtered.sort((a, b) => {
-            const aCity = a.cidade || a.times?.[0]?.cidade;
-            const bCity = b.cidade || b.times?.[0]?.cidade;
-            if (aCity === userCity && bCity !== userCity) return -1;
-            if (aCity !== userCity && bCity === userCity) return 1;
-            return 0;
+      // SEPARAÇÃO: Times da mesma cidade vs outros
+      if (userCity && filterCity === "all") {
+        const sameCityTeams: Team[] = [];
+        const otherTeams: Team[] = [];
+
+        formattedData.forEach(team => {
+          const teamCity = team.cidade || team.times?.[0]?.cidade;
+          if (teamCity && teamCity.toLowerCase() === userCity.toLowerCase()) {
+            sameCityTeams.push(team);
+          } else {
+            otherTeams.push(team);
+          }
         });
+
+        // Retorna primeiro os da mesma cidade, depois os outros
+        return [...sameCityTeams, ...otherTeams];
       }
 
-      return filtered;
+      return formattedData;
     },
     enabled: activeTab === "times",
   });
@@ -307,18 +313,27 @@ export default function Discovery() {
                 )}
             </div>
 
-            {/* Results Count */}
-            <div className="text-sm text-muted-foreground">
-                {activeTab === "times" ? (
-                loadingTeams ? <Skeleton className="h-4 w-48" /> : 
-                <span>
-                    <strong className="text-white">{teams?.length || 0} times encontrados</strong>
-                    {userCity && filterCity === 'all' && ` (priorizando ${userCity})`}
-                    {filterCity !== 'all' && ` em ${filterCity}`}
-                </span>
-                ) : (
-                loadingPlayers ? <Skeleton className="h-4 w-48" /> :
-                <span><strong className="text-white">{players?.length || 0} jogadores encontrados</strong></span>
+            {/* Results Count & Proximity Badge */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <div className="text-sm text-muted-foreground">
+                    {activeTab === "times" ? (
+                    loadingTeams ? <Skeleton className="h-4 w-48" /> : 
+                    <span>
+                        <strong className="text-white">{teams?.length || 0} times encontrados</strong>
+                        {filterCity !== 'all' && ` em ${filterCity}`}
+                    </span>
+                    ) : (
+                    loadingPlayers ? <Skeleton className="h-4 w-48" /> :
+                    <span><strong className="text-white">{players?.length || 0} jogadores encontrados</strong></span>
+                    )}
+                </div>
+                
+                {/* Badge de proximidade */}
+                {activeTab === "times" && userCity && filterCity === 'all' && !loadingTeams && (
+                    <Badge variant="outline" className="w-fit bg-green-500/10 border-green-500/30 text-green-400 text-xs">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        Próximos a {userCity}
+                    </Badge>
                 )}
             </div>
           </div>
@@ -334,10 +349,25 @@ export default function Discovery() {
                 {teams.map((team) => {
                   const totalJogadores = team.jogadores?.length || 0;
                   const cidade = team.cidade || team.times?.[0]?.cidade;
+                  const isSameCity = userCity && cidade && cidade.toLowerCase() === userCity.toLowerCase();
 
                   return (
                     <Link key={team.id} to={`/explorar/time/${team.slug}`} className="block h-full">
-                      <Card className="h-full bg-black/20 border border-white/10 rounded-xl hover:border-primary/50 transition-all group relative overflow-hidden">
+                      <Card className={`h-full border rounded-xl hover:border-primary/50 transition-all group relative overflow-hidden ${
+                        isSameCity 
+                          ? 'bg-gradient-to-br from-green-500/10 to-black/20 border-green-500/30' 
+                          : 'bg-black/20 border-white/10'
+                      }`}>
+                        {/* Badge de proximidade */}
+                        {isSameCity && (
+                          <div className="absolute top-3 right-3">
+                            <Badge className="bg-green-500 text-white border-0 text-[10px] font-bold px-2 py-0.5">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              Próximo
+                            </Badge>
+                          </div>
+                        )}
+                        
                         <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                             <span className="text-xs font-bold text-primary flex items-center gap-1">
                                 Ver Perfil <ArrowUpRight className="h-3 w-3" />
@@ -359,9 +389,12 @@ export default function Discovery() {
                                         {team.nome}
                                     </h3>
                                     
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                                        <MapPin className="h-4 w-4 text-primary" />
+                                    <div className={`flex items-center gap-2 text-sm mt-1 ${
+                                      isSameCity ? 'text-green-400 font-medium' : 'text-muted-foreground'
+                                    }`}>
+                                        <MapPin className={`h-4 w-4 ${isSameCity ? 'text-green-400' : 'text-primary'}`} />
                                         <span>{cidade || "Localização não definida"}</span>
+                                        {isSameCity && <span className="text-xs">(sua cidade)</span>}
                                     </div>
                                 </div>
 
