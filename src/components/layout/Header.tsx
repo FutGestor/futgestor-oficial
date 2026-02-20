@@ -25,7 +25,7 @@ import { usePlanAccess } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { useTodosChamados, useChamadosNaoLidos } from "@/hooks/useChamados";
 import { useAvisosNaoLidos } from "@/hooks/useAvisoLeituras";
-import { useSolicitacoesPendentesCount } from "@/hooks/useSolicitacoes";
+import { useSolicitacoesPendentesCount, useSolicitacoesRealtime } from "@/hooks/useSolicitacoes";
 import { MobileMenuSheet } from "./MobileMenuSheet";
 
 export function Header() {
@@ -55,6 +55,9 @@ export function Header() {
   const { data: avisosNaoLidos } = useAvisosNaoLidos(teamId || undefined);
   const { data: suporteNotificacoes } = useChamadosNaoLidos();
   const { data: solicitacoesPendentes = 0 } = useSolicitacoesPendentesCount(teamId || undefined);
+  
+  // Ativar realtime para atualizações instantâneas de solicitações
+  useSolicitacoesRealtime(teamId || undefined);
 
   // Nav items visíveis para todos (incluindo visitantes) - condicionados ao plano
   const visitorNavItems = teamSlugValue
