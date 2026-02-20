@@ -67,14 +67,14 @@ export default function Discovery() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Fetch User's City 
+  // Fetch User's City - Busca da tabela teams (conta do time)
   useEffect(() => {
     const fetchUserCity = async () => {
       if (profile?.team_id) {
         const { data } = await supabase
-          .from("times")
+          .from("teams")
           .select("cidade")
-          .eq("team_id", profile.team_id)
+          .eq("id", profile.team_id)
           .maybeSingle();
         if (data?.cidade) {
             setUserCity(data.cidade);
@@ -358,21 +358,15 @@ export default function Discovery() {
                           ? 'bg-gradient-to-br from-primary/10 to-black/20 border-primary/30' 
                           : 'bg-black/20 border-white/10'
                       }`}>
-                        {/* Badge de proximidade - posicionado no canto superior esquerdo */}
+                        {/* Badge de proximidade - posicionado no canto superior direito */}
                         {isSameCity && (
-                          <div className="absolute top-3 left-3 z-10">
+                          <div className="absolute top-3 right-3 z-10">
                             <Badge className="bg-primary text-white border-0 text-[10px] font-bold px-2 py-0.5 shadow-lg">
                               <MapPin className="h-3 w-3 mr-1" />
                               Próximo
                             </Badge>
                           </div>
                         )}
-                        
-                        <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="text-xs font-bold text-primary flex items-center gap-1">
-                                Ver Perfil <ArrowUpRight className="h-3 w-3" />
-                            </span>
-                        </div>
                         
                         <CardContent className="p-6">
                           <div className="flex gap-4">
