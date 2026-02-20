@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { supabase } from "@/integrations/supabase/client";
+import type { PresencaLink, Presenca, JogadorPublico } from "@/types/presenca";
 
 export default function PresencaPublica() {
   const { codigo } = useParams<{ codigo: string }>();
@@ -26,12 +27,12 @@ export default function PresencaPublica() {
     queryFn: async () => {
       // Get presenca_link
       const { data: linkData, error: linkError } = await supabase
-        .from("presenca_links" as any)
+        .from("presenca_links")
         .select("*")
         .eq("codigo", codigo!)
         .single();
       if (linkError) throw new Error("Link não encontrado");
-      const link = linkData as any;
+      const link = linkData as PresencaLink;
 
       // Get jogo
       const { data: jogo, error: jogoError } = await supabase
@@ -50,7 +51,11 @@ export default function PresencaPublica() {
         .order("nome");
       if (jogError) throw jogError;
 
-      return { link, jogo, jogadores: jogadores || [] };
+      return { 
+        link, 
+        jogo, 
+        jogadores: (jogadores || []) as JogadorPublico[] 
+      };
     },
     enabled: !!codigo,
   });
@@ -61,21 +66,21 @@ export default function PresencaPublica() {
     try {
       // Try update first, then insert (upsert on unique constraint)
       const { data: existing } = await supabase
-        .from("presencas" as any)
+        .from("presencas")
         .select("id")
         .eq("presenca_link_id", data.link.id)
         .eq("jogador_id", jogadorId)
         .maybeSingle();
 
-      if ((existing as any)?.id) {
+      if (existing?.id) {
         const { error } = await supabase
-          .from("presencas" as any)
+          .from("presencas")
           .update({ status, updated_at: new Date().toISOString() })
-          .eq("id", (existing as any).id);
+          .eq("id", existing.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("presencas" as any)
+          .from("presencas")
           .insert({ presenca_link_id: data.link.id, jogador_id: jogadorId, status });
         if (error) throw error;
       }

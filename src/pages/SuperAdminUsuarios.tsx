@@ -105,7 +105,7 @@ export default function SuperAdminUsuarios() {
         enabled: isGodAdmin,
         queryFn: async () => {
             const { data: profilesData, error: profilesError } = await supabase
-                .rpc("get_admin_users_full" as any);
+                .rpc("get_admin_users_full");
 
             if (profilesError) throw profilesError;
 
@@ -209,7 +209,7 @@ export default function SuperAdminUsuarios() {
             // Processing in chunks or sequential to ensure all are deleted if RPC has limits
             const ids = Array.from(selectedUserIds);
             const results = await Promise.all(ids.map(id =>
-                supabase.rpc("admin_delete_user" as any, { _user_id: id })
+                supabase.rpc("admin_delete_user", { _user_id: id })
             ));
 
             const errors = results.filter(r => r.error);
@@ -244,7 +244,7 @@ export default function SuperAdminUsuarios() {
             }
 
             const results = await Promise.all(selectedTeams.map(team_id =>
-                supabase.rpc("admin_set_plan" as any, {
+                supabase.rpc("admin_set_plan", {
                     _team_id: team_id,
                     _plan_type: plan
                 })
@@ -328,7 +328,7 @@ export default function SuperAdminUsuarios() {
         if (!userToDelete) return;
         setIsDeleting(true);
         try {
-            const { error } = await supabase.rpc("admin_delete_user" as any, {
+            const { error } = await supabase.rpc("admin_delete_user", {
                 _user_id: userToDelete.id
             });
             if (error) {
@@ -630,7 +630,7 @@ export default function SuperAdminUsuarios() {
                         <Button className="bg-[#D4A84B] hover:bg-[#B8913B] text-white border-none" onClick={async () => {
                             if (!userToUpdatePlan?.team_id) return;
                             try {
-                                const { error } = await supabase.rpc("admin_set_plan" as any, {
+                                const { error } = await supabase.rpc("admin_set_plan", {
                                     _team_id: userToUpdatePlan.team_id,
                                     _plan_type: selectedPlan
                                 });
