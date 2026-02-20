@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, MapPin, Users, User2, X, Globe, ArrowUpRight, Gamepad2, Trophy } from "lucide-react";
+import { Search, MapPin, Users, User2, X, Globe, ArrowUpRight, Gamepad2, Trophy, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -101,7 +101,7 @@ export default function Discovery() {
   });
 
   // Query de Times com priorização por cidade do usuário (apenas ativos)
-  const { data: teams, isLoading: loadingTeams } = useQuery({
+  const { data: teams, isLoading: loadingTeams, refetch: refetchTeams } = useQuery({
     queryKey: ["discovery-teams", debouncedSearch, filterCity, filterModalidade, filterFaixaEtaria, userCity],
     queryFn: async () => {
       let query = supabase
@@ -165,6 +165,8 @@ export default function Discovery() {
       return formattedData;
     },
     enabled: activeTab === "times",
+    staleTime: 0, // Sempre buscar dados frescos
+    cacheTime: 0, // Não cachear
   });
 
   // Query de Jogadores
@@ -221,6 +223,16 @@ export default function Discovery() {
                 Encontre times e jogadores na maior rede do futebol amador.
               </p>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchTeams()}
+              disabled={loadingTeams}
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${loadingTeams ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
           </div>
 
           {/* Search Bar */}
