@@ -383,12 +383,20 @@ export default function Discovery() {
                                         {team.nome}
                                     </h3>
                                     
-                                    <div className={`flex items-center gap-2 text-sm mt-1 ${
-                                      isSameCity ? 'text-primary font-medium' : 'text-muted-foreground'
-                                    }`}>
-                                        <MapPin className={`h-4 w-4 ${isSameCity ? 'text-primary' : 'text-primary'}`} />
-                                        <span>{cidade || "Localização não definida"}</span>
-                                        {isSameCity && <span className="text-xs text-primary/80">(sua cidade)</span>}
+                                    <div className="flex items-center gap-2 mt-1.5">
+                                        {isSameCity ? (
+                                          // Badge estilo "Próximo" para mesma cidade
+                                          <Badge className="bg-primary/20 text-primary border border-primary/40 text-[11px] font-medium px-2 py-0.5 hover:bg-primary/30">
+                                              <MapPin className="h-3 w-3 mr-1" />
+                                              {cidade}
+                                          </Badge>
+                                        ) : (
+                                          // Texto normal para outras cidades
+                                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                              <MapPin className="h-4 w-4 text-primary/60" />
+                                              <span>{cidade || "Localização não definida"}</span>
+                                          </div>
+                                        )}
                                     </div>
                                 </div>
 
