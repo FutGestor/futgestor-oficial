@@ -330,7 +330,7 @@ export default function Discovery() {
                 
                 {/* Badge de proximidade */}
                 {activeTab === "times" && userCity && filterCity === 'all' && !loadingTeams && (
-                    <Badge variant="outline" className="w-fit bg-green-500/10 border-green-500/30 text-green-400 text-xs">
+                    <Badge variant="outline" className="w-fit bg-primary/10 border-primary/30 text-primary text-xs">
                         <MapPin className="h-3 w-3 mr-1" />
                         Próximos a {userCity}
                     </Badge>
@@ -355,13 +355,13 @@ export default function Discovery() {
                     <Link key={team.id} to={`/explorar/time/${team.slug}`} className="block h-full">
                       <Card className={`h-full border rounded-xl hover:border-primary/50 transition-all group relative overflow-hidden ${
                         isSameCity 
-                          ? 'bg-gradient-to-br from-green-500/10 to-black/20 border-green-500/30' 
+                          ? 'bg-gradient-to-br from-primary/10 to-black/20 border-primary/30' 
                           : 'bg-black/20 border-white/10'
                       }`}>
-                        {/* Badge de proximidade */}
+                        {/* Badge de proximidade - posicionado no canto superior esquerdo */}
                         {isSameCity && (
-                          <div className="absolute top-3 right-3">
-                            <Badge className="bg-green-500 text-white border-0 text-[10px] font-bold px-2 py-0.5">
+                          <div className="absolute top-3 left-3 z-10">
+                            <Badge className="bg-primary text-white border-0 text-[10px] font-bold px-2 py-0.5 shadow-lg">
                               <MapPin className="h-3 w-3 mr-1" />
                               Próximo
                             </Badge>
@@ -390,11 +390,11 @@ export default function Discovery() {
                                     </h3>
                                     
                                     <div className={`flex items-center gap-2 text-sm mt-1 ${
-                                      isSameCity ? 'text-green-400 font-medium' : 'text-muted-foreground'
+                                      isSameCity ? 'text-primary font-medium' : 'text-muted-foreground'
                                     }`}>
-                                        <MapPin className={`h-4 w-4 ${isSameCity ? 'text-green-400' : 'text-primary'}`} />
+                                        <MapPin className={`h-4 w-4 ${isSameCity ? 'text-primary' : 'text-primary'}`} />
                                         <span>{cidade || "Localização não definida"}</span>
-                                        {isSameCity && <span className="text-xs">(sua cidade)</span>}
+                                        {isSameCity && <span className="text-xs text-primary/80">(sua cidade)</span>}
                                     </div>
                                 </div>
 
