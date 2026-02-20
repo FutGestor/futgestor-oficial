@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { CalendarPlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useSolicitacoesPendentesCount, useSolicitacoesRealtime } from "@/hooks/useSolicitacoes";
+import { useSolicitacoesPendentesCount } from "@/hooks/useSolicitacoes";
 import { useIsTeamAdmin } from "@/hooks/useIsTeamAdmin";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 import { useState, useEffect } from "react";
@@ -21,9 +21,6 @@ export function SolicitacaoAlert() {
   
   const { data: isAdmin } = useIsTeamAdmin(teamId);
   const { data: pendentesCount = 0 } = useSolicitacoesPendentesCount(teamId);
-  
-  // Ativar realtime para atualizações instantâneas
-  useSolicitacoesRealtime(teamId);
   const [dismissed, setDismissed] = useState(false);
 
   // Reset dismissed state when count changes

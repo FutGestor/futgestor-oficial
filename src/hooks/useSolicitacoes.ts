@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -177,65 +176,4 @@ export function useDeleteSolicitacao() {
       });
     },
   });
-}
-
-// ============================================
-// REALTIME - Atualizações em tempo real
-// ============================================
-
-/**
- * Hook para escutar novas solicitações em tempo real
- * Atualiza o cache do React Query quando uma nova solicitação é inserida
- */
-export function useSolicitacoesRealtime(teamId?: string) {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (!teamId) return;
-
-    const channel = supabase
-      .channel(`solicitacoes-${teamId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "solicitacoes_jogo",
-          filter: `team_id=eq.${teamId}`,
-        },
-        () => {
-          // Invalidar queries para forçar atualização
-          queryClient.invalidateQueries({ queryKey: ["solicitacoes"] });
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "solicitacoes_jogo",
-          filter: `team_id=eq.${teamId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["solicitacoes"] });
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "solicitacoes_jogo",
-          filter: `team_id=eq.${teamId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["solicitacoes"] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [teamId, queryClient]);
 }
