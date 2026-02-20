@@ -3,6 +3,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+// Flags para preparar o código para React Router v7
+const routerFutureFlags = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+};
 import { AuthProvider } from "@/hooks/useAuth";
 import { TeamSlugLayout } from "@/hooks/useTeamSlug";
 import Agenda from "./pages/Agenda";
@@ -30,6 +36,7 @@ import SuperAdminAvisos from "./pages/SuperAdminAvisos";
 import SuperAdminHealth from "./pages/SuperAdminHealth";
 import { RequireApproval } from "./components/auth/RequireApproval";
 import { RequireAdmin } from "./components/auth/RequireAdmin";
+import { RequireSuperAdmin } from "./components/auth/RequireSuperAdmin";
 import Ligas from "./pages/Ligas";
 import Suporte from "./pages/Suporte";
 import SuperAdminSuporte from "./pages/SuperAdminSuporte";
@@ -64,20 +71,25 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter future={routerFutureFlags}>
           <Routes>
             <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/escolha" element={<PostSignupChoice />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/termos" element={<Termos />} />
-            <Route path="/super-admin" element={<SuperAdminDashboard />} />
-            <Route path="/super-admin/vendas" element={<SuperAdminVendas />} />
-            <Route path="/super-admin/suporte" element={<SuperAdminSuporte />} />
-            <Route path="/super-admin/status" element={<SuperAdminStatus />} />
-            <Route path="/super-admin/usuarios" element={<SuperAdminUsuarios />} />
-            <Route path="/super-admin/avisos" element={<SuperAdminAvisos />} />
-            <Route path="/super-admin/health" element={<SuperAdminHealth />} />
+            
+            {/* Rotas SuperAdmin - Protegidas por RequireSuperAdmin */}
+            <Route element={<RequireSuperAdmin />}>
+              <Route path="/super-admin" element={<SuperAdminDashboard />} />
+              <Route path="/super-admin/vendas" element={<SuperAdminVendas />} />
+              <Route path="/super-admin/suporte" element={<SuperAdminSuporte />} />
+              <Route path="/super-admin/status" element={<SuperAdminStatus />} />
+              <Route path="/super-admin/usuarios" element={<SuperAdminUsuarios />} />
+              <Route path="/super-admin/avisos" element={<SuperAdminAvisos />} />
+              <Route path="/super-admin/health" element={<SuperAdminHealth />} />
+            </Route>
+            
             <Route path="/presenca/:codigo" element={<PresencaPublica />} />
             <Route path="/convite/:code" element={<Convite />} />
             <Route path="/explorar" element={<PublicDiscovery />} />
