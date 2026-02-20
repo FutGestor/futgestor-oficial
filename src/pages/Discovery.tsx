@@ -385,8 +385,8 @@ export default function Discovery() {
                                     
                                     <div className="flex items-center gap-2 mt-1.5">
                                         {isSameCity ? (
-                                          // Badge estilo "Próximo" para mesma cidade
-                                          <Badge className="bg-primary/20 text-primary border border-primary/40 text-[11px] font-medium px-2 py-0.5 hover:bg-primary/30">
+                                          // Badge igual ao "Próximo" - fundo azul sólido, letra branca
+                                          <Badge className="bg-primary text-white border-0 text-[11px] font-bold px-2 py-0.5">
                                               <MapPin className="h-3 w-3 mr-1" />
                                               {cidade}
                                           </Badge>
