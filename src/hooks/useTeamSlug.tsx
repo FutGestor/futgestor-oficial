@@ -6,29 +6,9 @@ import NotFound from "@/pages/NotFound";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { applyTeamTheme } from "@/lib/colors";
 import { ESCUDO_PADRAO } from "@/lib/constants";
+import type { Team, TeamSlugData, TeamColors, TeamRedesSociais, TeamBioConfig } from "@/types/team";
 
-export interface TeamSlugData {
-  id: string;
-  nome: string;
-  slug: string;
-  escudo_url: string | null;
-  banner_url: string | null;
-  cidade: string | null;
-  estado: string | null;
-  cores: any;
-  invite_code?: string | null;
-  owner_contact?: string | null;
-  redes_sociais: Record<string, string>;
-  bio_config?: {
-    text: string | null;
-    color: string;
-    fontSize: string;
-    fontWeight: string;
-    textAlign: string;
-    fontFamily: string;
-    titleColor?: string;
-  };
-}
+export type { TeamSlugData, TeamColors, TeamRedesSociais, TeamBioConfig };
 
 interface TeamSlugContextType {
   slug: string;
@@ -38,10 +18,28 @@ interface TeamSlugContextType {
 
 const TeamSlugContext = createContext<TeamSlugContextType | null>(null);
 
+// Helper para converter dados do Supabase para TeamSlugData
+function parseTeamSlugData(data: Team, slug: string): TeamSlugData {
+  return {
+    id: data.id,
+    nome: data.nome,
+    slug: data.slug,
+    escudo_url: data.escudo_url || ESCUDO_PADRAO,
+    banner_url: data.banner_url,
+    cidade: data.cidade,
+    estado: data.estado,
+    cores: data.cores,
+    invite_code: data.invite_code,
+    owner_contact: data.owner_contact,
+    redes_sociais: data.redes_sociais || {},
+    bio_config: data.bio_config,
+  };
+}
+
 export function TeamSlugLayout() {
   const { slug } = useParams<{ slug: string }>();
 
-  const { data: teamData, isLoading, isError } = useQuery({
+  const { data: teamData, isLoading, isError } = useQuery<Team | null>({
     queryKey: ["team-by-slug", slug],
     enabled: !!slug,
     retry: 1,
@@ -52,7 +50,7 @@ export function TeamSlugLayout() {
         .eq("slug", slug!)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      return data as Team | null;
     },
   });
 
@@ -63,7 +61,6 @@ export function TeamSlugLayout() {
   }, [slug]);
 
   // Theme is now handled globaly by useTeamConfig
-
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -81,26 +78,13 @@ export function TeamSlugLayout() {
     );
   }
 
-  if (!teamData) {
+  if (!teamData || !slug) {
     return <NotFound />;
   }
 
   const value: TeamSlugContextType = {
-    slug: slug!,
-    team: {
-      id: teamData.id,
-      nome: teamData.nome,
-      slug: teamData.slug,
-      escudo_url: teamData.escudo_url || ESCUDO_PADRAO,
-      banner_url: (teamData as any).banner_url || null,
-      cidade: (teamData as any).cidade,
-      estado: (teamData as any).estado,
-      cores: teamData.cores,
-      invite_code: teamData.invite_code,
-      owner_contact: (teamData as any).owner_contact,
-      redes_sociais: (teamData.redes_sociais as Record<string, string>) || {},
-      bio_config: (teamData as any).bio_config || null,
-    },
+    slug: slug,
+    team: parseTeamSlugData(teamData, slug),
     basePath: `/time/${slug}`,
   };
 

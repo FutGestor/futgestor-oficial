@@ -119,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth();
 
     return () => subscription.unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchProfile = async (userId: string) => {
