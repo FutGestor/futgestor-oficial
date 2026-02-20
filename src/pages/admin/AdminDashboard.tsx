@@ -10,8 +10,10 @@ import {
   Shield,
   BarChart3,
   Copy,
-  Search
+  Search,
+  Trash2
 } from "lucide-react";
+import { DeleteTeamDialog } from "@/components/DeleteTeamDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFinancialSummary, useResultados } from "@/hooks/useData";
@@ -279,7 +281,26 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Informativo no Rodapé */}
+      {/* Seção de Perigo - Exclusão do Time */}
+      <div className="mt-8">
+        <Card className="bg-red-950/20 border-red-500/20">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-red-400 flex items-center gap-2">
+                  <Trash2 className="h-5 w-5" />
+                  Zona de Perigo
+                </h3>
+                <p className="text-sm text-red-300/70 mt-1">
+                  A exclusão do time é permanente e irreversível. Todos os dados serão perdidos.
+                </p>
+              </div>
+              <DeleteTeamDialog />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       </div>
     </Layout>
   );
