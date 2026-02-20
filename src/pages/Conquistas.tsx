@@ -22,6 +22,7 @@ import { SeasonSelector } from "@/components/SeasonSelector";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { usePlayerAchievements, type PlayerAchievement } from "@/hooks/useAchievements";
+import type { JogadorOption, PlayerStat, ProfileWithJogador } from "@/types/achievements";
 
 export default function Conquistas() {
   const { profile, isAdmin } = useAuth();
@@ -34,42 +35,44 @@ export default function Conquistas() {
   const [showAllUniversal, setShowAllUniversal] = useState(false);
   const [showAllPosition, setShowAllPosition] = useState(false);
 
-  const userJogadorId = (profile as any)?.jogador_id as string | undefined;
+  const userJogadorId = (profile as ProfileWithJogador | null)?.jogador_id;
   const targetJogadorId = (isAdmin && selectedJogadorId) ? selectedJogadorId : userJogadorId;
   
   // Para o calendário, "Todas" volta para o ano atual, mas os stats serão de todas
   const selectedYear = season === "all" ? new Date().getFullYear() : parseInt(season);
 
   // Carregar lista de jogadores se for Admin
-  const { data: jogadores } = useQuery({
+  const { data: jogadores } = useQuery<JogadorOption[]>({
     queryKey: ["team-players", team?.id],
     enabled: !!team?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jogadores")
-        .select("*")
+        .select("id, nome, apelido, posicao, foto_url, data_entrada")
         .eq("team_id", team!.id)
         .eq("ativo", true)
         .order("nome");
       if (error) throw error;
-      return data as any[];
+      return (data || []) as JogadorOption[];
     }
   });
 
-  const currentJogador = (jogadores?.find(j => j.id === targetJogadorId) || (targetJogadorId === (profile as any)?.jogador_id ? {
-    id: targetJogadorId,
-    nome: (profile as any)?.nome as string,
-    apelido: (profile as any)?.nome as string,
-    posicao: "Atleta" as any,
-    foto_url: (profile as any)?.foto_url as string | null,
-    data_entrada: (profile as any)?.created_at as string | null
-  } : null)) as any;
+  const currentJogador: JogadorOption | null = jogadores?.find(j => j.id === targetJogadorId) || 
+    (targetJogadorId === (profile as ProfileWithJogador | null)?.jogador_id && profile ? {
+      id: targetJogadorId || "",
+      nome: profile.nome || "",
+      apelido: profile.nome || null,
+      posicao: "Atleta",
+      foto_url: (profile as ProfileWithJogador).foto_url || null,
+      data_entrada: (profile as ProfileWithJogador).created_at || null
+    } : null);
 
   const { data: achievementsData, isLoading: loadingAchievements } = usePlayerAchievements(targetJogadorId || undefined);
   const { data: performance } = usePlayerPerformance(targetJogadorId || undefined, team?.id);
 
   // Filtragem de Stats por Temporada em memória
-  const filteredPlayerStats = (performance as any)?.playerStats?.filter((s: any) => {
+  const typedPerformance = performance as { playerStats?: PlayerStat[] } | null;
+  const filteredPlayerStats = typedPerformance?.playerStats?.filter((s: PlayerStat) => {
     if (season === "all") return true;
     const gameYear = new Date(s.resultado?.jogo?.data_hora || "").getFullYear().toString();
     return gameYear === season;
@@ -79,7 +82,7 @@ export default function Conquistas() {
   const totalCount = achievementsData?.length || 0;
   const progressPercent = totalCount > 0 ? (unlockedCount / totalCount) * 100 : 0;
 
-  const achievementsResults = achievementsData as PlayerAchievement[] | undefined;
+  const achievementsResults = achievementsData;
   
   // Separação por Categoria
   const universalAchievements = achievementsResults?.filter(a => a.achievement.category === 'universal') || [];
@@ -94,10 +97,10 @@ export default function Conquistas() {
   };
 
   const stats = filteredPlayerStats ? {
-    gols: filteredPlayerStats.reduce((acc: number, s: any) => acc + (s.gols || 0), 0),
-    assists: filteredPlayerStats.reduce((acc: number, s: any) => acc + (s.assistencias || 0), 0),
-    jogos: filteredPlayerStats.filter((s: any) => s.participou).length,
-    mvps: filteredPlayerStats.filter((s: any) => s.resultado?.mvp_jogador_id === targetJogadorId).length,
+    gols: filteredPlayerStats.reduce((acc: number, s: PlayerStat) => acc + (s.gols || 0), 0),
+    assists: filteredPlayerStats.reduce((acc: number, s: PlayerStat) => acc + (s.assistencias || 0), 0),
+    jogos: filteredPlayerStats.filter((s: PlayerStat) => s.participou).length,
+    mvps: filteredPlayerStats.filter((s: PlayerStat) => s.resultado?.mvp_jogador_id === targetJogadorId).length,
   } : { gols: 0, assists: 0, jogos: 0, mvps: 0 };
 
   return (
