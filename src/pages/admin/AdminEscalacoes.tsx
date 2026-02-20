@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -182,14 +182,25 @@ export default function AdminEscalacoes() {
   // Slots de posição disponíveis para a formação selecionada
   const positionSlots = positionSlotsByFormation[formData.formacao] || [];
 
+  // Ref para evitar loop infinito no sincronizador
+  const jogadoresPorPosicaoRef = useRef(formData.jogadores_por_posicao);
+  
+  // Atualizar ref quando jogadores_por_posicao mudar
+  useEffect(() => {
+    jogadoresPorPosicaoRef.current = formData.jogadores_por_posicao;
+  }, [formData.jogadores_por_posicao]);
+
   // Sincronizador de Formação: Mantém o estado dos jogadores perfeitamente alinhado com a tática
   useEffect(() => {
     const slotsAtuais = new Set(positionSlots);
     const novosJogadores: Record<string, string> = {};
     const idsUsados = new Set<string>();
 
+    // Usar ref para evitar dependência circular
+    const jogadoresAtuais = jogadoresPorPosicaoRef.current;
+
     // 1. Manter slots atuais que já estão preenchidos
-    Object.entries(formData.jogadores_por_posicao).forEach(([slot, id]) => {
+    Object.entries(jogadoresAtuais).forEach(([slot, id]) => {
       if (id && slotsAtuais.has(slot) && !idsUsados.has(id)) {
         novosJogadores[slot] = id;
         idsUsados.add(id);
@@ -204,10 +215,10 @@ export default function AdminEscalacoes() {
     });
 
     // 3. Verificar se houve mudança real (chaves ou valores)
-    const keysAtuais = Object.keys(formData.jogadores_por_posicao).sort();
+    const keysAtuais = Object.keys(jogadoresAtuais).sort();
     const keysNovas = Object.keys(novosJogadores).sort();
     const mudouKeys = JSON.stringify(keysAtuais) !== JSON.stringify(keysNovas);
-    const mudouValores = keysNovas.some(k => formData.jogadores_por_posicao[k] !== novosJogadores[k]);
+    const mudouValores = keysNovas.some(k => jogadoresAtuais[k] !== novosJogadores[k]);
 
     if (mudouKeys || mudouValores) {
       setFormData(prev => ({

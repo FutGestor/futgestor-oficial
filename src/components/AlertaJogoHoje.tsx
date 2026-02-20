@@ -58,7 +58,7 @@ export function AlertaJogoHoje() {
                 size="sm" 
                 variant={!temEscalacao || statusEscalacao === 'provavel' ? "default" : "outline"}
                 className="shrink-0"
-                onClick={() => navigate(`/admin/escalacoes?jogo=${jogo.id}`)}
+                onClick={() => navigate(`/time/${team.slug}/escalacao/gerenciar?jogo=${jogo.id}`)}
               >
                 {!temEscalacao || statusEscalacao === 'provavel' ? (
                   <>

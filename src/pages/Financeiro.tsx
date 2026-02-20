@@ -1,7 +1,7 @@
-import { format, addMonths } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TrendingUp, TrendingDown, Wallet, AlertTriangle, Activity } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area, ReferenceLine } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { Layout } from "@/components/layout/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTransacoes, useFinancialSummary } from "@/hooks/useData";
@@ -94,25 +94,10 @@ function FinanceiroContent() {
       runway = summary.saldoAtual / Math.abs(netCashFlow);
     }
 
-    // Dados para gráfico de projeção (próximos 6 meses)
-    const projectionData = [];
-    let currentBalance = summary.saldoAtual;
-    
-    for (let i = 0; i <= 6; i++) {
-        const date = addMonths(now, i);
-        projectionData.push({
-            month: format(date, 'MMM/yy', { locale: ptBR }),
-            saldo: currentBalance,
-            safeLine: 0 // Linha de zero
-        });
-        currentBalance += netCashFlow;
-    }
-
     return {
         monthlyBurnRate,
         netCashFlow,
-        runway,
-        projectionData
+        runway
     };
   })();
 
@@ -204,50 +189,6 @@ function FinanceiroContent() {
               isLoading={isLoading}
             />
           </div>
-
-          {/* Projection Chart */}
-            <div className="mb-8 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <TrendingUp size={100} className="text-indigo-500" />
-                </div>
-                <div className="mb-4">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-[2px] font-semibold">Inteligência Financeira</p>
-                    <h3 className="text-lg font-bold text-foreground">Projeção de Fluxo de Caixa (6 Meses)</h3>
-                    <p className="text-xs text-muted-foreground">Baseado na média de gastos e receitas dos últimos 90 dias.</p>
-                </div>
-                
-                {isLoading ? (
-                    <Skeleton className="h-64 w-full bg-muted" />
-                ) : financialHealth?.projectionData ? (
-                    <ResponsiveContainer width="100%" height={250}>
-                        <AreaChart data={financialHealth.projectionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id="colorSaldo" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                            <XAxis dataKey="month" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-                            <Tooltip formatter={formatCurrency} {...darkTooltipStyle} />
-                            <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
-                            <Area 
-                                type="monotone" 
-                                dataKey="saldo" 
-                                stroke="#6366f1" 
-                                strokeWidth={3}
-                                fillOpacity={1} 
-                                fill="url(#colorSaldo)" 
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                ) : (
-                    <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">
-                        Dados insuficientes para projeção.
-                    </div>
-                )}
-            </div>
 
           {/* Charts */}
           <div className="mb-8 grid gap-6 lg:grid-cols-5">

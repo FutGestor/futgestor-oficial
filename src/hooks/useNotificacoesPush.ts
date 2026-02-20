@@ -126,7 +126,7 @@ export function useJogosHojeSemEscalacao(teamId: string | undefined) {
           local,
           escalacoes(id, status_escalacao)
         `)
-        .eq("time_id", teamId)
+        .eq("team_id", teamId)
         .gte("data_hora", hojeInicio.toISOString())
         .lte("data_hora", hojeFim.toISOString())
         .order("data_hora", { ascending: true });
