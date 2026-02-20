@@ -187,11 +187,17 @@ export function useRankingDestaques(teamId?: string) {
   return useRankingMVPs(teamId);
 }
 
+export interface RankingData {
+  artilheiros: RankingJogador[];
+  assistencias: RankingJogador[];
+  participacao: RankingJogador[];
+}
+
 export function useRanking(teamId?: string) {
   const context = useOptionalTeamSlug();
   const effectiveTeamId = teamId || context?.team.id;
 
-  return useQuery<RankingJogador[]>({
+  return useQuery<RankingData>({
     queryKey: ["ranking", effectiveTeamId],
     enabled: !!effectiveTeamId,
     queryFn: async () => {
@@ -202,14 +208,18 @@ export function useRanking(teamId?: string) {
         .eq("ativo", true);
 
       if (jogadoresError) throw jogadoresError;
-      if (!jogadores || jogadores.length === 0) return [];
+      if (!jogadores || jogadores.length === 0) {
+        return { artilheiros: [], assistencias: [], participacao: [] };
+      }
 
       const jogadorIds = jogadores.map((j) => j.id);
 
+      // Buscar estatísticas filtrando pelo team_id também para garantir dados corretos
       const { data: estatisticas, error: estatisticasError } = await supabase
         .from("estatisticas_partida")
-        .select("*")
-        .in("jogador_id", jogadorIds);
+        .select("*, resultado:resultados!inner(team_id)")
+        .in("jogador_id", jogadorIds)
+        .eq("resultado.team_id", effectiveTeamId!);
 
       if (estatisticasError) throw estatisticasError;
 
@@ -254,7 +264,22 @@ export function useRanking(teamId?: string) {
         };
       });
 
-      return ranking.sort((a, b) => b.gols - a.gols);
+      // Artilheiros: ordenados por gols (decrescente)
+      const artilheiros = [...ranking]
+        .filter((r) => r.gols > 0)
+        .sort((a, b) => b.gols - a.gols);
+
+      // Assistências: ordenados por assistências (decrescente)
+      const assistencias = [...ranking]
+        .filter((r) => r.assistencias > 0)
+        .sort((a, b) => b.assistencias - a.assistencias);
+
+      // Participação: ordenados por média de gols (decrescente), mas mostra todos que jogaram
+      const participacao = [...ranking]
+        .filter((r) => r.jogos > 0)
+        .sort((a, b) => b.media_gols - a.media_gols);
+
+      return { artilheiros, assistencias, participacao };
     },
   });
 }
