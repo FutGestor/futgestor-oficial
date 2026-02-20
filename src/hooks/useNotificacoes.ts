@@ -26,6 +26,7 @@ const NOTIFICATION_ICONS: Record<string, string> = {
   escalacao: "📋",
   financeiro: "💰",
   jogador_aprovado: "🎉",
+  solicitacao_jogo: "📅",
 };
 
 export function getNotificationIcon(tipo: string): string {

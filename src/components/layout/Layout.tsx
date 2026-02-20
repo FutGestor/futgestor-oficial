@@ -5,6 +5,7 @@ import { MobileBottomNav } from "./MobileBottomNav";
 import { GlobalNoticeBanner } from "./GlobalNoticeBanner";
 import { DynamicBackground } from "./DynamicBackground";
 import { SupportModeBanner } from "./SupportModeBanner";
+import { SolicitacaoAlert } from "@/components/SolicitacaoAlert";
 import { useOptionalTeamSlug } from "@/hooks/useTeamSlug";
 import { useTeamConfig } from "@/hooks/useTeamConfig";
 
@@ -22,6 +23,7 @@ export function Layout({ children }: LayoutProps) {
       <div className="relative z-10 flex min-h-screen flex-col">
         <SupportModeBanner />
         <GlobalNoticeBanner />
+        <SolicitacaoAlert />
         <Header />
         <main className={`flex-1 md:pb-0 ${teamSlugValue ? "pb-16" : ""}`}>
           <div className="relative px-0">

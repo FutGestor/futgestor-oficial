@@ -25,6 +25,7 @@ import { usePlanAccess } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { useTodosChamados, useChamadosNaoLidos } from "@/hooks/useChamados";
 import { useAvisosNaoLidos } from "@/hooks/useAvisoLeituras";
+import { useSolicitacoesPendentesCount } from "@/hooks/useSolicitacoes";
 import { MobileMenuSheet } from "./MobileMenuSheet";
 
 export function Header() {
@@ -53,6 +54,7 @@ export function Header() {
   
   const { data: avisosNaoLidos } = useAvisosNaoLidos(teamId || undefined);
   const { data: suporteNotificacoes } = useChamadosNaoLidos();
+  const { data: solicitacoesPendentes = 0 } = useSolicitacoesPendentesCount(teamId || undefined);
 
   // Nav items visíveis para todos (incluindo visitantes) - condicionados ao plano
   const visitorNavItems = teamSlugValue
@@ -177,6 +179,11 @@ export function Header() {
                       <Link to={`${basePath}/solicitacoes`} className="flex items-center gap-2">
                         <CalendarPlus className="h-4 w-4 text-primary" />
                         <span>Solicitações</span>
+                        {solicitacoesPendentes > 0 && (
+                          <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white">
+                            {solicitacoesPendentes > 9 ? "9+" : solicitacoesPendentes}
+                          </span>
+                        )}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">
