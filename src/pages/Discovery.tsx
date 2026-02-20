@@ -330,7 +330,7 @@ export default function Discovery() {
                 
                 {/* Badge de proximidade */}
                 {activeTab === "times" && userCity && filterCity === 'all' && !loadingTeams && (
-                    <Badge variant="outline" className="w-fit bg-primary/10 border-primary/30 text-primary text-xs">
+                    <Badge className="w-fit bg-primary text-white border-0 text-xs font-bold">
                         <MapPin className="h-3 w-3 mr-1" />
                         Próximos a {userCity}
                     </Badge>
