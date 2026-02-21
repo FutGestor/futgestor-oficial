@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, X, Shield, Users, Trophy, MapPin, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, X, Users, Trophy, MapPin, Calendar, Loader2, Sparkles, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +40,7 @@ export default function ConviteDetalhe() {
           time:time_alvo_id(
             id,
             nome,
+            slug,
             escudo_url,
             cidade,
             estado
@@ -51,6 +51,41 @@ export default function ConviteDetalhe() {
 
       if (error) throw error;
       return data as any;
+    },
+  });
+
+  // Buscar estatísticas do time
+  const { data: statsTime } = useQuery({
+    queryKey: ["time-stats-convite", convite?.time?.id],
+    enabled: !!convite?.time?.id,
+    queryFn: async () => {
+      const timeId = convite.time.id;
+      
+      // Total de jogadores
+      const { count: totalJogadores } = await supabase
+        .from("jogadores")
+        .select("*", { count: "exact", head: true })
+        .eq("team_id", timeId)
+        .eq("ativo", true);
+      
+      // Total de jogos
+      const { count: totalJogos } = await supabase
+        .from("jogos")
+        .select("*", { count: "exact", head: true })
+        .eq("team_id", timeId);
+      
+      // Total de vitórias
+      const { count: totalVitorias } = await supabase
+        .from("resultados")
+        .select("*", { count: "exact", head: true })
+        .eq("team_id", timeId)
+        .eq("resultado", "vitoria");
+
+      return {
+        jogadores: totalJogadores || 0,
+        jogos: totalJogos || 0,
+        vitorias: totalVitorias || 0,
+      };
     },
   });
 
@@ -116,6 +151,9 @@ export default function ConviteDetalhe() {
     );
   }
 
+  const time = convite.time;
+  const mensagemAdmin = convite.mensagem || "Olá! Gostaríamos de você no nosso time. Venha fazer parte da nossa equipe!";
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f172a] to-[#1a1a2e] pb-20">
       {/* Header */}
@@ -131,81 +169,135 @@ export default function ConviteDetalhe() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-        {/* Convite Card */}
-        <Card className="bg-black/40 border-white/10 overflow-hidden">
+        {/* Header com título */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 rounded-full">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Novo Convite!</span>
+          </div>
+          <h1 className="text-2xl font-black uppercase italic text-white">
+            Você foi convidado
+          </h1>
+          <p className="text-muted-foreground">
+            Um time quer você no elenco
+          </p>
+        </div>
+
+        {/* Card do Time - Destaque Principal */}
+        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 overflow-hidden">
           <CardContent className="p-6 text-center space-y-4">
-            <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
-              <Shield className="h-10 w-10 text-primary" />
-            </div>
+            <Avatar className="h-24 w-24 mx-auto border-4 border-primary/30 shadow-2xl shadow-primary/20">
+              <AvatarImage src={time?.escudo_url} className="object-cover" />
+              <AvatarFallback className="bg-primary/20 text-primary text-3xl font-black">
+                {time?.nome?.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             
             <div>
-              <h1 className="text-2xl font-black uppercase italic text-white mb-1">
-                Novo Convite!
-              </h1>
-              <p className="text-muted-foreground">
-                Você foi convidado para joinar um time
+              <h2 className="text-2xl font-black uppercase italic text-white">{time?.nome}</h2>
+              {(time?.cidade || time?.estado) && (
+                <p className="text-sm text-muted-foreground flex items-center justify-center gap-1 mt-1">
+                  <MapPin className="h-3 w-3" />
+                  {time?.cidade}{time?.cidade && time?.estado && ", "}{time?.estado}
+                </p>
+              )}
+            </div>
+
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="border-primary/30 text-primary hover:bg-primary/10"
+              onClick={() => navigate(`/explorar/time/${time?.slug}`)}
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              Ver Perfil do Time
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Estatísticas do Time */}
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="bg-black/40 border-white/10">
+            <CardContent className="p-4 text-center">
+              <Users className="h-5 w-5 text-primary mx-auto mb-2" />
+              <div className="text-2xl font-black text-white">{statsTime?.jogadores || 0}</div>
+              <div className="text-xs text-muted-foreground">Jogadores</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-black/40 border-white/10">
+            <CardContent className="p-4 text-center">
+              <Calendar className="h-5 w-5 text-primary mx-auto mb-2" />
+              <div className="text-2xl font-black text-white">{statsTime?.jogos || 0}</div>
+              <div className="text-xs text-muted-foreground">Jogos</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-black/40 border-white/10">
+            <CardContent className="p-4 text-center">
+              <Trophy className="h-5 w-5 text-primary mx-auto mb-2" />
+              <div className="text-2xl font-black text-white">{statsTime?.vitorias || 0}</div>
+              <div className="text-xs text-muted-foreground">Vitórias</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Mensagem do Administrador */}
+        <Card className="bg-black/40 border-white/10">
+          <CardContent className="p-5 space-y-3">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Mensagem do Administrador
+            </h3>
+            <div className="p-4 bg-white/5 rounded-lg border-l-2 border-primary">
+              <p className="text-white italic leading-relaxed">
+                "{mensagemAdmin}"
               </p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Time Info */}
-        <Card className="bg-black/40 border-white/10">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 border-2 border-white/10">
-                <AvatarImage src={convite.time?.escudo_url} />
-                <AvatarFallback className="bg-primary/20 text-primary text-xl">
-                  {convite.time?.nome?.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-white">{convite.time?.nome}</h2>
-                {(convite.time?.cidade || convite.time?.estado) && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {convite.time?.cidade}{convite.time?.cidade && convite.time?.estado && ", "}{convite.time?.estado}
-                  </p>
-                )}
-              </div>
+        {/* Call to Action */}
+        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/30">
+          <CardContent className="p-5 text-center space-y-3">
+            <h3 className="text-lg font-black uppercase italic text-white">
+              Faça parte do time!
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Aceite o convite e comece a jogar com <span className="text-white font-semibold">{time?.nome}</span> hoje mesmo. 
+              Você terá acesso a todos os jogos, estatísticas e poderá interagir com seus novos companheiros de equipe!
+            </p>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
+              <Check className="h-3 w-3 text-green-500" />
+              <span>Ao aceitar, você será transferido automaticamente para este time</span>
             </div>
-
-            {convite.mensagem && (
-              <div className="mt-4 p-4 bg-white/5 rounded-lg">
-                <p className="text-sm text-muted-foreground italic">
-                  "{convite.mensagem}"
-                </p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* Ações */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Botões de Ação */}
+        <div className="space-y-3 pt-4">
+          <Button
+            size="lg"
+            className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase italic gap-2"
+            onClick={() => setConfirmDialog({ open: true, aceitar: true })}
+            disabled={responder.isPending}
+          >
+            {responder.isPending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Check className="h-5 w-5" />
+            )}
+            Aceitar Convite
+          </Button>
+          
           <Button
             variant="outline"
             size="lg"
-            className="h-14 border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
+            className="w-full h-14 border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
             onClick={() => setConfirmDialog({ open: true, aceitar: false })}
             disabled={responder.isPending}
           >
             <X className="h-5 w-5 mr-2" />
             Recusar
-          </Button>
-          
-          <Button
-            size="lg"
-            className="h-14 bg-primary hover:bg-primary/90"
-            onClick={() => setConfirmDialog({ open: true, aceitar: true })}
-            disabled={responder.isPending}
-          >
-            {responder.isPending ? (
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            ) : (
-              <Check className="h-5 w-5 mr-2" />
-            )}
-            Aceitar
           </Button>
         </div>
       </div>
@@ -214,23 +306,26 @@ export default function ConviteDetalhe() {
       <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
         <AlertDialogContent className="bg-[#0a0a0a] border-white/10">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
+            <AlertDialogTitle className="text-white text-lg">
               {confirmDialog.aceitar ? "Aceitar convite?" : "Recusar convite?"}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
               {confirmDialog.aceitar 
-                ? `Você vai sair do seu time atual e joinar o ${convite.time?.nome}. Tem certeza?`
+                ? `Você vai sair do seu time atual e joinar o ${time?.nome}. Tem certeza?`
                 : "Você não poderá aceitar este convite depois."
               }
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="gap-2">
             <AlertDialogCancel className="bg-white/5 border-white/10 hover:bg-white/10">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleResponder}
-              className={confirmDialog.aceitar ? "bg-primary hover:bg-primary/90" : "bg-red-500 hover:bg-red-600"}
+              className={confirmDialog.aceitar 
+                ? "bg-green-600 hover:bg-green-700" 
+                : "bg-red-500 hover:bg-red-600"
+              }
             >
               {confirmDialog.aceitar ? "Sim, aceitar" : "Sim, recusar"}
             </AlertDialogAction>
