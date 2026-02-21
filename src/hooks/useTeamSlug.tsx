@@ -68,10 +68,10 @@ export function TeamSlugLayout() {
 
   if (isError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted">
+      <div className="flex min-h-screen items-center justify-center bg-[#040810]">
         <div className="text-center">
-          <h1 className="mb-4 text-2xl font-bold">Erro ao carregar</h1>
-          <p className="mb-4 text-muted-foreground">Não foi possível carregar os dados do time.</p>
+          <h1 className="mb-4 text-2xl font-bold text-white">Erro ao carregar</h1>
+          <p className="mb-4 text-white/60">Não foi possível carregar os dados do time.</p>
           <a href="/" className="text-primary underline hover:text-primary/90">Voltar ao início</a>
         </div>
       </div>

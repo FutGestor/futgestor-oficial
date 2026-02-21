@@ -5,17 +5,20 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
+import { PlayerSelfDelete } from "@/components/player/PlayerSelfDelete";
 
 interface SecurityFormProps {
   pwForm: UseFormReturn<any>;
   isUpdatingPassword: boolean;
   onUpdatePassword: (data: any) => void;
+  playerName?: string;
 }
 
 export const SecurityForm: React.FC<SecurityFormProps> = ({
   pwForm,
   isUpdatingPassword,
-  onUpdatePassword
+  onUpdatePassword,
+  playerName
 }) => {
   return (
     <Card className="bg-black/40 border-white/10 backdrop-blur-xl">
@@ -64,6 +67,16 @@ export const SecurityForm: React.FC<SecurityFormProps> = ({
         >
           {isUpdatingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : "Atualizar Senha"}
         </Button>
+
+        {/* Auto-exclusão de conta - apenas para jogadores (não admins) */}
+        {playerName && (
+          <div className="pt-6 border-t border-white/10">
+            <h4 className="text-sm font-medium text-muted-foreground mb-4">
+              Zona de Perigo
+            </h4>
+            <PlayerSelfDelete playerName={playerName} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

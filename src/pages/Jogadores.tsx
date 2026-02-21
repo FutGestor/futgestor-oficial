@@ -272,7 +272,7 @@ export default function JogadoresPage() {
                       <JogadorCard
                         key={jogador.id}
                         jogador={jogador}
-                        stats={estatisticas?.[jogador.id]}
+                        stats={estatisticas?.find(e => e.jogador_id === jogador.id)}
                         onViewAchievements={(id, nome) => setSelectedPlayer({ id, nome })}
                       />
                     ))}

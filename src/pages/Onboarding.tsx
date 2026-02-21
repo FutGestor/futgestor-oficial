@@ -226,7 +226,10 @@ export default function Onboarding() {
           slug: data.slug,
           escudo_url: data.escudo_url,
           cidade: data.cidade,
-          estado: data.uf
+          estado: data.uf,
+          modalidade: data.modalidade,
+          faixa_etaria: data.faixa_etaria,
+          genero: data.genero
         })
         .select()
         .single();

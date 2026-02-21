@@ -56,7 +56,7 @@ export function NotificationBell() {
   };
 
   const handleViewAll = () => {
-    navigate(`${basePath}/avisos`);
+    navigate(`${basePath}/notificacoes`);
     setOpen(false);
   };
 

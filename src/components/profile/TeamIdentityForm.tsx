@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Building2, Camera, Loader2, Trophy, Instagram, Youtube, Facebook, MessageCircle, Save, MapPin } from "lucide-react";
+import { Building2, Camera, Loader2, Trophy, Instagram, Youtube, Facebook, MessageCircle, Save, MapPin, Gamepad2, Users, Target } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ESCUDO_PADRAO } from "@/lib/constants";
 import { TeamShield } from "@/components/TeamShield";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +19,12 @@ interface TeamIdentityFormProps {
   setEstado: (val: string) => void;
   bio: string;
   setBio: (val: string) => void;
+  modalidade: string;
+  setModalidade: (val: string) => void;
+  faixaEtaria: string;
+  setFaixaEtaria: (val: string) => void;
+  genero: string;
+  setGenero: (val: string) => void;
   instagram: string;
   setInstagram: (val: string) => void;
   youtube: string;
@@ -49,6 +56,12 @@ export const TeamIdentityForm: React.FC<TeamIdentityFormProps> = ({
   setEstado,
   bio,
   setBio,
+  modalidade,
+  setModalidade,
+  faixaEtaria,
+  setFaixaEtaria,
+  genero,
+  setGenero,
   instagram,
   setInstagram,
   youtube,
@@ -179,6 +192,65 @@ export const TeamIdentityForm: React.FC<TeamIdentityFormProps> = ({
                   placeholder="UF"
                 />
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Classificação - Modalidade, Faixa Etária, Gênero */}
+        <div className="space-y-4 border-t border-white/5 pt-6">
+          <Label className="text-sm font-semibold uppercase tracking-tighter text-primary flex items-center gap-2">
+            <Target className="w-4 h-4" /> Classificação do Time
+          </Label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="text-muted-foreground text-xs">Modalidade</Label>
+              <Select value={modalidade} onValueChange={setModalidade}>
+                <SelectTrigger className="bg-black/20 border-white/10 h-12">
+                  <Gamepad2 className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="society_7">Society (7x7)</SelectItem>
+                  <SelectItem value="society_5">Society (5x5)</SelectItem>
+                  <SelectItem value="campo_11">Campo (11x11)</SelectItem>
+                  <SelectItem value="campo_7">Campo (7x7)</SelectItem>
+                  <SelectItem value="futsal">Futsal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-muted-foreground text-xs">Faixa Etária</Label>
+              <Select value={faixaEtaria} onValueChange={setFaixaEtaria}>
+                <SelectTrigger className="bg-black/20 border-white/10 h-12">
+                  <Trophy className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="livre">Livre / Aberto</SelectItem>
+                  <SelectItem value="sub_30">Sub-30</SelectItem>
+                  <SelectItem value="sub_25">Sub-25</SelectItem>
+                  <SelectItem value="sub_20">Sub-20</SelectItem>
+                  <SelectItem value="sub_17">Sub-17</SelectItem>
+                  <SelectItem value="sub_15">Sub-15</SelectItem>
+                  <SelectItem value="master_35">Master (35+)</SelectItem>
+                  <SelectItem value="master_40">Master (40+)</SelectItem>
+                  <SelectItem value="master_50">Master (50+)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-muted-foreground text-xs">Gênero</Label>
+              <Select value={genero} onValueChange={setGenero}>
+                <SelectTrigger className="bg-black/20 border-white/10 h-12">
+                  <Users className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="masculino">Masculino</SelectItem>
+                  <SelectItem value="feminino">Feminino</SelectItem>
+                  <SelectItem value="misto">Misto</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

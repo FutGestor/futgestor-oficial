@@ -49,7 +49,12 @@ export function VotacaoDestaque({ resultadoId }: VotacaoDestaqueProps) {
 
   const handleVotar = () => {
     if (!selectedJogador) return;
-    votar({ resultadoId, jogadorId: selectedJogador });
+    votar({ resultadoId, jogadorId: selectedJogador }, {
+      onSuccess: () => {
+        // Fechar o collapsible após votar com sucesso
+        setIsOpen(false);
+      }
+    });
   };
 
   // Usuário não logado
@@ -92,7 +97,7 @@ export function VotacaoDestaque({ resultadoId }: VotacaoDestaqueProps) {
               {jogadorDestaque.apelido || jogadorDestaque.nome}
             </span>
             <Badge variant="secondary" className="text-xs">
-              {destaque.votos} {destaque.votos === 1 ? "voto" : "votos"}
+              {total > 0 ? Math.round((destaque.votos / total) * 100) : 0}%
             </Badge>
           </div>
         )}
@@ -165,9 +170,9 @@ export function VotacaoDestaque({ resultadoId }: VotacaoDestaqueProps) {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {votos > 0 && (
+                      {votos > 0 && total > 0 && (
                         <Badge variant="secondary" className="text-xs">
-                          {votos}
+                          {Math.round((votos / total) * 100)}%
                         </Badge>
                       )}
                       {isSelected && (
@@ -187,7 +192,7 @@ export function VotacaoDestaque({ resultadoId }: VotacaoDestaqueProps) {
 
           <div className="mt-4 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
-              {total} {total === 1 ? "voto" : "votos"} no total
+              {total} {total === 1 ? "voto" : "votos"} no total ({total > 0 ? '100%' : '0%'})
             </span>
             <Button
               onClick={handleVotar}

@@ -176,9 +176,19 @@ export function SocietyField({
         </div>
 
         {/* Posições vazias clicáveis (modo editável) ou targets (modo visualização) */}
+        {/* Só mostra posições padrão se NÃO houver jogadores em posições personalizadas */}
         {!draggingPlayer && Object.entries(basePositions).map(([posicao, coords]) => {
           const label = positionSlotLabels[posicao] || posicao.toUpperCase();
           const isOccupied = jogadores.some(j => j.posicao_campo === posicao);
+          
+          // Verificar se há jogadores em posições personalizadas (formato: LABEL|top|left)
+          const hasCustomPositions = jogadores.some(j => j.posicao_campo.includes('|'));
+          
+          // Se houver posições personalizadas e não for modo editável, não mostra as posições padrão
+          if (hasCustomPositions && !isEditable) return null;
+          
+          // Se houver posições personalizadas em modo editável, mostra apenas as posições não ocupadas
+          if (hasCustomPositions && isOccupied) return null;
           
           // Se estiver ocupada e não for modo de arrastar, não mostra o target
           if (isOccupied && !isEditable) return null;
@@ -214,7 +224,7 @@ export function SocietyField({
               <span className="text-[clamp(8px,2.5vw,12px)] font-black text-white/40 tracking-tighter">{label}</span>
             </button>
           );
-        })}
+        })};
 
         {/* Jogadores Escalados (Estilo Tactical Card) */}
         {jogadores.map(({ jogador, posicao_campo }) => {

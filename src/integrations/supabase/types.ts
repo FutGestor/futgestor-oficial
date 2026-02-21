@@ -1110,6 +1110,12 @@ export type Database = {
           redes_sociais: Json | null
           slug: string
           updated_at: string
+          cidade: string | null
+          estado: string | null
+          modalidade: string | null
+          faixa_etaria: string | null
+          genero: string | null
+          ativo: boolean | null
         }
         Insert: {
           banner_url?: string | null
@@ -1123,6 +1129,12 @@ export type Database = {
           redes_sociais?: Json | null
           slug: string
           updated_at?: string
+          cidade?: string | null
+          estado?: string | null
+          modalidade?: string | null
+          faixa_etaria?: string | null
+          genero?: string | null
+          ativo?: boolean | null
         }
         Update: {
           banner_url?: string | null
@@ -1136,6 +1148,12 @@ export type Database = {
           redes_sociais?: Json | null
           slug?: string
           updated_at?: string
+          cidade?: string | null
+          estado?: string | null
+          modalidade?: string | null
+          faixa_etaria?: string | null
+          genero?: string | null
+          ativo?: boolean | null
         }
         Relationships: []
       }

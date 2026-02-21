@@ -103,6 +103,9 @@ export default function MeuPerfil() {
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   const [bio, setBio] = useState("");
+  const [modalidade, setModalidade] = useState("society_7");
+  const [faixaEtaria, setFaixaEtaria] = useState("livre");
+  const [genero, setGenero] = useState("masculino");
   const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
   const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
   const [instagram, setInstagram] = useState("");
@@ -124,6 +127,9 @@ export default function MeuPerfil() {
       setCidade(team.cidade || "");
       setEstado(team.estado || "");
       setBio((team as any).bio || "");
+      setModalidade(team.modalidade || "society_7");
+      setFaixaEtaria(team.faixa_etaria || "livre");
+      setGenero(team.genero || "masculino");
       setInstagram(team.redes_sociais?.instagram || "");
       setYoutube(team.redes_sociais?.youtube || "");
       setFacebook(team.redes_sociais?.facebook || "");
@@ -423,13 +429,21 @@ export default function MeuPerfil() {
         cidade: cidade.trim(),
         estado: estado.trim(),
         bio: bio.trim(),
+        modalidade: modalidade,
+        faixa_etaria: faixaEtaria,
+        genero: genero,
         redes_sociais: { instagram, youtube, facebook, whatsapp }
       } as any).eq("id", profile.team_id);
 
       // Sincronizar o registro "time da casa" na tabela times
       await supabase
         .from("times")
-        .update({ nome: teamNome.trim() })
+        .update({ 
+          nome: teamNome.trim(),
+          modalidade: modalidade,
+          faixa_etaria: faixaEtaria,
+          genero: genero
+        })
         .eq("team_id", profile.team_id)
         .eq("is_casa", true);
       
@@ -442,6 +456,9 @@ export default function MeuPerfil() {
         nome: teamNome.trim(),
         cidade: cidade.trim(),
         estado: estado.trim(),
+        modalidade: modalidade,
+        faixa_etaria: faixaEtaria,
+        genero: genero,
         redes_sociais: { instagram, youtube, facebook, whatsapp }
       }));
 
@@ -826,6 +843,9 @@ export default function MeuPerfil() {
                     team={team} teamNome={teamNome} setTeamNome={setTeamNome}
                     cidade={cidade} setCidade={setCidade} estado={estado} setEstado={setEstado}
                     bio={bio} setBio={setBio}
+                    modalidade={modalidade} setModalidade={setModalidade}
+                    faixaEtaria={faixaEtaria} setFaixaEtaria={setFaixaEtaria}
+                    genero={genero} setGenero={setGenero}
                     instagram={instagram} setInstagram={setInstagram} youtube={youtube} setYoutube={setYoutube}
                     facebook={facebook} setFacebook={setFacebook} whatsapp={whatsapp} setWhatsapp={setWhatsapp}
                     onSaveTeam={onSaveTeam} savingTeam={savingTeam} uploadingEscudo={uploadingEscudo}
@@ -835,7 +855,12 @@ export default function MeuPerfil() {
               )}
 
               <TabsContent value="seguranca" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <SecurityForm pwForm={pwForm} isUpdatingPassword={isUpdatingPassword} onUpdatePassword={onUpdatePassword} />
+                <SecurityForm 
+                  pwForm={pwForm} 
+                  isUpdatingPassword={isUpdatingPassword} 
+                  onUpdatePassword={onUpdatePassword}
+                  playerName={jogador?.nome || profile?.nome}
+                />
               </TabsContent>
             </Tabs>
           </div>

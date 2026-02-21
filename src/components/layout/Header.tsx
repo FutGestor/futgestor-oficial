@@ -138,11 +138,10 @@ export function Header() {
             <Link to={`${basePath}/meu-perfil`}>
               <Button
                 variant="ghost"
-                size="sm"
-                className="h-8 px-2 text-white/90 hover:bg-white/10 flex items-center gap-1.5"
+                size="icon"
+                className="h-9 w-9 rounded-full bg-white/5 border border-white/10 text-white/90 hover:bg-white/10 hover:text-white hover:border-primary/50 transition-all duration-300"
               >
-                <User className="h-4 w-4 text-primary" />
-                <span className="text-xs font-bold uppercase tracking-tight">Meu Perfil</span>
+                <User className="h-5 w-5" />
               </Button>
             </Link>
           )}
@@ -278,20 +277,21 @@ export function Header() {
                 <Link to={`${basePath}/meu-perfil`}>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="hidden hover:bg-white/10 md:inline-flex"
-                    style={{ color: "inherit" }}
+                    size="icon"
+                    className="hidden md:flex h-9 w-9 rounded-full bg-white/5 border border-white/10 text-white/90 hover:bg-white/10 hover:text-white hover:border-primary/50 transition-all duration-300"
                   >
-                    <User className="h-4 w-4 lg:mr-1" />
-                    <span className="hidden lg:inline text-shadow-sm">Meu Perfil</span>
+                    <User className="h-5 w-5" />
                   </Button>
                 </Link>
               )}
               {isPlayer && teamSlugValue && (
                 <Link to={`${basePath}/meu-perfil`}>
-                  <Button variant="secondary" size="sm" className="hidden md:inline-flex">
-                    <User className="h-4 w-4 lg:mr-1" />
-                    <span className="hidden lg:inline text-shadow-sm">Minha Área</span>
+                  <Button 
+                    variant="ghost"
+                    size="icon"
+                    className="hidden md:flex h-9 w-9 rounded-full bg-white/5 border border-white/10 text-white/90 hover:bg-white/10 hover:text-white hover:border-primary/50 transition-all duration-300"
+                  >
+                    <User className="h-5 w-5" />
                   </Button>
                 </Link>
               )}

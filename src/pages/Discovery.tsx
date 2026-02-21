@@ -104,14 +104,14 @@ export default function Discovery() {
   const { data: teams, isLoading: loadingTeams, refetch: refetchTeams } = useQuery({
     queryKey: ["discovery-teams", debouncedSearch, filterCity, filterModalidade, filterFaixaEtaria, userCity],
     queryFn: async () => {
+      // Buscar todos os times primeiro (sem filtro de ativo para debug)
       let query = supabase
         .from("teams")
         .select(`
           id, nome, slug, escudo_url, modalidade, faixa_etaria, cidade, uf,
           times(cidade),
           jogadores(id).eq(ativo, true)
-        `)
-        .eq("ativo", true);  // Só mostrar times ativos
+        `);
 
       if (debouncedSearch) {
         query = query.ilike("nome", `%${debouncedSearch}%`);
@@ -123,8 +123,22 @@ export default function Discovery() {
         console.error("Error fetching teams:", error);
         return [];
       }
+      
+      // Filtrar apenas times ativos no cliente (fallback se a coluna não existir)
+      const activeTeams = data?.filter((team: any) => team.ativo !== false) || [];
+      console.log("=== DEBUG DISCOVERY ===");
+      console.log("Raw data from DB:", data?.length, "teams");
+      console.log("Raw team names:", data?.map((t: any) => t.nome));
+      console.log("Active teams:", activeTeams.length);
+      console.log("Active team names:", activeTeams.map((t: any) => t.nome));
+      console.log("Search term:", debouncedSearch);
+      console.log("Filter city:", filterCity);
+      console.log("Filter modalidade:", filterModalidade);
+      console.log("Filter faixa etaria:", filterFaixaEtaria);
+      console.log("User city:", userCity);
 
-      let formattedData = (data as unknown as Team[]);
+      // Filtrar apenas times ativos (ativo !== false)
+      let formattedData = (activeTeams as unknown as Team[]);
 
       // Client-side Filter by City (quando um filtro específico é selecionado)
       if (filterCity !== "all") {
@@ -414,14 +428,18 @@ export default function Discovery() {
                                 </div>
 
                                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium text-muted-foreground/80 pt-2 border-t border-white/5">
-                                    <div className="flex items-center gap-1.5">
-                                        <Gamepad2 className="h-3.5 w-3.5" />
-                                        <span>{team.modalidade || "Society 7x7"}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Trophy className="h-3.5 w-3.5" />
-                                        <span>{team.faixa_etaria || "Livre"}</span>
-                                    </div>
+                                    {team.modalidade && (
+                                        <div className="flex items-center gap-1.5">
+                                            <Gamepad2 className="h-3.5 w-3.5" />
+                                            <span>{team.modalidade}</span>
+                                        </div>
+                                    )}
+                                    {team.faixa_etaria && (
+                                        <div className="flex items-center gap-1.5">
+                                            <Trophy className="h-3.5 w-3.5" />
+                                            <span>{team.faixa_etaria}</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex items-center gap-4 pt-2">

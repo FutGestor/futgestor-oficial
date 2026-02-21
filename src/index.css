@@ -71,7 +71,7 @@
   html,
   body,
   #root {
-    @apply bg-transparent text-foreground antialiased selection:bg-primary/10;
+    @apply bg-[#040810] text-foreground antialiased selection:bg-primary/10;
     font-family:
       "DM Sans", "Inter", "Outfit", system-ui, -apple-system, sans-serif;
     overflow-x: hidden;

@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 // Flags para preparar o código para React Router v7
 const routerFutureFlags = {
@@ -11,6 +12,7 @@ const routerFutureFlags = {
 };
 import { AuthProvider } from "@/hooks/useAuth";
 import { TeamSlugLayout } from "@/hooks/useTeamSlug";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import Agenda from "./pages/Agenda";
 import Chat from "./pages/Chat";
 import Financeiro from "./pages/Financeiro";
@@ -61,9 +63,30 @@ import AdminCampeonatoDetalhe from "./pages/admin/AdminCampeonatoDetalhe";
 import GameDetails from "./pages/GameDetails";
 import Convite from "./pages/Convite";
 import Conquistas from "./pages/Conquistas";
+import Notificacoes from "./pages/Notificacoes";
 import Banners from "./pages/Banners";
 
 const queryClient = new QueryClient();
+
+// Wrapper de transição de página para evitar flash branco
+function PageTransition({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 30);
+    return () => {
+      clearTimeout(timer);
+      setIsVisible(false);
+    };
+  }, [location.pathname]);
+
+  return (
+    <div className={`transition-all duration-200 ease-out ${isVisible ? "opacity-100" : "opacity-0"}`}>
+      {children}
+    </div>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -72,7 +95,8 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter future={routerFutureFlags}>
-          <Routes>
+          <AuthGuard>
+            <Routes>
             <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/escolha" element={<PostSignupChoice />} />
@@ -133,6 +157,7 @@ const App = () => (
                  <Route path="suporte" element={<Suporte />} />
                 <Route path="guia" element={<AdminGuia />} />
                 <Route path="conquistas" element={<Conquistas />} />
+                <Route path="notificacoes" element={<Notificacoes />} />
                 <Route path="banners" element={<Banners />} />
                 <Route path="jogo/:id" element={<GameDetails />} />
 
@@ -151,6 +176,7 @@ const App = () => (
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </AuthGuard>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

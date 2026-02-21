@@ -16,8 +16,9 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import {
   ArrowLeft, MapPin, Users, Trophy, Swords, CalendarDays, Instagram,
   Youtube, Facebook, MessageCircle, Send, FileText, BarChart3, User2,
-  AlertCircle
+  AlertCircle, Settings
 } from "lucide-react";
+import { TeamSelfDelete } from "@/components/team/TeamSelfDelete";
 import { DatePickerPopover } from "@/components/ui/date-picker-popover";
 import { TimePickerSelect } from "@/components/ui/time-picker-select";
 import { format, parseISO, isSameDay } from "date-fns";
@@ -486,10 +487,25 @@ export default function TeamProfile() {
 
         {/* Info if own team */}
         {isOwnTeam && (
-          <div className="text-center text-sm text-muted-foreground py-4">
-            Este é o seu time. Gerencie-o em{" "}
-            <Link to={`/time/${slug}/gestao`} className="text-primary underline">Gestão</Link>.
-          </div>
+          <Card className="bg-black/40 border-white/10">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm uppercase tracking-wider text-primary flex items-center gap-2">
+                <Settings className="h-4 w-4" /> Gerenciamento do Time
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Link to={`/time/${slug}/gestao`}>
+                <Button className="w-full bg-primary hover:bg-primary/90 font-black uppercase">
+                  Acessar Painel de Gestão
+                </Button>
+              </Link>
+              
+              {/* Auto-exclusão do time - não disponível para God Admin */}
+              {team?.id && (
+                <TeamSelfDelete teamId={team.id} teamName={team.nome} />
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {/* Info if no team */}
