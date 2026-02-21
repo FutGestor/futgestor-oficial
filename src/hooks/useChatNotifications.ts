@@ -14,31 +14,41 @@ export function useUnreadChatCount(teamId: string | undefined) {
     queryFn: async () => {
       if (!teamId || !user) return 0;
 
-      // 1. Get last read timestamp
-      const { data: readData } = await supabase
-        // @ts-ignore
-        .from("chat_leituras")
-        .select("last_read_at")
-        .eq("user_id", user.id)
-        .eq("team_id", teamId)
-        .maybeSingle() as { data: { last_read_at: string } | null };
-
-      const lastReadAt = readData?.last_read_at || "1970-01-01T00:00:00Z";
-
-      // 2. Count messages after that timestamp
-      const { count, error } = await supabase
+      // Count unread messages by checking chat_leituras
+      // Messages are unread if they don't have an entry in chat_leituras
+      const { data: messages, error: msgError } = await supabase
         // @ts-ignore
         .from("chat_mensagens")
-        .select("*", { count: "exact", head: true })
+        .select("id")
         .eq("team_id", teamId)
-        .gt("created_at", lastReadAt);
+        .neq("user_id", user.id);
 
-      if (error) {
-        console.error("Error fetching unread count:", error);
+      if (msgError) {
+        console.error("Error fetching messages:", msgError);
         return 0;
       }
 
-      return count || 0;
+      if (!messages || messages.length === 0) return 0;
+
+      const messageIds = messages.map((m: { id: string }) => m.id);
+
+      // Check which messages have been read
+      const { data: readMessages, error: readError } = await supabase
+        // @ts-ignore
+        .from("chat_leituras")
+        .select("mensagem_id")
+        .eq("user_id", user.id)
+        .in("mensagem_id", messageIds);
+
+      if (readError) {
+        console.error("Error fetching read messages:", readError);
+        return 0;
+      }
+
+      const readIds = new Set(readMessages?.map((r: { mensagem_id: string }) => r.mensagem_id) || []);
+      const unreadCount = messageIds.filter((id: string) => !readIds.has(id)).length;
+
+      return unreadCount;
     },
     enabled: !!teamId && !!user,
     refetchInterval: 5000, 
@@ -58,17 +68,13 @@ export function useUnreadChatCount(teamId: string | undefined) {
           event: "INSERT", 
           schema: "public", 
           table: "chat_mensagens",
-          filter: `team_id=eq.${teamId}` // Restoring specific filter
+          filter: `team_id=eq.${teamId}`
         },
         (payload) => {
-          // Client-side Double Check + Optimistic Update
           if (payload.new && payload.new.team_id === teamId) {
-             // OPTIMISTIC UPDATE: Increment count immediately if message is not from current user
              if (payload.new.user_id !== user?.id) {
                queryClient.setQueryData([QUERY_KEY, teamId], (old: number | undefined) => (old || 0) + 1);
              }
-             
-             // Then invalidate to be sure
              queryClient.invalidateQueries({ queryKey: [QUERY_KEY, teamId] });
           }
         }
@@ -76,10 +82,9 @@ export function useUnreadChatCount(teamId: string | undefined) {
       .on(
         "postgres_changes",
         { 
-          event: "*", 
+          event: "INSERT", 
           schema: "public", 
-          table: "chat_leituras",
-          filter: `team_id=eq.${teamId}`
+          table: "chat_leituras"
         },
         () => {
           queryClient.invalidateQueries({ queryKey: [QUERY_KEY, teamId] });
@@ -103,22 +108,36 @@ export function useMarkChatRead() {
     mutationFn: async (teamId: string) => {
       if (!user) return;
       
-      // Use RPC to ensure server timestamp is used
-      const { error } = await supabase.rpc('mark_chat_read', { p_team_id: teamId });
+      // Get all message IDs for this team
+      const { data: messages, error: msgError } = await supabase
+        // @ts-ignore
+        .from("chat_mensagens")
+        .select("id")
+        .eq("team_id", teamId)
+        .neq("user_id", user.id);
+
+      if (msgError) {
+        console.error("Error fetching messages to mark read:", msgError);
+        return;
+      }
+
+      if (!messages || messages.length === 0) return;
+
+      // Insert read entries for all messages
+      const readEntries = messages.map((m: { id: string }) => ({
+        user_id: user.id,
+        mensagem_id: m.id,
+        lida_em: new Date().toISOString()
+      }));
+
+      const { error } = await supabase
+        // @ts-ignore
+        .from("chat_leituras")
+        .upsert(readEntries, { onConflict: 'user_id,mensagem_id' });
 
       if (error) {
         console.error("Error marking chat read:", error);
-        // Fallback to client timestamp if RPC fails (e.g. not created yet)
-        const { error: upsertError } = await supabase
-          // @ts-ignore
-          .from("chat_leituras")
-          .upsert({ 
-            user_id: user.id, 
-            team_id: teamId, 
-            last_read_at: new Date().toISOString() 
-          });
-        
-        if (upsertError) throw upsertError;
+        throw error;
       }
     },
     onSuccess: (_, teamId) => {
