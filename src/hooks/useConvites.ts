@@ -127,6 +127,51 @@ export function useResponderSolicitacao() {
 
         if (profileError) throw profileError;
 
+        // Buscar nomes dos times para as notificações
+        const { data: timeAntigo } = await supabase
+          .from("teams")
+          .select("nome")
+          .eq("id", timeAntigoId)
+          .single();
+
+        const { data: timeNovo } = await supabase
+          .from("teams")
+          .select("nome")
+          .eq("id", solicitacao.time_alvo_id)
+          .single();
+
+        // Criar notificação de RESENHA para o time antigo
+        if (timeAntigoId) {
+          await supabase.from("notificacoes").insert({
+            tipo: "transferencia_saida",
+            titulo: "🚨 BOMBA NO MERCADO!",
+            mensagem: `${solicitacao.jogador_nome} deixou o time e foi parar no ${timeNovo?.nome || 'novo time'}! Contratação de peso para fortalecer o elenco adversário.`,
+            link: `/explorar/jogador/${jogador.id}`,
+            team_id: timeAntigoId,
+            dados: {
+              jogador_id: jogador.id,
+              jogador_nome: solicitacao.jogador_nome,
+              time_destino: timeNovo?.nome,
+              tipo: "saida"
+            }
+          });
+        }
+
+        // Criar notificação de RESENHA para o novo time
+        await supabase.from("notificacoes").insert({
+          tipo: "transferencia_chegada",
+          titulo: "🎉 REFORÇO DE PESO!",
+          mensagem: `${solicitacao.jogador_nome} é o novo reforço do ${timeNovo?.nome}! Contratação de peso para fortalecer o elenco. 🚀⚽`,
+          link: `/explorar/jogador/${jogador.id}`,
+          team_id: solicitacao.time_alvo_id,
+          dados: {
+            jogador_id: jogador.id,
+            jogador_nome: solicitacao.jogador_nome,
+            time_origem: timeAntigo?.nome,
+            tipo: "chegada"
+          }
+        });
+
         return { 
           sucesso: true, 
           mensagem: "Você agora faz parte do novo time!",

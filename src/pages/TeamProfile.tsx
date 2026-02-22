@@ -4,6 +4,7 @@ import { Layout } from "@/components/layout/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useTeamAdmin } from "@/hooks/useTeamAdmin";
 import { TeamShield } from "@/components/TeamShield";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -151,9 +152,10 @@ export default function TeamProfile() {
     return "D";
   }) || [];
 
-  // Check if current user belongs to a different team
+  // Check if current user belongs to a different team and is admin
   const userTeamId = profile?.team_id;
-  const canChallenge = user && userTeamId && userTeamId !== team?.id;
+  const { isTeamAdmin } = useTeamAdmin(userTeamId || undefined);
+  const canChallenge = user && userTeamId && userTeamId !== team?.id && isTeamAdmin;
   const isOwnTeam = userTeamId === team?.id;
 
   // Fetch current user's team info for the request

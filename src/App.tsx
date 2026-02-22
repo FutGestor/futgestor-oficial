@@ -63,6 +63,8 @@ import AdminCampeonatoDetalhe from "./pages/admin/AdminCampeonatoDetalhe";
 import GameDetails from "./pages/GameDetails";
 import Convite from "./pages/Convite";
 import ConviteDetalhe from "./pages/ConviteDetalhe";
+import TransferenciaDetalhe from "./pages/TransferenciaDetalhe";
+import TransferenciaSaida from "./pages/TransferenciaSaida";
 import Conquistas from "./pages/Conquistas";
 import Notificacoes from "./pages/Notificacoes";
 import Banners from "./pages/Banners";
@@ -119,6 +121,12 @@ const App = () => (
             <Route path="/convite/:code" element={<Convite />} />
             <Route path="/convite/:id" element={<RequireApproval />}>
               <Route index element={<ConviteDetalhe />} />
+            </Route>
+            <Route path="/transferencia" element={<RequireApproval />}>
+              <Route index element={<TransferenciaDetalhe />} />
+            </Route>
+            <Route path="/transferencia-saida" element={<RequireApproval />}>
+              <Route index element={<TransferenciaSaida />} />
             </Route>
             <Route path="/explorar" element={<PublicDiscovery />} />
             <Route path="/explorar/time/:slug" element={<TeamProfile />} />
